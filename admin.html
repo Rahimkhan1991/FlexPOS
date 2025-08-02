@@ -2,324 +2,234 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel - POS</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - FlexPOS</title>
+  <link rel="stylesheet" href="style.css" />
   <style>
     body {
       margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: #f8f9fb;
-      color: #333;
-    }
-    header {
-      background: #2c3e50;
-      color: white;
-      padding: 14px 20px;
-      font-size: 22px;
-      font-weight: bold;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      height: 100vh;
     }
-    .back-btn {
-      background: #ffffff22;
-      color: white;
-      border: 1px solid #ffffff44;
-      padding: 6px 12px;
-      border-radius: 6px;
-      text-decoration: none;
-      font-size: 14px;
-    }
-    .tabs {
+    .sidebar {
+      width: 230px;
+      background: #222;
+      color: #fff;
+      padding: 1rem 0;
       display: flex;
-      background: #fff;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-      margin-bottom: 10px;
+      flex-direction: column;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
     }
-    .tab {
-      flex: 1;
+    .sidebar h2 {
       text-align: center;
-      padding: 12px;
-      cursor: pointer;
-      font-weight: 500;
-      border-bottom: 3px solid transparent;
-      transition: all 0.2s ease-in-out;
-      background: #f0f2f5;
+      margin-bottom: 2rem;
     }
-    .tab:hover {
-      background: #e6e8eb;
+    .sidebar a {
+      color: #ccc;
+      padding: 0.8rem 1.5rem;
+      text-decoration: none;
+      transition: background 0.2s;
     }
-    .tab.active {
-      background: #ffffff;
-      border-bottom: 3px solid #2c3e50;
-      font-weight: 600;
+    .sidebar a:hover, .sidebar a.active {
+      background: #444;
+      color: #fff;
     }
-    .tab-content {
-      display: none;
-      padding: 20px;
-      background: white;
-      margin: 0 10px 20px;
-      border-radius: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    .main {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
     }
-    .tab-content.active {
-      display: block;
+    .section {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .section h3 {
+      margin-top: 0;
     }
     input, select, button {
-      margin: 8px 0;
-      padding: 10px;
-      font-size: 15px;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
       width: 100%;
+      border-radius: 6px;
       border: 1px solid #ccc;
-      border-radius: 8px;
     }
     button {
-      background-color: #28a745;
-      color: white;
-      font-weight: bold;
+      background: #28a745;
+      color: #fff;
       cursor: pointer;
+      border: none;
     }
     button:hover {
-      background-color: #218838;
+      background: #218838;
     }
-    .manage-section {
-      margin-bottom: 30px;
+    .list {
+      margin-top: 1rem;
     }
-    .manage-section ul {
-      list-style: none;
-      padding: 0;
-    }
-    .manage-section li {
+    .list-item {
+      background: #f1f1f1;
+      padding: 0.8rem;
+      margin-bottom: 0.5rem;
+      border-radius: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #f9fafb;
-      padding: 10px 14px;
-      margin-bottom: 8px;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
-    .manage-section li button {
-      margin-left: 8px;
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-    }
-    .manage-section li button:hover {
-      background: #c82333;
+    .list-item button {
+      padding: 0.3rem 0.6rem;
+      margin-left: 0.5rem;
+      font-size: 0.9rem;
     }
   </style>
 </head>
 <body>
-
-<header>
-  Admin Panel - POS
-  <a href="pos.html" class="back-btn">← Back to POS</a>
-</header>
-
-<div class="tabs">
-  <button class="tab active" onclick="switchTab('items')">Items</button>
-  <button class="tab" onclick="switchTab('categories')">Categories</button>
-  <button class="tab" onclick="switchTab('users')">Users</button>
-  <button class="tab" onclick="switchTab('tables')">Tables</button>
-  <button class="tab" onclick="switchTab('settings')">Tax/Discount</button>
-  <button class="tab" onclick="switchTab('manage')">Manage</button>
-</div>
-
-<div id="items" class="tab-content active">
-  <h2>Add Item</h2>
-  <input id="itemName" placeholder="Item Name" />
-  <input id="itemPrice" type="number" placeholder="Price" />
-  <select id="itemCategory"></select>
-  <input id="itemKitchen" placeholder="Kitchen Name" />
-  <button onclick="saveItem()">Save Item</button>
-</div>
-
-<div id="categories" class="tab-content">
-  <h2>Add Category</h2>
-  <input id="categoryName" placeholder="Category Name" />
-  <button onclick="saveCategory()">Save Category</button>
-</div>
-
-<div id="users" class="tab-content">
-  <h2>Add User</h2>
-  <input id="userName" placeholder="Username" />
-  <select id="userRole">
-    <option value="admin">Admin</option>
-    <option value="sales">Sales</option>
-  </select>
-  <button onclick="saveUser()">Save User</button>
-</div>
-
-<div id="tables" class="tab-content">
-  <h2>Add Table</h2>
-  <input id="tableName" placeholder="Table Name" />
-  <button onclick="saveTable()">Save Table</button>
-</div>
-
-<div id="settings" class="tab-content">
-  <h2>Tax / Discount Settings</h2>
-  <input id="taxRate" type="number" placeholder="Tax % (e.g., 10)" />
-  <input id="discountRate" type="number" placeholder="Discount % (e.g., 5)" />
-  <button onclick="saveSettings()">Save Settings</button>
-</div>
-
-<div id="manage" class="tab-content">
-  <h2>Manage Records</h2>
-
-  <div class="manage-section">
-    <h3>Items</h3>
-    <ul id="manage-items-list"></ul>
+  <div class="sidebar">
+    <h2>Admin Panel</h2>
+    <a href="#" class="active" onclick="showSection('items')">Items</a>
+    <a href="#" onclick="showSection('categories')">Categories</a>
+    <a href="#" onclick="showSection('users')">Users</a>
+    <a href="#" onclick="showSection('tables')">Tables</a>
+    <a href="#" onclick="showSection('kitchen')">Kitchen</a>
+    <a href="#" onclick="showSection('manage')">Manage</a>
+    <a href="pos.html">Go to POS</a>
   </div>
 
-  <div class="manage-section">
-    <h3>Categories</h3>
-    <ul id="manage-categories-list"></ul>
+  <div class="main">
+    <div id="items" class="section">
+      <h3>Add Item</h3>
+      <input type="text" id="itemName" placeholder="Item Name">
+      <input type="number" id="itemPrice" placeholder="Item Price">
+      <button onclick="addItem()">Add Item</button>
+      <div class="list" id="itemList"></div>
+    </div>
+
+    <div id="categories" class="section" style="display:none">
+      <h3>Add Category</h3>
+      <input type="text" id="catName" placeholder="Category Name">
+      <button onclick="addCategory()">Add Category</button>
+      <div class="list" id="categoryList"></div>
+    </div>
+
+    <div id="users" class="section" style="display:none">
+      <h3>Add User</h3>
+      <input type="text" id="userName" placeholder="Username">
+      <input type="text" id="userRole" placeholder="Role (admin/sales)">
+      <button onclick="addUser()">Add User</button>
+      <div class="list" id="userList"></div>
+    </div>
+
+    <div id="tables" class="section" style="display:none">
+      <h3>Add Table</h3>
+      <input type="text" id="tableName" placeholder="Table Name/Number">
+      <button onclick="addTable()">Add Table</button>
+      <div class="list" id="tableList"></div>
+    </div>
+
+    <div id="kitchen" class="section" style="display:none">
+      <h3>Add Kitchen Section</h3>
+      <input type="text" id="kitchenName" placeholder="Kitchen Name">
+      <button onclick="addKitchen()">Add Kitchen</button>
+      <div class="list" id="kitchenList"></div>
+    </div>
+
+    <div id="manage" class="section" style="display:none">
+      <h3>Manage All Entries</h3>
+      <p>Coming soon: unified manage screen for editing & deleting all items, categories, users, etc.</p>
+    </div>
   </div>
 
-  <div class="manage-section">
-    <h3>Users</h3>
-    <ul id="manage-users-list"></ul>
-  </div>
+  <script>
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach(sec => sec.style.display = 'none');
+      document.getElementById(id).style.display = 'block';
+      document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+      event.target.classList.add('active');
+    }
 
-  <div class="manage-section">
-    <h3>Tables</h3>
-    <ul id="manage-tables-list"></ul>
-  </div>
-</div>
+    function addItem() {
+      const name = itemName.value;
+      const price = itemPrice.value;
+      if (!name || !price) return;
+      const items = JSON.parse(localStorage.getItem('items') || '[]');
+      items.push({ name, price });
+      localStorage.setItem('items', JSON.stringify(items));
+      renderList('items', items, 'itemList');
+      itemName.value = '';
+      itemPrice.value = '';
+    }
 
-<script>
-  function switchTab(id) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    document.querySelector(`.tab[onclick="switchTab('${id}')"]`).classList.add('active');
+    function addCategory() {
+      const name = catName.value;
+      if (!name) return;
+      const cats = JSON.parse(localStorage.getItem('categories') || '[]');
+      cats.push({ name });
+      localStorage.setItem('categories', JSON.stringify(cats));
+      renderList('categories', cats, 'categoryList');
+      catName.value = '';
+    }
 
-    if (id === 'manage') renderManageLists();
-    if (id === 'items') loadCategories();
-  }
+    function addUser() {
+      const name = userName.value;
+      const role = userRole.value;
+      if (!name || !role) return;
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      users.push({ name, role });
+      localStorage.setItem('users', JSON.stringify(users));
+      renderList('users', users, 'userList');
+      userName.value = '';
+      userRole.value = '';
+    }
 
-  function saveItem() {
-    const items = JSON.parse(localStorage.getItem('items') || '[]');
-    items.push({
-      name: document.getElementById('itemName').value,
-      price: document.getElementById('itemPrice').value,
-      category: document.getElementById('itemCategory').value,
-      kitchen: document.getElementById('itemKitchen').value
-    });
-    localStorage.setItem('items', JSON.stringify(items));
-    alert('Item saved!');
-  }
+    function addTable() {
+      const name = tableName.value;
+      if (!name) return;
+      const tables = JSON.parse(localStorage.getItem('tables') || '[]');
+      tables.push({ name });
+      localStorage.setItem('tables', JSON.stringify(tables));
+      renderList('tables', tables, 'tableList');
+      tableName.value = '';
+    }
 
-  function saveCategory() {
-    const cats = JSON.parse(localStorage.getItem('categories') || '[]');
-    cats.push(document.getElementById('categoryName').value);
-    localStorage.setItem('categories', JSON.stringify(cats));
-    alert('Category saved!');
-    loadCategories();
-  }
+    function addKitchen() {
+      const name = kitchenName.value;
+      if (!name) return;
+      const kitchens = JSON.parse(localStorage.getItem('kitchens') || '[]');
+      kitchens.push({ name });
+      localStorage.setItem('kitchens', JSON.stringify(kitchens));
+      renderList('kitchens', kitchens, 'kitchenList');
+      kitchenName.value = '';
+    }
 
-  function loadCategories() {
-    const select = document.getElementById('itemCategory');
-    const cats = JSON.parse(localStorage.getItem('categories') || '[]');
-    select.innerHTML = cats.map(c => `<option>${c}</option>`).join('');
-  }
+    function renderList(type, data, targetId) {
+      const target = document.getElementById(targetId);
+      target.innerHTML = '';
+      data.forEach((entry, i) => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.innerHTML = `${Object.values(entry).join(' - ')} <span><button onclick="deleteEntry('${type}', ${i})">Delete</button></span>`;
+        target.appendChild(div);
+      });
+    }
 
-  function saveUser() {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    users.push({
-      name: document.getElementById('userName').value,
-      role: document.getElementById('userRole').value
-    });
-    localStorage.setItem('users', JSON.stringify(users));
-    alert('User saved!');
-  }
+    function deleteEntry(type, index) {
+      const data = JSON.parse(localStorage.getItem(type) || '[]');
+      data.splice(index, 1);
+      localStorage.setItem(type, JSON.stringify(data));
+      renderList(type, data, `${type.slice(0, -1)}List`);
+    }
 
-  function saveTable() {
-    const tables = JSON.parse(localStorage.getItem('tables') || '[]');
-    tables.push(document.getElementById('tableName').value);
-    localStorage.setItem('tables', JSON.stringify(tables));
-    alert('Table saved!');
-  }
-
-  function saveSettings() {
-    const settings = {
-      tax: document.getElementById('taxRate').value,
-      discount: document.getElementById('discountRate').value
-    };
-    localStorage.setItem('settings', JSON.stringify(settings));
-    alert('Settings saved!');
-  }
-
-  function renderManageLists() {
-    const items = JSON.parse(localStorage.getItem('items') || '[]');
-    const categories = JSON.parse(localStorage.getItem('categories') || '[]');
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const tables = JSON.parse(localStorage.getItem('tables') || '[]');
-
-    document.getElementById('manage-items-list').innerHTML = items.map((item, i) => `
-      <li>
-        ${item.name} (${item.category}) - ₹${item.price}
-        <button onclick="deleteItem(${i})">Delete</button>
-      </li>
-    `).join('');
-
-    document.getElementById('manage-categories-list').innerHTML = categories.map((cat, i) => `
-      <li>
-        ${cat}
-        <button onclick="deleteCategory(${i})">Delete</button>
-      </li>
-    `).join('');
-
-    document.getElementById('manage-users-list').innerHTML = users.map((u, i) => `
-      <li>
-        ${u.name} (${u.role})
-        <button onclick="deleteUser(${i})">Delete</button>
-      </li>
-    `).join('');
-
-    document.getElementById('manage-tables-list').innerHTML = tables.map((t, i) => `
-      <li>
-        ${t}
-        <button onclick="deleteTable(${i})">Delete</button>
-      </li>
-    `).join('');
-  }
-
-  function deleteItem(index) {
-    let items = JSON.parse(localStorage.getItem('items') || '[]');
-    items.splice(index, 1);
-    localStorage.setItem('items', JSON.stringify(items));
-    renderManageLists();
-  }
-
-  function deleteCategory(index) {
-    let cats = JSON.parse(localStorage.getItem('categories') || '[]');
-    cats.splice(index, 1);
-    localStorage.setItem('categories', JSON.stringify(cats));
-    renderManageLists();
-  }
-
-  function deleteUser(index) {
-    let users = JSON.parse(localStorage.getItem('users') || '[]');
-    users.splice(index, 1);
-    localStorage.setItem('users', JSON.stringify(users));
-    renderManageLists();
-  }
-
-  function deleteTable(index) {
-    let tables = JSON.parse(localStorage.getItem('tables') || '[]');
-    tables.splice(index, 1);
-    localStorage.setItem('tables', JSON.stringify(tables));
-    renderManageLists();
-  }
-
-  window.onload = loadCategories;
-</script>
-
+    // Load all existing data
+    window.onload = function() {
+      renderList('items', JSON.parse(localStorage.getItem('items') || '[]'), 'itemList');
+      renderList('categories', JSON.parse(localStorage.getItem('categories') || '[]'), 'categoryList');
+      renderList('users', JSON.parse(localStorage.getItem('users') || '[]'), 'userList');
+      renderList('tables', JSON.parse(localStorage.getItem('tables') || '[]'), 'tableList');
+      renderList('kitchens', JSON.parse(localStorage.getItem('kitchens') || '[]'), 'kitchenList');
+    }
+  </script>
 </body>
 </html>
