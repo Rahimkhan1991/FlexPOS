@@ -4,230 +4,134 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Panel - POS</title>
-  <link rel="stylesheet" href="style.css" />
   <style>
     body {
       margin: 0;
-      font-family: sans-serif;
-      display: flex;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      color: #333;
     }
-
-    .sidebar {
-      width: 220px;
-      background-color: #2c3e50;
+    header {
+      background: #2c3e50;
       color: white;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .sidebar h2 {
-      padding: 1rem;
-      font-size: 1.2rem;
-      margin: 0;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .sidebar a {
-      color: white;
-      text-decoration: none;
-      padding: 1rem;
-      display: block;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .sidebar a:hover {
-      background-color: #34495e;
-    }
-
-    .main-content {
-      flex: 1;
-      padding: 1rem;
-      background: #5977b8;
-    }
-
-    .tabs {
-      display: flex;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid #ccc;
-    }
-
-    .tab {
-      padding: 0.75rem 1.5rem;
-      cursor: pointer;
-      border: none;
-      background: none;
+      padding: 12px 20px;
+      font-size: 20px;
       font-weight: bold;
     }
-
-    .tab.active {
-      border-bottom: 3px solid #3498db;
-      color: #3498db;
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #ccc;
+      background: #ecf0f1;
     }
-
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px;
+      cursor: pointer;
+      background: #ecf0f1;
+      border: none;
+      outline: none;
+    }
+    .tab.active {
+      background: #ffffff;
+      font-weight: bold;
+      border-bottom: 2px solid #2c3e50;
+    }
     .tab-content {
       display: none;
+      padding: 20px;
     }
-
     .tab-content.active {
       display: block;
     }
-
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    .form-group label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 0.4rem;
-    }
-
-    .form-group input, .form-group select {
-      padding: 0.5rem;
+    input, select, button {
+      margin: 5px 0;
+      padding: 8px;
+      font-size: 14px;
       width: 100%;
-      border: 1px solid #3009e0;
+    }
+    .manage-section {
+      margin-bottom: 30px;
+    }
+    .manage-section ul {
+      list-style: none;
+      padding: 0;
+    }
+    .manage-section li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8f8f8;
+      padding: 6px 10px;
+      margin-bottom: 6px;
       border-radius: 6px;
     }
-
-    .admin-card {
-      background: #d7e1ee;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      margin-bottom: 2rem;
-    }
-
-    .admin-card h3 {
-      margin-top: 0;
-    }
-
-    button {
-      background: #3498db;
-      color: white;
+    .manage-section li button {
+      margin-left: 8px;
+      background: #2c3e50;
+      color: #fff;
       border: none;
-      padding: 0.5rem 1rem;
+      padding: 5px 10px;
       border-radius: 4px;
-      cursor: pointer;
     }
-
-    button:hover {
-      background: #2980b9;
+    .manage-section li button:hover {
+      background: #1a252f;
     }
   </style>
 </head>
 <body>
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <h2>POS Admin</h2>
-    <a href="dashboard.html">🏠 Dashboard</a>
-    <a href="pos.html">🧾 POS Billing</a>
-    <a href="receipt.html">🖨️ Print Receipt</a>
-    <a href="report.html">📊 Reports</a>
-    <a href="admin.html">⚙️ Admin</a>
-    <a href="login.html">🚪 Logout</a>
-  </div>
 
-  <!-- Main Content -->
-  <div class="main-content">
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('items')">Items</button>
-      <button class="tab" onclick="switchTab('categories')">Categories</button>
-      <button class="tab" onclick="switchTab('users')">Users</button>
-      <button class="tab" onclick="switchTab('tables')">Tables</button>
-      <button class="tab" onclick="switchTab('settings')">Tax/Discount</button>
-      <div class="tab" onclick="switchTab('manage')">Manage</div>
+<header>Admin Panel - POS</header>
 
-    </div>
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('items')">Items</button>
+  <button class="tab" onclick="switchTab('categories')">Categories</button>
+  <button class="tab" onclick="switchTab('users')">Users</button>
+  <button class="tab" onclick="switchTab('tables')">Tables</button>
+  <button class="tab" onclick="switchTab('settings')">Tax/Discount</button>
+  <button class="tab" onclick="switchTab('manage')">Manage</button>
+</div>
 
-    <!-- Items Tab -->
-    <div id="items" class="tab-content active">
-      <div class="admin-card">
-        <h3>Add Item</h3>
-        <div class="form-group">
-          <label>Item Name</label>
-          <input type="text" id="item-name" />
-        </div>
-        <div class="form-group">
-          <label>Price</label>
-          <input type="number" id="item-price" />
-        </div>
-        <div class="form-group">
-          <label>Category</label>
-          <select id="item-category">
-            <option value="Main">Main</option>
-            <option value="Kitchen1">Kitchen 1</option>
-            <option value="Kitchen2">Kitchen 2</option>
-          </select>
-        </div>
-        <button>Add Item</button>
-      </div>
-    </div>
+<div id="items" class="tab-content active">
+  <h2>Add Item</h2>
+  <input id="itemName" placeholder="Item Name" />
+  <input id="itemPrice" type="number" placeholder="Price" />
+  <select id="itemCategory"></select>
+  <input id="itemKitchen" placeholder="Kitchen Name" />
+  <button onclick="saveItem()">Save Item</button>
+</div>
 
-    <!-- Categories Tab -->
-    <div id="categories" class="tab-content">
-      <div class="admin-card">
-        <h3>Add Category</h3>
-        <div class="form-group">
-          <label>Category Name</label>
-          <input type="text" id="category-name" />
-        </div>
-        <button>Add Category</button>
-      </div>
-    </div>
+<div id="categories" class="tab-content">
+  <h2>Add Category</h2>
+  <input id="categoryName" placeholder="Category Name" />
+  <button onclick="saveCategory()">Save Category</button>
+</div>
 
-    <!-- Users Tab -->
-    <div id="users" class="tab-content">
-      <div class="admin-card">
-        <h3>Add User</h3>
-        <div class="form-group">
-          <label>Username</label>
-          <input type="text" id="user-name" />
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="user-pass" />
-        </div>
-        <div class="form-group">
-          <label>Role</label>
-          <select id="user-role">
-            <option>admin</option>
-            <option>sales</option>
-          </select>
-        </div>
-        <button>Add User</button>
-      </div>
-    </div>
+<div id="users" class="tab-content">
+  <h2>Add User</h2>
+  <input id="userName" placeholder="Username" />
+  <select id="userRole">
+    <option value="admin">Admin</option>
+    <option value="sales">Sales</option>
+  </select>
+  <button onclick="saveUser()">Save User</button>
+</div>
 
-    <!-- Tables Tab -->
-    <div id="tables" class="tab-content">
-      <div class="admin-card">
-        <h3>Add Table</h3>
-        <div class="form-group">
-          <label>Table Name</label>
-          <input type="text" id="table-name" />
-        </div>
-        <button>Add Table</button>
-      </div>
-    </div>
+<div id="tables" class="tab-content">
+  <h2>Add Table</h2>
+  <input id="tableName" placeholder="Table Name" />
+  <button onclick="saveTable()">Save Table</button>
+</div>
 
-    <!-- Tax/Discount Tab -->
-    <div id="settings" class="tab-content">
-      <div class="admin-card">
-        <h3>Tax/Discount Settings</h3>
-        <div class="form-group">
-          <label>Tax (%)</label>
-          <input type="number" id="tax-value" />
-        </div>
-        <div class="form-group">
-          <label>Discount (%)</label>
-          <input type="number" id="discount-value" />
-        </div>
-        <div class="form-group">
-          <label>Service Charge (%)</label>
-          <input type="number" id="service-value" />
-        </div>
-        <div id="manage" class="tab-content">
+<div id="settings" class="tab-content">
+  <h2>Tax / Discount Settings</h2>
+  <input id="taxRate" type="number" placeholder="Tax % (e.g., 10)" />
+  <input id="discountRate" type="number" placeholder="Discount % (e.g., 5)" />
+  <button onclick="saveSettings()">Save Settings</button>
+</div>
+
+<!-- ✅ Manage Tab -->
+<div id="manage" class="tab-content">
   <h2>Manage Records</h2>
 
   <div class="manage-section">
@@ -251,153 +155,135 @@
   </div>
 </div>
 
-        <button>Save Settings</button>
-      </div>
-    </div>
-  </div>
-
 <script>
-  function switchTab(tab) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  function switchTab(id) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelector(`.tab[onclick="switchTab('${id}')"]`).classList.add('active');
 
-    document.querySelector(`.tab[onclick*="${tab}"]`).classList.add('active');
-    document.getElementById(tab).classList.add('active');
+    if (id === 'manage') renderManageLists();
+    if (id === 'items') loadCategories();
   }
 
-  // Utility to save to localStorage
-  function saveToStorage(key, data) {
-    let existing = JSON.parse(localStorage.getItem(key)) || [];
-    existing.push(data);
-    localStorage.setItem(key, JSON.stringify(existing));
+  function saveItem() {
+    const items = JSON.parse(localStorage.getItem('items') || '[]');
+    items.push({
+      name: document.getElementById('itemName').value,
+      price: document.getElementById('itemPrice').value,
+      category: document.getElementById('itemCategory').value,
+      kitchen: document.getElementById('itemKitchen').value
+    });
+    localStorage.setItem('items', JSON.stringify(items));
+    alert('Item saved!');
   }
 
-  // ITEM
-  document.querySelector('#items button').addEventListener('click', () => {
-    const name = document.getElementById('item-name').value.trim();
-    const price = parseFloat(document.getElementById('item-price').value);
-    const category = document.getElementById('item-category').value;
-
-    if (!name || isNaN(price)) {
-      alert("Please enter item name and valid price");
-      return;
-    }
-
-    const item = { name, price, category };
-    saveToStorage("items", item);
-    alert("Item saved!");
-    document.getElementById('item-name').value = '';
-    document.getElementById('item-price').value = '';
-  });
-
-  // CATEGORY
-  document.querySelector('#categories button').addEventListener('click', () => {
-    const name = document.getElementById('category-name').value.trim();
-    if (!name) {
-      alert("Enter category name");
-      return;
-    }
-
-    const category = { name };
-    saveToStorage("categories", category);
-    alert("Category saved!");
-    document.getElementById('category-name').value = '';
-  });
-
-  // USER
-  document.querySelector('#users button').addEventListener('click', () => {
-    const username = document.getElementById('user-name').value.trim();
-    const password = document.getElementById('user-pass').value;
-    const role = document.getElementById('user-role').value;
-
-    if (!username || !password) {
-      alert("Enter username and password");
-      return;
-    }
-
-    const user = { username, password, role };
-    saveToStorage("users", user);
-    alert("User saved!");
-    document.getElementById('user-name').value = '';
-    document.getElementById('user-pass').value = '';
-  });
-
-  // TABLE
-  document.querySelector('#tables button').addEventListener('click', () => {
-    const table = document.getElementById('table-name').value.trim();
-    if (!table) {
-      alert("Enter table name");
-      return;
-    }
-
-    saveToStorage("tables", { table });
-    alert("Table saved!");
-    document.getElementById('table-name').value = '';
-  });
-
-  // TAX / DISCOUNT
-  document.querySelector('#settings button').addEventListener('click', () => {
-    const tax = parseFloat(document.getElementById('tax-value').value) || 0;
-    const discount = parseFloat(document.getElementById('discount-value').value) || 0;
-    const service = parseFloat(document.getElementById('service-value').value) || 0;
-
-    localStorage.setItem('settings', JSON.stringify({ tax, discount, service }));
-    alert("Settings saved!");
-  });
-  function loadManageLists() {
-  loadList('items', 'manage-items-list', item => `${item.name} - ₹${item.price} (${item.category})`);
-  loadList('categories', 'manage-categories-list', cat => `${cat.name}`);
-  loadList('users', 'manage-users-list', user => `${user.username} (${user.role})`);
-  loadList('tables', 'manage-tables-list', t => t.table);
-}
-
-function loadList(key, ulId, displayFn) {
-  const ul = document.getElementById(ulId);
-  ul.innerHTML = '';
-
-  let list = JSON.parse(localStorage.getItem(key)) || [];
-  list.forEach((item, index) => {
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <span>${displayFn(item)}</span>
-      <span>
-        <button onclick="editItem('${key}', ${index})">Edit</button>
-        <button onclick="deleteItem('${key}', ${index})">Delete</button>
-      </span>
-    `;
-    ul.appendChild(li);
-  });
-}
-
-function deleteItem(key, index) {
-  if (!confirm("Are you sure?")) return;
-  let list = JSON.parse(localStorage.getItem(key)) || [];
-  list.splice(index, 1);
-  localStorage.setItem(key, JSON.stringify(list));
-  loadManageLists();
-}
-
-function editItem(key, index) {
-  let list = JSON.parse(localStorage.getItem(key)) || [];
-  let item = list[index];
-  let fields = Object.keys(item);
-  let updated = {};
-
-  for (let field of fields) {
-    let val = prompt(`Edit ${field}`, item[field]);
-    if (val === null) return; // Cancelled
-    updated[field] = isNaN(item[field]) ? val : parseFloat(val);
+  function saveCategory() {
+    const cats = JSON.parse(localStorage.getItem('categories') || '[]');
+    cats.push(document.getElementById('categoryName').value);
+    localStorage.setItem('categories', JSON.stringify(cats));
+    alert('Category saved!');
+    loadCategories();
   }
 
-  list[index] = updated;
-  localStorage.setItem(key, JSON.stringify(list));
-  loadManageLists();
-}
+  function loadCategories() {
+    const select = document.getElementById('itemCategory');
+    const cats = JSON.parse(localStorage.getItem('categories') || '[]');
+    select.innerHTML = cats.map(c => `<option>${c}</option>`).join('');
+  }
 
-// Load manage data when switching tab
-document.querySelector('.tab[onclick*="manage"]').addEventListener('click', loadManageLists);
+  function saveUser() {
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    users.push({
+      name: document.getElementById('userName').value,
+      role: document.getElementById('userRole').value
+    });
+    localStorage.setItem('users', JSON.stringify(users));
+    alert('User saved!');
+  }
 
+  function saveTable() {
+    const tables = JSON.parse(localStorage.getItem('tables') || '[]');
+    tables.push(document.getElementById('tableName').value);
+    localStorage.setItem('tables', JSON.stringify(tables));
+    alert('Table saved!');
+  }
+
+  function saveSettings() {
+    const settings = {
+      tax: document.getElementById('taxRate').value,
+      discount: document.getElementById('discountRate').value
+    };
+    localStorage.setItem('settings', JSON.stringify(settings));
+    alert('Settings saved!');
+  }
+
+  function renderManageLists() {
+    const items = JSON.parse(localStorage.getItem('items') || '[]');
+    const categories = JSON.parse(localStorage.getItem('categories') || '[]');
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const tables = JSON.parse(localStorage.getItem('tables') || '[]');
+
+    document.getElementById('manage-items-list').innerHTML = items.map((item, i) => `
+      <li>
+        ${item.name} (${item.category}) - ₹${item.price}
+        <span>
+          <button onclick="deleteItem(${i})">Delete</button>
+        </span>
+      </li>
+    `).join('');
+
+    document.getElementById('manage-categories-list').innerHTML = categories.map((cat, i) => `
+      <li>
+        ${cat}
+        <button onclick="deleteCategory(${i})">Delete</button>
+      </li>
+    `).join('');
+
+    document.getElementById('manage-users-list').innerHTML = users.map((u, i) => `
+      <li>
+        ${u.name} (${u.role})
+        <button onclick="deleteUser(${i})">Delete</button>
+      </li>
+    `).join('');
+
+    document.getElementById('manage-tables-list').innerHTML = tables.map((t, i) => `
+      <li>
+        ${t}
+        <button onclick="deleteTable(${i})">Delete</button>
+      </li>
+    `).join('');
+  }
+
+  function deleteItem(index) {
+    let items = JSON.parse(localStorage.getItem('items') || '[]');
+    items.splice(index, 1);
+    localStorage.setItem('items', JSON.stringify(items));
+    renderManageLists();
+  }
+
+  function deleteCategory(index) {
+    let cats = JSON.parse(localStorage.getItem('categories') || '[]');
+    cats.splice(index, 1);
+    localStorage.setItem('categories', JSON.stringify(cats));
+    renderManageLists();
+  }
+
+  function deleteUser(index) {
+    let users = JSON.parse(localStorage.getItem('users') || '[]');
+    users.splice(index, 1);
+    localStorage.setItem('users', JSON.stringify(users));
+    renderManageLists();
+  }
+
+  function deleteTable(index) {
+    let tables = JSON.parse(localStorage.getItem('tables') || '[]');
+    tables.splice(index, 1);
+    localStorage.setItem('tables', JSON.stringify(tables));
+    renderManageLists();
+  }
+
+  window.onload = loadCategories;
 </script>
-
 </body>
 </html>
