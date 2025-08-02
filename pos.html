@@ -1,192 +1,52 @@
+<!-- pos.html - Petpooja Style POS Screen -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Restaurant POS System</title>
+  <title>POS System</title>
   <link rel="stylesheet" href="style.css" />
-<a href="admin.html" class="nav-link">Admin Panel</a>
-
 </head>
 <body>
-  <div id="app">
-    <!-- Header -->
-    <header>
-      <h1>POS System</h1>
-      <div id="user-info"></div>
-    </header>
+  <div class="pos-container">
+    <!-- Sidebar: Category + Items -->
+    <div class="menu-section">
+      <div class="category-buttons">
+        <button class="category-btn active">Drinks</button>
+        <button class="category-btn">Main Course</button>
+        <button class="category-btn">Desserts</button>
+      </div>
+      <div class="items-list" id="itemsList">
+        <!-- Dynamically loaded items -->
+      </div>
+    </div>
 
-    <!-- Category Buttons -->
-    <div id="categories"></div>
-
-    <!-- Menu Items -->
-    <div id="items" class="item-grid"></div>
-
-    <!-- Cart -->
-    <div id="cart">
+    <!-- Order Summary -->
+    <div class="summary-section">
       <h2>Order Summary</h2>
-      <div id="cart-items"></div>
-      <div id="cart-totals"></div>
-      <button onclick="placeOrder()">Place Order</button>
-      <button onclick="exportOrdersCSV()">Export CSV</button>
-      <button onclick="printSummary()">Print Summary</button>
-    </div>
+      <div id="orderItems"></div>
 
-    <!-- Summary Filters -->
-    <div id="summary-controls">
-      <input type="date" id="filter-date" />
-      <button onclick="filterOrders()">Apply Filter</button>
-    </div>
+      <div class="summary-line">Subtotal: ₹<span id="subtotal">0.00</span></div>
+      <div class="summary-line">Tax (5%): ₹<span id="tax">0.00</span></div>
+      <div class="summary-line">Discount (10%): -₹<span id="discount">0.00</span></div>
+      <div class="summary-line">Service Charge (5%): ₹<span id="serviceCharge">0.00</span></div>
+      <hr />
+      <div class="total-line">Total: ₹<span id="total">0.00</span></div>
 
-    <!-- Summary Table -->
-    <div id="summary"></div>
-  </div>
+      <div class="action-buttons">
+        <button onclick="placeOrder()">Place Order</button>
+        <button onclick="exportCSV()">Export CSV</button>
+        <button onclick="printSummary()">Print Summary</button>
+        <button onclick="printKOT()">Print KOT</button>
+      </div>
 
-  <!-- KOT Modal -->
-  <div id="kot-modal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeKOTModal()">&times;</span>
-      <div id="kot-output"></div>
-      <button onclick="window.print()">Print KOT</button>
+      <div class="filter-date">
+        <input type="date" id="filterDate">
+        <button onclick="applyDateFilter()">Apply Filter</button>
+      </div>
     </div>
   </div>
 
-  <script>
-    const users = [{ username: 'admin', role: 'admin' }, { username: 'sales', role: 'sales' }];
-    const categories = [
-      { name: 'Drinks', kitchen: 'Bar' },
-      { name: 'Main Course', kitchen: 'Kitchen 1' },
-      { name: 'Desserts', kitchen: 'Kitchen 2' }
-    ];
-
-    const items = [
-      { name: 'Coke', price: 20, category: 'Drinks' },
-      { name: 'Burger', price: 50, category: 'Main Course' },
-      { name: 'Ice Cream', price: 30, category: 'Desserts' }
-    ];
-
-    let cart = [];
-    let orders = JSON.parse(localStorage.getItem('orders') || '[]');
-
-    function renderCategories() {
-      const catEl = document.getElementById('categories');
-      catEl.innerHTML = categories.map(cat => `<button onclick="renderItems('${cat.name}')">${cat.name}</button>`).join('');
-    }
-
-    function renderItems(category) {
-      const grid = document.getElementById('items');
-      grid.innerHTML = items.filter(i => i.category === category).map(i => `
-        <div class="item" onclick='addToCart("${i.name}")'>
-          <p>${i.name}</p>
-          <p>₹${i.price}</p>
-        </div>`
-      ).join('');
-    }
-
-    function addToCart(itemName) {
-      const item = items.find(i => i.name === itemName);
-      const existing = cart.find(i => i.name === item.name);
-      if (existing) existing.qty++;
-      else cart.push({ ...item, qty: 1 });
-      renderCart();
-    }
-
-    function renderCart() {
-      const cartEl = document.getElementById('cart-items');
-      cartEl.innerHTML = cart.map(i => `<div>${i.name} x ${i.qty} = ₹${i.qty * i.price}</div>`).join('');
-
-      let total = cart.reduce((sum, i) => sum + i.qty * i.price, 0);
-      let tax = total * 0.05;
-      let discount = total * 0.1;
-      let service = total * 0.05;
-      let grand = total + tax + service - discount;
-
-      document.getElementById('cart-totals').innerHTML = `
-        <p>Subtotal: ₹${total.toFixed(2)}</p>
-        <p>Tax (5%): ₹${tax.toFixed(2)}</p>
-        <p>Discount (10%): -₹${discount.toFixed(2)}</p>
-        <p>Service Charge (5%): ₹${service.toFixed(2)}</p>
-        <strong>Total: ₹${grand.toFixed(2)}</strong>`;
-    }
-
-    function placeOrder() {
-      const now = new Date();
-      const order = {
-        id: Date.now(),
-        user: 'sales',
-        table: 'T1',
-        items: [...cart],
-        time: now.toLocaleTimeString(),
-        date: now.toISOString().split('T')[0]
-      };
-      orders.push(order);
-      localStorage.setItem('orders', JSON.stringify(orders));
-      showKOT(order);
-      cart = [];
-      renderCart();
-    }
-
-    function showKOT(order) {
-      const kitchens = {};
-      order.items.forEach(item => {
-        const cat = categories.find(c => c.name === item.category);
-        if (!kitchens[cat.kitchen]) kitchens[cat.kitchen] = [];
-        kitchens[cat.kitchen].push(item);
-      });
-
-      const kotOutput = document.getElementById('kot-output');
-      kotOutput.innerHTML = Object.entries(kitchens).map(([kitchen, items]) => `
-        <div class="kot">
-          <h3>${kitchen} - KOT</h3>
-          <p><strong>Table:</strong> ${order.table}</p>
-          <p><strong>User:</strong> ${order.user}</p>
-          <p><strong>Time:</strong> ${order.time}</p>
-          <ul>${items.map(i => `<li>${i.name} x ${i.qty}</li>`).join('')}</ul>
-        </div>
-      `).join('<hr>');
-
-      document.getElementById('kot-modal').style.display = 'block';
-    }
-
-    function closeKOTModal() {
-      document.getElementById('kot-modal').style.display = 'none';
-    }
-
-    function exportOrdersCSV() {
-      let csv = 'ID,Date,Time,User,Table,Items\n';
-      orders.forEach(o => {
-        const itemStr = o.items.map(i => `${i.name} x ${i.qty}`).join('; ');
-        csv += `${o.id},${o.date},${o.time},${o.user},${o.table},"${itemStr}"\n`;
-      });
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'sales.csv';
-      a.click();
-    }
-
-    function printSummary() {
-      const summary = orders.map(o => `
-        <p>Order #${o.id} | ${o.date} ${o.time} | ${o.user} | ${o.table}</p>
-        <ul>${o.items.map(i => `<li>${i.name} x ${i.qty}</li>`).join('')}</ul><hr>`).join('');
-      const newWin = window.open('', '', 'width=600,height=800');
-      newWin.document.write(`<html><body>${summary}</body></html>`);
-      newWin.print();
-    }
-
-    function filterOrders() {
-      const date = document.getElementById('filter-date').value;
-      const filtered = orders.filter(o => o.date === date);
-      document.getElementById('summary').innerHTML = filtered.map(o => `
-        <div>
-          <p><strong>${o.date}</strong> ${o.time} | ${o.user} | ${o.table}</p>
-          <ul>${o.items.map(i => `<li>${i.name} x ${i.qty}</li>`).join('')}</ul>
-        </div>
-      `).join('<hr>');
-    }
-
-    renderCategories();
-    renderCart();
-  </script>
+  <script src="pos.js"></script>
 </body>
 </html>
