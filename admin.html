@@ -136,6 +136,8 @@
       <button class="tab" onclick="switchTab('users')">Users</button>
       <button class="tab" onclick="switchTab('tables')">Tables</button>
       <button class="tab" onclick="switchTab('settings')">Tax/Discount</button>
+      <div class="tab" onclick="switchTab('manage')">Manage</div>
+
     </div>
 
     <!-- Items Tab -->
@@ -225,6 +227,30 @@
           <label>Service Charge (%)</label>
           <input type="number" id="service-value" />
         </div>
+        <div id="manage" class="tab-content">
+  <h2>Manage Records</h2>
+
+  <div class="manage-section">
+    <h3>Items</h3>
+    <ul id="manage-items-list"></ul>
+  </div>
+
+  <div class="manage-section">
+    <h3>Categories</h3>
+    <ul id="manage-categories-list"></ul>
+  </div>
+
+  <div class="manage-section">
+    <h3>Users</h3>
+    <ul id="manage-users-list"></ul>
+  </div>
+
+  <div class="manage-section">
+    <h3>Tables</h3>
+    <ul id="manage-tables-list"></ul>
+  </div>
+</div>
+
         <button>Save Settings</button>
       </div>
     </div>
