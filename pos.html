@@ -4,15 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Restaurant POS</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { margin: 0; font-family: sans-serif; background: #f2f2f2; }
+    .header { background: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .content { display: flex; height: calc(100vh - 60px); }
+    .categories, .items, .cart { padding: 15px; overflow-y: auto; }
+    .categories { width: 20%; background: #fff; border-right: 1px solid #ccc; }
+    .items { width: 50%; background: #fff; border-right: 1px solid #ccc; }
+    .cart { width: 30%; background: #fff; }
+    .category-btn, .item-btn { display: block; width: 100%; padding: 10px; margin-bottom: 8px; border: none; cursor: pointer; font-size: 16px; }
+    .category-btn { background: #e0e0e0; }
+    .item-btn { background: #d9edf7; }
+    .cart-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding: 8px; background: #f9f9f9; border: 1px solid #ddd; }
+    .cart-total { font-weight: bold; font-size: 18px; padding-top: 10px; }
+  </style>
 </head>
 <body>
   <div class="header">
     <h2>Restaurant POS</h2>
-    <div>
-      <span id="user-role"></span>
-      <button onclick="logout()">Logout</button>
-    </div>
+    <span id="user-info"></span>
   </div>
 
   <div class="content">
@@ -22,21 +32,27 @@
       <h3>Cart</h3>
       <div id="cart-items"></div>
       <div class="cart-total" id="cart-total">Total: Rp0</div>
-      <button onclick="printBill()">Print Bill</button>
     </div>
   </div>
 
-  <script src="data.js"></script>
   <script>
-    const currentUser = JSON.parse(localStorage.getItem('currentUser')) || { name: 'Unknown', role: '' };
-    document.getElementById('user-role').innerText = `User: ${currentUser.username} (${currentUser.role})`;
+    // Check login
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) {
+      window.location.href = "index.html";
+    }
+    document.getElementById("user-info").textContent = `User: ${currentUser.username} (${currentUser.role})`;
+
+    // Sample Data (Later replace with data.js or backend)
+    const categories = ["Makanan", "Minuman"];
+    const items = [
+      { name: "Nasi Goreng", price: 20000, category: "Makanan" },
+      { name: "Ayam Bakar", price: 25000, category: "Makanan" },
+      { name: "Es Teh", price: 5000, category: "Minuman" },
+      { name: "Jus Alpukat", price: 10000, category: "Minuman" }
+    ];
 
     const cart = [];
-
-    function logout() {
-      localStorage.removeItem('currentUser');
-      window.location.href = 'index.html';
-    }
 
     function renderCategories() {
       const catDiv = document.getElementById('categories');
@@ -53,8 +69,7 @@
     function renderItems(category) {
       const itemsDiv = document.getElementById('items');
       itemsDiv.innerHTML = '';
-      const filteredItems = items.filter(i => i.category === category);
-      filteredItems.forEach(item => {
+      items.filter(i => i.category === category).forEach(item => {
         const btn = document.createElement('button');
         btn.className = 'item-btn';
         btn.textContent = `${item.name} - Rp${item.price}`;
@@ -70,34 +85,21 @@
       } else {
         cart.push({ ...item, qty: 1 });
       }
-      updateCartDisplay();
+      updateCart();
     }
 
-    function updateCartDisplay() {
+    function updateCart() {
       const cartDiv = document.getElementById('cart-items');
       cartDiv.innerHTML = '';
       let total = 0;
-      cart.forEach(c => {
+      cart.forEach(item => {
         const div = document.createElement('div');
         div.className = 'cart-item';
-        div.textContent = `${c.qty} x ${c.name} = Rp${c.qty * c.price}`;
+        div.textContent = `${item.qty} x ${item.name} = Rp${item.qty * item.price}`;
         cartDiv.appendChild(div);
-        total += c.qty * c.price;
+        total += item.qty * item.price;
       });
       document.getElementById('cart-total').textContent = `Total: Rp${total}`;
-    }
-
-    function printBill() {
-      let bill = `Restaurant POS Bill\nUser: ${currentUser.username}\n\n`;
-      let total = 0;
-      cart.forEach(c => {
-        bill += `${c.qty} x ${c.name} = Rp${c.qty * c.price}\n`;
-        total += c.qty * c.price;
-      });
-      bill += `\nTotal: Rp${total}`;
-      alert(bill); // replace with window.print() if needed
-      cart.length = 0;
-      updateCartDisplay();
     }
 
     renderCategories();
