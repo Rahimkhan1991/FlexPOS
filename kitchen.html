@@ -28,6 +28,11 @@
       font-weight: bold;
       margin-bottom: 10px;
     }
+    .order-meta {
+      font-size: 0.9em;
+      color: #555;
+      margin-bottom: 10px;
+    }
     .order-items {
       padding-left: 20px;
     }
@@ -35,8 +40,20 @@
       margin-bottom: 5px;
     }
     .kitchen-type {
-      color: #555;
+      color: #888;
       font-size: 0.9em;
+    }
+    .print-btn {
+      margin-top: 10px;
+      padding: 6px 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .print-btn:hover {
+      background: #0056b3;
     }
   </style>
 </head>
@@ -58,7 +75,9 @@
           table: order.table,
           type: order.type,
           kitchen: order.kitchen,
-          items: order.items
+          items: order.items,
+          user: order.user || "Unknown",
+          time: order.time || new Date().toLocaleTimeString()
         }));
     }
 
@@ -67,7 +86,7 @@
     function renderOrders() {
       const orders = getKitchenOrders();
       orderContainer.innerHTML = "";
-      orders.forEach(order => {
+      orders.forEach((order, index) => {
         const div = document.createElement("div");
         div.className = "order";
         div.innerHTML = `
@@ -75,12 +94,39 @@
             <span>${order.table} (${order.type})</span>
             <span class="kitchen-type">${order.kitchen}</span>
           </div>
+          <div class="order-meta">
+            User: ${order.user} <br/>
+            Time: ${order.time}
+          </div>
           <ul class="order-items">
             ${order.items.map(i => `<li>${i}</li>`).join("")}
           </ul>
+          <button class="print-btn" onclick="printOrder(${index})">🖨️ Print</button>
         `;
         orderContainer.appendChild(div);
       });
+    }
+
+    function printOrder(orderIndex) {
+      const orders = getKitchenOrders();
+      const order = orders[orderIndex];
+      const newWindow = window.open("", "PrintWindow", "width=600,height=400");
+      newWindow.document.write(`
+        <html>
+        <head><title>Print Order</title></head>
+        <body onload="window.print(); window.close();">
+          <h3>Kitchen: ${order.kitchen}</h3>
+          <p><strong>Table:</strong> ${order.table}</p>
+          <p><strong>Type:</strong> ${order.type}</p>
+          <p><strong>User:</strong> ${order.user}</p>
+          <p><strong>Time:</strong> ${order.time}</p>
+          <ul>
+            ${order.items.map(i => `<li>${i}</li>`).join("")}
+          </ul>
+        </body>
+        </html>
+      `);
+      newWindow.document.close();
     }
 
     renderOrders();
