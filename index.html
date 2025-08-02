@@ -28,6 +28,26 @@
         document.getElementById('login-error').innerText = "Invalid login!";
       }
     }
+    <script>
+  const users = [
+    { username: "admin", password: "admin123", role: "admin" },
+    { username: "cashier", password: "cashier123", role: "sales" }
+  ];
+
+  function login() {
+    const uname = document.getElementById("username").value;
+    const pwd = document.getElementById("password").value;
+
+    const user = users.find(u => u.username === uname && u.password === pwd);
+    if (user) {
+      localStorage.setItem("currentUser", JSON.stringify(user));
+      window.location.href = "pos.html"; // <- This should work!
+    } else {
+      alert("Invalid username or password!");
+    }
+  }
+</script>
+
   </script>
 </body>
 </html>
