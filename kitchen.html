@@ -48,27 +48,26 @@
   </div>
 
   <script>
-    // Simulate receiving kitchen order data via localStorage or mock
-    const sampleOrders = JSON.parse(localStorage.getItem("kitchenOrders")) || [
-      {
-        table: "Table 4",
-        type: "Dine-In",
-        kitchen: "Kitchen 1",
-        items: ["Fried Rice x 1", "Spring Roll x 2"]
-      },
-      {
-        table: "Parcel",
-        type: "Parcel",
-        kitchen: "Kitchen 2",
-        items: ["Pizza x 1", "Garlic Bread x 1"]
-      }
-    ];
+    function getKitchenOrders() {
+      const allOrders = JSON.parse(localStorage.getItem("orders")) || [];
+      const kitchenName = new URLSearchParams(location.search).get("kitchen") || "Kitchen 1";
+
+      return allOrders
+        .filter(order => order.kitchen === kitchenName)
+        .map(order => ({
+          table: order.table,
+          type: order.type,
+          kitchen: order.kitchen,
+          items: order.items
+        }));
+    }
 
     const orderContainer = document.getElementById("orderContainer");
 
     function renderOrders() {
+      const orders = getKitchenOrders();
       orderContainer.innerHTML = "";
-      sampleOrders.forEach(order => {
+      orders.forEach(order => {
         const div = document.createElement("div");
         div.className = "order";
         div.innerHTML = `
@@ -85,6 +84,7 @@
     }
 
     renderOrders();
+    setInterval(renderOrders, 5000); // Auto-refresh every 5s
   </script>
 </body>
 </html>
