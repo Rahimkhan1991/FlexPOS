@@ -4,54 +4,61 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>POS System</title>
+  <title>POS Dashboard</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <!-- Add this inside <body> just after opening -->
-<div style="position: fixed; top: 10px; left: 10px;">
-  <a href="admin.html" title="Admin Panel" style="text-decoration: none;">
-    <button style="font-size: 18px; padding: 8px 12px; border-radius: 10px;">⚙️ Admin</button>
-  </a>
-</div>
+  <div class="layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <h2>🧾 POS System</h2>
+      <nav>
+        <ul>
+          <li><a href="pos.html" class="active">🛒 Dashboard</a></li>
+          <li><a href="admin.html">⚙️ Admin Panel</a></li>
+        </ul>
+      </nav>
+    </aside>
 
-  <div class="pos-container">
-    <!-- Sidebar: Category + Items -->
-    <div class="menu-section">
-      <div class="category-buttons">
-        <button class="category-btn active">Drinks</button>
-        <button class="category-btn">Main Course</button>
-        <button class="category-btn">Desserts</button>
-      </div>
-      <div class="items-list" id="itemsList">
-        <!-- Dynamically loaded items -->
-      </div>
-    </div>
+    <!-- Main Content Area -->
+    <main class="pos-container">
+      <!-- Category & Items Section -->
+      <section class="menu-section">
+        <div class="category-buttons">
+          <button class="category-btn active">Drinks</button>
+          <button class="category-btn">Main Course</button>
+          <button class="category-btn">Desserts</button>
+        </div>
+        <div class="items-list" id="itemsList">
+          <!-- Dynamically loaded items -->
+        </div>
+      </section>
 
-    <!-- Order Summary -->
-    <div class="summary-section">
-      <h2>Order Summary</h2>
-      <div id="orderItems"></div>
+      <!-- Order Summary Section -->
+      <section class="summary-section">
+        <h2>🧾 Order Summary</h2>
+        <div id="orderItems" class="order-items"></div>
 
-      <div class="summary-line">Subtotal: ₹<span id="subtotal">0.00</span></div>
-      <div class="summary-line">Tax (5%): ₹<span id="tax">0.00</span></div>
-      <div class="summary-line">Discount (10%): -₹<span id="discount">0.00</span></div>
-      <div class="summary-line">Service Charge (5%): ₹<span id="serviceCharge">0.00</span></div>
-      <hr />
-      <div class="total-line">Total: ₹<span id="total">0.00</span></div>
+        <div class="summary-line">Subtotal: ₹<span id="subtotal">0.00</span></div>
+        <div class="summary-line">Tax (5%): ₹<span id="tax">0.00</span></div>
+        <div class="summary-line">Discount (10%): -₹<span id="discount">0.00</span></div>
+        <div class="summary-line">Service Charge (5%): ₹<span id="serviceCharge">0.00</span></div>
+        <hr />
+        <div class="total-line">Total: ₹<span id="total">0.00</span></div>
 
-      <div class="action-buttons">
-        <button onclick="placeOrder()">Place Order</button>
-        <button onclick="exportCSV()">Export CSV</button>
-        <button onclick="printSummary()">Print Summary</button>
-        <button onclick="printKOT()">Print KOT</button>
-      </div>
+        <div class="action-buttons">
+          <button onclick="placeOrder()">✅ Place Order</button>
+          <button onclick="exportCSV()">⬇️ Export CSV</button>
+          <button onclick="printSummary()">🖨️ Print Summary</button>
+          <button onclick="printKOT()">🍽️ Print KOT</button>
+        </div>
 
-      <div class="filter-date">
-        <input type="date" id="filterDate">
-        <button onclick="applyDateFilter()">Apply Filter</button>
-      </div>
-    </div>
+        <div class="filter-date">
+          <input type="date" id="filterDate">
+          <button onclick="applyDateFilter()">📅 Apply Filter</button>
+        </div>
+      </section>
+    </main>
   </div>
 
   <script src="pos.js"></script>
