@@ -344,6 +344,59 @@
     localStorage.setItem('settings', JSON.stringify({ tax, discount, service }));
     alert("Settings saved!");
   });
+  function loadManageLists() {
+  loadList('items', 'manage-items-list', item => `${item.name} - ₹${item.price} (${item.category})`);
+  loadList('categories', 'manage-categories-list', cat => `${cat.name}`);
+  loadList('users', 'manage-users-list', user => `${user.username} (${user.role})`);
+  loadList('tables', 'manage-tables-list', t => t.table);
+}
+
+function loadList(key, ulId, displayFn) {
+  const ul = document.getElementById(ulId);
+  ul.innerHTML = '';
+
+  let list = JSON.parse(localStorage.getItem(key)) || [];
+  list.forEach((item, index) => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span>${displayFn(item)}</span>
+      <span>
+        <button onclick="editItem('${key}', ${index})">Edit</button>
+        <button onclick="deleteItem('${key}', ${index})">Delete</button>
+      </span>
+    `;
+    ul.appendChild(li);
+  });
+}
+
+function deleteItem(key, index) {
+  if (!confirm("Are you sure?")) return;
+  let list = JSON.parse(localStorage.getItem(key)) || [];
+  list.splice(index, 1);
+  localStorage.setItem(key, JSON.stringify(list));
+  loadManageLists();
+}
+
+function editItem(key, index) {
+  let list = JSON.parse(localStorage.getItem(key)) || [];
+  let item = list[index];
+  let fields = Object.keys(item);
+  let updated = {};
+
+  for (let field of fields) {
+    let val = prompt(`Edit ${field}`, item[field]);
+    if (val === null) return; // Cancelled
+    updated[field] = isNaN(item[field]) ? val : parseFloat(val);
+  }
+
+  list[index] = updated;
+  localStorage.setItem(key, JSON.stringify(list));
+  loadManageLists();
+}
+
+// Load manage data when switching tab
+document.querySelector('.tab[onclick*="manage"]').addEventListener('click', loadManageLists);
+
 </script>
 
 </body>
