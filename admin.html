@@ -1,234 +1,221 @@
+<!-- admin.html - POS Admin Panel UI with Sidebar -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel - FlexPOS</title>
+  <title>Admin Panel</title>
   <link rel="stylesheet" href="style.css" />
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f6f8;
+      font-family: Arial, sans-serif;
       display: flex;
       height: 100vh;
+      background: #f7f7f7;
     }
     .sidebar {
-      width: 230px;
-      background: #222;
-      color: #fff;
-      padding: 1rem 0;
+      width: 220px;
+      background: #333;
+      color: white;
       display: flex;
       flex-direction: column;
-      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+      padding: 20px;
     }
     .sidebar h2 {
-      text-align: center;
-      margin-bottom: 2rem;
+      font-size: 20px;
+      margin-bottom: 20px;
     }
-    .sidebar a {
-      color: #ccc;
-      padding: 0.8rem 1.5rem;
-      text-decoration: none;
-      transition: background 0.2s;
-    }
-    .sidebar a:hover, .sidebar a.active {
+    .sidebar button {
+      margin-bottom: 10px;
+      padding: 10px;
+      width: 100%;
       background: #444;
-      color: #fff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      text-align: left;
     }
-    .main {
+    .sidebar button.active {
+      background: #ff9900;
+    }
+    .main-panel {
       flex: 1;
-      padding: 2rem;
+      padding: 20px;
       overflow-y: auto;
     }
-    .section {
-      background: #fff;
-      border-radius: 10px;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    .form-section {
+      margin-bottom: 20px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
-    .section h3 {
+    .form-section h3 {
       margin-top: 0;
     }
-    input, select, button {
-      padding: 0.5rem;
-      margin: 0.5rem 0;
+    .form-section input, .form-section select {
       width: 100%;
-      border-radius: 6px;
+      padding: 8px;
+      margin: 10px 0;
       border: 1px solid #ccc;
+      border-radius: 4px;
     }
-    button {
+    .form-section button {
       background: #28a745;
-      color: #fff;
-      cursor: pointer;
+      color: white;
       border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
     }
-    button:hover {
-      background: #218838;
-    }
-    .list {
-      margin-top: 1rem;
-    }
-    .list-item {
-      background: #f1f1f1;
-      padding: 0.8rem;
-      margin-bottom: 0.5rem;
+    .data-preview {
+      background: #fff;
+      padding: 15px;
       border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      box-shadow: 0 0 3px rgba(0,0,0,0.1);
     }
-    .list-item button {
-      padding: 0.3rem 0.6rem;
-      margin-left: 0.5rem;
-      font-size: 0.9rem;
+    .data-preview h4 {
+      margin-top: 0;
+    }
+    .data-preview ul {
+      padding-left: 20px;
     }
   </style>
 </head>
 <body>
   <div class="sidebar">
     <h2>Admin Panel</h2>
-    <a href="#" class="active" onclick="showSection('items')">Items</a>
-    <a href="#" onclick="showSection('categories')">Categories</a>
-    <a href="#" onclick="showSection('users')">Users</a>
-    <a href="#" onclick="showSection('tables')">Tables</a>
-    <a href="#" onclick="showSection('kitchen')">Kitchen</a>
-    <a href="#" onclick="showSection('manage')">Manage</a>
-    <a href="pos.html">Go to POS</a>
+    <button class="tab-btn active" onclick="showSection('items')">Items</button>
+    <button class="tab-btn" onclick="showSection('categories')">Categories</button>
+    <button class="tab-btn" onclick="showSection('users')">Users</button>
+    <button class="tab-btn" onclick="showSection('tables')">Tables</button>
+    <button class="tab-btn" onclick="showSection('kitchens')">Kitchens</button>
+    <button class="tab-btn" onclick="showSection('manage')">Manage</button>
+    <button onclick="window.location.href='pos.html'">Go to POS</button>
   </div>
 
-  <div class="main">
-    <div id="items" class="section">
+  <div class="main-panel">
+    <div id="items" class="form-section">
       <h3>Add Item</h3>
-      <input type="text" id="itemName" placeholder="Item Name">
-      <input type="number" id="itemPrice" placeholder="Item Price">
+      <input type="text" id="itemName" placeholder="Item Name" />
+      <input type="number" id="itemPrice" placeholder="Item Price" />
       <button onclick="addItem()">Add Item</button>
-      <div class="list" id="itemList"></div>
+      <div class="data-preview">
+        <h4>Items:</h4>
+        <ul id="itemList"></ul>
+      </div>
     </div>
 
-    <div id="categories" class="section" style="display:none">
+    <div id="categories" class="form-section" style="display:none">
       <h3>Add Category</h3>
-      <input type="text" id="catName" placeholder="Category Name">
+      <input type="text" id="categoryName" placeholder="Category Name" />
       <button onclick="addCategory()">Add Category</button>
-      <div class="list" id="categoryList"></div>
+      <div class="data-preview">
+        <h4>Categories:</h4>
+        <ul id="categoryList"></ul>
+      </div>
     </div>
 
-    <div id="users" class="section" style="display:none">
+    <div id="users" class="form-section" style="display:none">
       <h3>Add User</h3>
-      <input type="text" id="userName" placeholder="Username">
-      <input type="text" id="userRole" placeholder="Role (admin/sales)">
+      <input type="text" id="userName" placeholder="User Name" />
+      <select id="userRole">
+        <option value="admin">Admin</option>
+        <option value="cashier">Cashier</option>
+      </select>
       <button onclick="addUser()">Add User</button>
-      <div class="list" id="userList"></div>
+      <div class="data-preview">
+        <h4>Users:</h4>
+        <ul id="userList"></ul>
+      </div>
     </div>
 
-    <div id="tables" class="section" style="display:none">
+    <div id="tables" class="form-section" style="display:none">
       <h3>Add Table</h3>
-      <input type="text" id="tableName" placeholder="Table Name/Number">
+      <input type="text" id="tableName" placeholder="Table Name" />
       <button onclick="addTable()">Add Table</button>
-      <div class="list" id="tableList"></div>
+      <div class="data-preview">
+        <h4>Tables:</h4>
+        <ul id="tableList"></ul>
+      </div>
     </div>
 
-    <div id="kitchen" class="section" style="display:none">
-      <h3>Add Kitchen Section</h3>
-      <input type="text" id="kitchenName" placeholder="Kitchen Name">
+    <div id="kitchens" class="form-section" style="display:none">
+      <h3>Add Kitchen</h3>
+      <input type="text" id="kitchenName" placeholder="Kitchen Name" />
       <button onclick="addKitchen()">Add Kitchen</button>
-      <div class="list" id="kitchenList"></div>
+      <div class="data-preview">
+        <h4>Kitchens:</h4>
+        <ul id="kitchenList"></ul>
+      </div>
     </div>
 
-    <div id="manage" class="section" style="display:none">
-      <h3>Manage All Entries</h3>
-      <p>Coming soon: unified manage screen for editing & deleting all items, categories, users, etc.</p>
+    <div id="manage" class="form-section" style="display:none">
+      <h3>Manage Items / Users / Categories</h3>
+      <p>To be implemented...</p>
     </div>
   </div>
 
   <script>
     function showSection(id) {
-      document.querySelectorAll('.section').forEach(sec => sec.style.display = 'none');
+      document.querySelectorAll('.form-section').forEach(sec => sec.style.display = 'none');
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.getElementById(id).style.display = 'block';
-      document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
       event.target.classList.add('active');
     }
 
     function addItem() {
-      const name = itemName.value;
-      const price = itemPrice.value;
+      const name = document.getElementById('itemName').value;
+      const price = document.getElementById('itemPrice').value;
       if (!name || !price) return;
-      const items = JSON.parse(localStorage.getItem('items') || '[]');
-      items.push({ name, price });
-      localStorage.setItem('items', JSON.stringify(items));
-      renderList('items', items, 'itemList');
-      itemName.value = '';
-      itemPrice.value = '';
+      const list = document.getElementById('itemList');
+      const li = document.createElement('li');
+      li.textContent = `${name} - ₹${price}`;
+      list.appendChild(li);
+      document.getElementById('itemName').value = '';
+      document.getElementById('itemPrice').value = '';
     }
 
     function addCategory() {
-      const name = catName.value;
+      const name = document.getElementById('categoryName').value;
       if (!name) return;
-      const cats = JSON.parse(localStorage.getItem('categories') || '[]');
-      cats.push({ name });
-      localStorage.setItem('categories', JSON.stringify(cats));
-      renderList('categories', cats, 'categoryList');
-      catName.value = '';
+      const list = document.getElementById('categoryList');
+      const li = document.createElement('li');
+      li.textContent = name;
+      list.appendChild(li);
+      document.getElementById('categoryName').value = '';
     }
 
     function addUser() {
-      const name = userName.value;
-      const role = userRole.value;
-      if (!name || !role) return;
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      users.push({ name, role });
-      localStorage.setItem('users', JSON.stringify(users));
-      renderList('users', users, 'userList');
-      userName.value = '';
-      userRole.value = '';
+      const name = document.getElementById('userName').value;
+      const role = document.getElementById('userRole').value;
+      if (!name) return;
+      const list = document.getElementById('userList');
+      const li = document.createElement('li');
+      li.textContent = `${name} (${role})`;
+      list.appendChild(li);
+      document.getElementById('userName').value = '';
     }
 
     function addTable() {
-      const name = tableName.value;
+      const name = document.getElementById('tableName').value;
       if (!name) return;
-      const tables = JSON.parse(localStorage.getItem('tables') || '[]');
-      tables.push({ name });
-      localStorage.setItem('tables', JSON.stringify(tables));
-      renderList('tables', tables, 'tableList');
-      tableName.value = '';
+      const list = document.getElementById('tableList');
+      const li = document.createElement('li');
+      li.textContent = name;
+      list.appendChild(li);
+      document.getElementById('tableName').value = '';
     }
 
     function addKitchen() {
-      const name = kitchenName.value;
+      const name = document.getElementById('kitchenName').value;
       if (!name) return;
-      const kitchens = JSON.parse(localStorage.getItem('kitchens') || '[]');
-      kitchens.push({ name });
-      localStorage.setItem('kitchens', JSON.stringify(kitchens));
-      renderList('kitchens', kitchens, 'kitchenList');
-      kitchenName.value = '';
-    }
-
-    function renderList(type, data, targetId) {
-      const target = document.getElementById(targetId);
-      target.innerHTML = '';
-      data.forEach((entry, i) => {
-        const div = document.createElement('div');
-        div.className = 'list-item';
-        div.innerHTML = `${Object.values(entry).join(' - ')} <span><button onclick="deleteEntry('${type}', ${i})">Delete</button></span>`;
-        target.appendChild(div);
-      });
-    }
-
-    function deleteEntry(type, index) {
-      const data = JSON.parse(localStorage.getItem(type) || '[]');
-      data.splice(index, 1);
-      localStorage.setItem(type, JSON.stringify(data));
-      renderList(type, data, `${type.slice(0, -1)}List`);
-    }
-
-    // Load all existing data
-    window.onload = function() {
-      renderList('items', JSON.parse(localStorage.getItem('items') || '[]'), 'itemList');
-      renderList('categories', JSON.parse(localStorage.getItem('categories') || '[]'), 'categoryList');
-      renderList('users', JSON.parse(localStorage.getItem('users') || '[]'), 'userList');
-      renderList('tables', JSON.parse(localStorage.getItem('tables') || '[]'), 'tableList');
-      renderList('kitchens', JSON.parse(localStorage.getItem('kitchens') || '[]'), 'kitchenList');
+      const list = document.getElementById('kitchenList');
+      const li = document.createElement('li');
+      li.textContent = name;
+      list.appendChild(li);
+      document.getElementById('kitchenName').value = '';
     }
   </script>
 </body>
