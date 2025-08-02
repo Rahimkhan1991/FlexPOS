@@ -230,14 +230,95 @@
     </div>
   </div>
 
-  <script>
-    function switchTab(tab) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+<script>
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
-      document.querySelector(`.tab[onclick*="${tab}"]`).classList.add('active');
-      document.getElementById(tab).classList.add('active');
+    document.querySelector(`.tab[onclick*="${tab}"]`).classList.add('active');
+    document.getElementById(tab).classList.add('active');
+  }
+
+  // Utility to save to localStorage
+  function saveToStorage(key, data) {
+    let existing = JSON.parse(localStorage.getItem(key)) || [];
+    existing.push(data);
+    localStorage.setItem(key, JSON.stringify(existing));
+  }
+
+  // ITEM
+  document.querySelector('#items button').addEventListener('click', () => {
+    const name = document.getElementById('item-name').value.trim();
+    const price = parseFloat(document.getElementById('item-price').value);
+    const category = document.getElementById('item-category').value;
+
+    if (!name || isNaN(price)) {
+      alert("Please enter item name and valid price");
+      return;
     }
-  </script>
+
+    const item = { name, price, category };
+    saveToStorage("items", item);
+    alert("Item saved!");
+    document.getElementById('item-name').value = '';
+    document.getElementById('item-price').value = '';
+  });
+
+  // CATEGORY
+  document.querySelector('#categories button').addEventListener('click', () => {
+    const name = document.getElementById('category-name').value.trim();
+    if (!name) {
+      alert("Enter category name");
+      return;
+    }
+
+    const category = { name };
+    saveToStorage("categories", category);
+    alert("Category saved!");
+    document.getElementById('category-name').value = '';
+  });
+
+  // USER
+  document.querySelector('#users button').addEventListener('click', () => {
+    const username = document.getElementById('user-name').value.trim();
+    const password = document.getElementById('user-pass').value;
+    const role = document.getElementById('user-role').value;
+
+    if (!username || !password) {
+      alert("Enter username and password");
+      return;
+    }
+
+    const user = { username, password, role };
+    saveToStorage("users", user);
+    alert("User saved!");
+    document.getElementById('user-name').value = '';
+    document.getElementById('user-pass').value = '';
+  });
+
+  // TABLE
+  document.querySelector('#tables button').addEventListener('click', () => {
+    const table = document.getElementById('table-name').value.trim();
+    if (!table) {
+      alert("Enter table name");
+      return;
+    }
+
+    saveToStorage("tables", { table });
+    alert("Table saved!");
+    document.getElementById('table-name').value = '';
+  });
+
+  // TAX / DISCOUNT
+  document.querySelector('#settings button').addEventListener('click', () => {
+    const tax = parseFloat(document.getElementById('tax-value').value) || 0;
+    const discount = parseFloat(document.getElementById('discount-value').value) || 0;
+    const service = parseFloat(document.getElementById('service-value').value) || 0;
+
+    localStorage.setItem('settings', JSON.stringify({ tax, discount, service }));
+    alert("Settings saved!");
+  });
+</script>
+
 </body>
 </html>
