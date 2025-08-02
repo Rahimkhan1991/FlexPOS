@@ -36,6 +36,15 @@
       <h3>Cart</h3>
       <div id="cart-items"></div>
       <div class="cart-total" id="cart-total">Total: Rp0</div>
+      <button onclick="printReceipt()" style="margin-top: 10px;">🖨️ Print Receipt</button>
+      <div id="receipt" style="display:none; font-family: monospace;">
+  <h3>Restaurant Receipt</h3>
+  <div id="receipt-items"></div>
+  <div id="receipt-total"></div>
+  <p style="font-size: 12px;">Thank you for your order!</p>
+</div>
+
+
     </div>
   </div>
 
@@ -131,6 +140,34 @@ function removeItem(index) {
 
 
     renderCategories();
+    function printReceipt() {
+  if (cart.length === 0) {
+    alert("Cart is empty!");
+    return;
+  }
+
+  const receiptItems = document.getElementById('receipt-items');
+  const receiptTotal = document.getElementById('receipt-total');
+  receiptItems.innerHTML = '';
+
+  let total = 0;
+  cart.forEach(item => {
+    const line = document.createElement('div');
+    line.textContent = `${item.qty} x ${item.name} = Rp${item.qty * item.price}`;
+    receiptItems.appendChild(line);
+    total += item.qty * item.price;
+  });
+
+  receiptTotal.textContent = `Total: Rp${total}`;
+
+  const printWindow = window.open('', '', 'width=400,height=600');
+  printWindow.document.write('<html><head><title>Receipt</title></head><body>');
+  printWindow.document.write(document.getElementById('receipt').innerHTML);
+  printWindow.document.write('</body></html>');
+  printWindow.document.close();
+  printWindow.print();
+}
+
   </script>
 </body>
 </html>
