@@ -1,184 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Restaurant POS - Order Screen</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Petpooja Style POS</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f7f7f7;
     }
-    header {
-      background: #333;
-      color: #fff;
-      padding: 10px;
-      text-align: center;
-    }
-    .top-bar {
+    .topbar {
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      padding: 10px;
-      background: #eee;
+      background-color: white;
+      padding: 10px 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+    .topbar .left {
+      display: flex;
+      align-items: center;
+    }
+    .topbar .left img {
+      height: 30px;
+      margin-right: 10px;
+    }
+    .topbar .left .new-order {
+      background: #d10027;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      font-weight: bold;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+    .topbar input[type="text"] {
+      padding: 5px;
+      margin-right: 10px;
+    }
+
     .main {
       display: flex;
-      flex: 1;
-      overflow: hidden;
+      height: calc(100vh - 60px);
     }
-    .tables {
-      width: 15%;
-      background: #f0f0f0;
-      padding: 10px;
+    .categories {
+      width: 180px;
+      background-color: #e2e2e2;
+      padding-top: 10px;
       overflow-y: auto;
     }
-    .menu {
-      width: 55%;
-      background: #fff;
-      padding: 10px;
-      overflow-y: auto;
-    }
-    .cart {
-      width: 30%;
-      background: #fafafa;
-      padding: 10px;
-      overflow-y: auto;
-      border-left: 2px solid #ddd;
-    }
-    button {
-      padding: 10px;
-      margin: 5px 0;
+    .categories button {
+      display: block;
       width: 100%;
-      font-size: 1rem;
-    }
-    .category {
+      padding: 10px;
+      background: none;
+      border: none;
+      text-align: left;
       font-weight: bold;
-      margin-top: 15px;
+      cursor: pointer;
     }
-    .item {
+    .categories button.active {
+      background-color: #d10027;
+      color: white;
+    }
+
+    .menu-items {
+      flex: 1;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      background: #fff;
+      overflow-y: auto;
+    }
+    .menu-items button {
+      background-color: white;
+      border: 2px solid #d0d0d0;
+      border-radius: 4px;
+      padding: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .menu-items button:hover {
+      background-color: #f3f3f3;
+    }
+
+    .order-panel {
+      width: 350px;
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-left: 1px solid #ccc;
+    }
+    .order-header {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
       display: flex;
       justify-content: space-between;
-      margin: 5px 0;
+      align-items: center;
+      background: #f4f4f4;
     }
-    .cart-item {
+    .order-items {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    .order-items div {
       display: flex;
       justify-content: space-between;
-      margin: 5px 0;
+      align-items: center;
+      margin-bottom: 10px;
     }
-    .bottom {
-      margin-top: 10px;
+    .order-footer {
+      border-top: 1px solid #ddd;
+      padding: 10px;
+      background-color: #fafafa;
+    }
+    .order-footer button {
+      width: 48%;
+      padding: 10px;
+      font-weight: bold;
+      margin: 5px 1%;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+    }
+    .save {
+      background-color: #d10027;
+      color: white;
+    }
+    .print {
+      background-color: #000;
+      color: white;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h2>Restaurant POS System</h2>
-  </header>
-  <div class="top-bar">
-    <label>
-      <input type="radio" name="type" value="Dine-in" checked> Dine-in
-    </label>
-    <label>
-      <input type="radio" name="type" value="Parcel"> Parcel
-    </label>
+  <div class="topbar">
+    <div class="left">
+      <img src="logo.png" alt="Logo" />
+      <button class="new-order">New Order</button>
+      <input type="text" placeholder="Bill No" />
+    </div>
+    <div class="right">
+      <strong>Dine In</strong> | Delivery | Pick Up
+      <span style="background:orange; padding:5px 10px; margin-left:10px; border-radius:3px">Outdoor</span>
+    </div>
   </div>
   <div class="main">
-    <div class="tables" id="tables"></div>
-    <div class="menu" id="menu"></div>
-    <div class="cart">
-      <h3>Cart</h3>
-      <div id="cartItems"></div>
-      <div class="bottom">
-        <button onclick="placeOrder()">Place Order</button>
+    <div class="categories">
+      <button class="active">Coffees</button>
+      <button>Teas</button>
+      <button>Snacks</button>
+      <button>Sandwiches</button>
+      <button>Pizzas</button>
+      <button>Burgers</button>
+      <button>Rice</button>
+    </div>
+    <div class="menu-items">
+      <button>Cappuccino</button>
+      <button>Chocolate Milk Shake</button>
+      <button>Classic Cold Coffee</button>
+      <button>Iced Vietnamese</button>
+      <button>Filter Coffee</button>
+      <button>Iced Americano</button>
+    </div>
+    <div class="order-panel">
+      <div>
+        <div class="order-header">
+          <span>ITEMS</span>
+          <span>QTY</span>
+        </div>
+        <div class="order-items">
+          <div>
+            <span>Cappuccino</span>
+            <span><button>-</button> 1 <button>+</button></span>
+          </div>
+          <div>
+            <span>Chocolate Milk Shake</span>
+            <span><button>-</button> 1 <button>+</button></span>
+          </div>
+        </div>
+      </div>
+      <div class="order-footer">
+        <div>Total: ₹446</div>
+        <button class="save">Save</button>
+        <button class="print">Print & Bill</button>
       </div>
     </div>
   </div>
-
-  <script>
-    const menuItems = {
-      "Starters": ["Spring Roll", "Soup", "Fries"],
-      "Main Course": ["Fried Rice", "Paneer Butter Masala", "Chicken Curry"],
-      "Drinks": ["Coke", "Water", "Juice"]
-    };
-
-    const cart = [];
-    let selectedTable = null;
-
-    function renderTables() {
-      const tableDiv = document.getElementById("tables");
-      tableDiv.innerHTML = "<h4>Tables</h4>";
-      for (let i = 1; i <= 10; i++) {
-        const btn = document.createElement("button");
-        btn.textContent = `Table ${i}`;
-        btn.onclick = () => selectedTable = `Table ${i}`;
-        tableDiv.appendChild(btn);
-      }
-    }
-
-    function renderMenu() {
-      const menuDiv = document.getElementById("menu");
-      for (const category in menuItems) {
-        const title = document.createElement("div");
-        title.className = "category";
-        title.textContent = category;
-        menuDiv.appendChild(title);
-
-        menuItems[category].forEach(item => {
-          const div = document.createElement("div");
-          div.className = "item";
-          div.innerHTML = `${item} <button onclick=\"addToCart('${item}')\">+</button>`;
-          menuDiv.appendChild(div);
-        });
-      }
-    }
-
-    function addToCart(item) {
-      cart.push(item);
-      renderCart();
-    }
-
-    function renderCart() {
-      const cartDiv = document.getElementById("cartItems");
-      cartDiv.innerHTML = "";
-      const count = {};
-      cart.forEach(i => count[i] = (count[i] || 0) + 1);
-
-      Object.entries(count).forEach(([item, qty]) => {
-        const div = document.createElement("div");
-        div.className = "cart-item";
-        div.innerHTML = `${item} x${qty}`;
-        cartDiv.appendChild(div);
-      });
-    }
-
-    function placeOrder() {
-      if (!selectedTable && !document.querySelector('input[name="type"]:checked').value === "Parcel") {
-        alert("Select a table or Parcel option");
-        return;
-      }
-      const type = document.querySelector('input[name="type"]:checked').value;
-
-      const order = {
-        table: selectedTable || "Parcel",
-        type,
-        kitchen: "Kitchen 1", // Later we'll auto-assign
-        items: [...cart]
-      };
-
-      const orders = JSON.parse(localStorage.getItem("orders") || "[]");
-      orders.push(order);
-      localStorage.setItem("orders", JSON.stringify(orders));
-      alert("Order Placed!");
-      cart.length = 0;
-      renderCart();
-    }
-
-    renderTables();
-    renderMenu();
-  </script>
 </body>
 </html>
