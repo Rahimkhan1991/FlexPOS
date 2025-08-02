@@ -2,225 +2,189 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Restaurant POS</title>
-  <style>
-    body { margin: 0; font-family: sans-serif; background: #f2f2f2; }
-    .header { background: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .content { display: flex; height: calc(100vh - 60px); }
-    .categories, .items, .cart { padding: 15px; overflow-y: auto; }
-    .categories { width: 20%; background: #fff; border-right: 1px solid #ccc; }
-    .items { width: 50%; background: #fff; border-right: 1px solid #ccc; }
-    .cart { width: 30%; background: #fff; }
-    .category-btn, .item-btn { display: block; width: 100%; padding: 10px; margin-bottom: 8px; border: none; cursor: pointer; font-size: 16px; }
-    .category-btn { background: #e0e0e0; }
-    .item-btn { background: #d9edf7; }
-    .cart-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding: 8px; background: #f9f9f9; border: 1px solid #ddd; }
-    .cart-total { font-weight: bold; font-size: 18px; padding-top: 10px; }
-    .cart-item div button { margin-left: 5px; }
-    .cart input, .cart select { margin: 5px 0; width: 100%; padding: 5px; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restaurant POS System</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="header">
-    <h2>Restaurant POS</h2>
-    <span id="user-info"></span>
+  <div id="app">
+    <!-- Header -->
+    <header>
+      <h1>POS System</h1>
+      <div id="user-info"></div>
+    </header>
+
+    <!-- Category Buttons -->
+    <div id="categories"></div>
+
+    <!-- Menu Items -->
+    <div id="items" class="item-grid"></div>
+
+    <!-- Cart -->
+    <div id="cart">
+      <h2>Order Summary</h2>
+      <div id="cart-items"></div>
+      <div id="cart-totals"></div>
+      <button onclick="placeOrder()">Place Order</button>
+      <button onclick="exportOrdersCSV()">Export CSV</button>
+      <button onclick="printSummary()">Print Summary</button>
+    </div>
+
+    <!-- Summary Filters -->
+    <div id="summary-controls">
+      <input type="date" id="filter-date" />
+      <button onclick="filterOrders()">Apply Filter</button>
+    </div>
+
+    <!-- Summary Table -->
+    <div id="summary"></div>
   </div>
 
-  <div class="content">
-    <div class="categories" id="categories"></div>
-    <div class="items" id="items"></div>
-    <div class="cart">
-      <h3>Cart</h3>
-      <div id="cart-items"></div>
-      <div class="cart-total">
-        <div>Total: Rp<span id="cart-subtotal">0</span></div>
-        <div>Tax (%): <input type="number" id="tax" value="10" onchange="updateCartDisplay()"></div>
-        <div>Discount (%): <input type="number" id="discount" value="0" onchange="updateCartDisplay()"></div>
-        <div>Order Type: 
-          <select id="order-type">
-            <option value="Dine-In">Dine-In</option>
-            <option value="Parcel">Parcel</option>
-          </select>
-        </div>
-        <div>Payment Method: 
-          <select id="payment-method">
-            <option value="Cash">Cash</option>
-            <option value="QR">QR</option>
-            <option value="Card">Card</option>
-          </select>
-        </div>
-        <div><strong>Final Total: Rp<span id="cart-total">0</span></strong></div>
-      </div>
-      <button onclick="printReceipt()">🖨️ Print Receipt</button>
-      <button onclick="saveOrder()">💾 Save Order</button>
-      <div id="receipt" style="display:none; font-family: monospace;">
-        <h3>Restaurant Receipt</h3>
-        <div id="receipt-items"></div>
-        <div id="receipt-total"></div>
-        <p style="font-size: 12px;">Thank you for your order!</p>
-      </div>
+  <!-- KOT Modal -->
+  <div id="kot-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeKOTModal()">&times;</span>
+      <div id="kot-output"></div>
+      <button onclick="window.print()">Print KOT</button>
     </div>
   </div>
 
   <script>
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (!currentUser) window.location.href = "index.html";
-    document.getElementById("user-info").textContent = `User: ${currentUser.username} (${currentUser.role})`;
-
-    const categories = ["Makanan", "Minuman"];
-    const items = [
-      { name: "Nasi Goreng", price: 20000, category: "Makanan" },
-      { name: "Ayam Bakar", price: 25000, category: "Makanan" },
-      { name: "Es Teh", price: 5000, category: "Minuman" },
-      { name: "Jus Alpukat", price: 10000, category: "Minuman" }
+    const users = [{ username: 'admin', role: 'admin' }, { username: 'sales', role: 'sales' }];
+    const categories = [
+      { name: 'Drinks', kitchen: 'Bar' },
+      { name: 'Main Course', kitchen: 'Kitchen 1' },
+      { name: 'Desserts', kitchen: 'Kitchen 2' }
     ];
 
-    const cart = [];
+    const items = [
+      { name: 'Coke', price: 20, category: 'Drinks' },
+      { name: 'Burger', price: 50, category: 'Main Course' },
+      { name: 'Ice Cream', price: 30, category: 'Desserts' }
+    ];
+
+    let cart = [];
+    let orders = JSON.parse(localStorage.getItem('orders') || '[]');
 
     function renderCategories() {
-      const catDiv = document.getElementById('categories');
-      catDiv.innerHTML = '';
-      categories.forEach(cat => {
-        const btn = document.createElement('button');
-        btn.className = 'category-btn';
-        btn.textContent = cat;
-        btn.onclick = () => renderItems(cat);
-        catDiv.appendChild(btn);
-      });
+      const catEl = document.getElementById('categories');
+      catEl.innerHTML = categories.map(cat => `<button onclick="renderItems('${cat.name}')">${cat.name}</button>`).join('');
     }
 
     function renderItems(category) {
-      const itemsDiv = document.getElementById('items');
-      itemsDiv.innerHTML = '';
-      items.filter(i => i.category === category).forEach(item => {
-        const btn = document.createElement('button');
-        btn.className = 'item-btn';
-        btn.textContent = `${item.name} - Rp${item.price}`;
-        btn.onclick = () => addToCart(item);
-        itemsDiv.appendChild(btn);
-      });
+      const grid = document.getElementById('items');
+      grid.innerHTML = items.filter(i => i.category === category).map(i => `
+        <div class="item" onclick='addToCart("${i.name}")'>
+          <p>${i.name}</p>
+          <p>₹${i.price}</p>
+        </div>`
+      ).join('');
     }
 
-    function addToCart(item) {
-      const existing = cart.find(c => c.name === item.name);
+    function addToCart(itemName) {
+      const item = items.find(i => i.name === itemName);
+      const existing = cart.find(i => i.name === item.name);
       if (existing) existing.qty++;
       else cart.push({ ...item, qty: 1 });
-      updateCartDisplay();
+      renderCart();
     }
 
-    function changeQty(index, delta) {
-      cart[index].qty += delta;
-      if (cart[index].qty <= 0) cart.splice(index, 1);
-      updateCartDisplay();
+    function renderCart() {
+      const cartEl = document.getElementById('cart-items');
+      cartEl.innerHTML = cart.map(i => `<div>${i.name} x ${i.qty} = ₹${i.qty * i.price}</div>`).join('');
+
+      let total = cart.reduce((sum, i) => sum + i.qty * i.price, 0);
+      let tax = total * 0.05;
+      let discount = total * 0.1;
+      let service = total * 0.05;
+      let grand = total + tax + service - discount;
+
+      document.getElementById('cart-totals').innerHTML = `
+        <p>Subtotal: ₹${total.toFixed(2)}</p>
+        <p>Tax (5%): ₹${tax.toFixed(2)}</p>
+        <p>Discount (10%): -₹${discount.toFixed(2)}</p>
+        <p>Service Charge (5%): ₹${service.toFixed(2)}</p>
+        <strong>Total: ₹${grand.toFixed(2)}</strong>`;
     }
 
-    function removeItem(index) {
-      cart.splice(index, 1);
-      updateCartDisplay();
-    }
-
-    function updateCartDisplay() {
-      const cartDiv = document.getElementById('cart-items');
-      cartDiv.innerHTML = '';
-      let subtotal = 0;
-      cart.forEach((item, index) => {
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-        div.innerHTML = `
-          <span>${item.qty} x ${item.name} = Rp${item.qty * item.price}</span>
-          <div>
-            <button onclick="changeQty(${index}, -1)">➖</button>
-            <button onclick="changeQty(${index}, 1)">➕</button>
-            <button onclick="removeItem(${index})">🗑️</button>
-          </div>`;
-        cartDiv.appendChild(div);
-        subtotal += item.qty * item.price;
-      });
-      document.getElementById('cart-subtotal').textContent = subtotal;
-
-      const tax = parseFloat(document.getElementById('tax').value) || 0;
-      const discount = parseFloat(document.getElementById('discount').value) || 0;
-
-      let totalWithTax = subtotal + (subtotal * tax / 100);
-      let totalAfterDiscount = totalWithTax - (totalWithTax * discount / 100);
-
-      document.getElementById('cart-total').textContent = totalAfterDiscount.toFixed(0);
-    }
-
-    function printReceipt() {
-      if (cart.length === 0) return alert("Cart is empty!");
-
-      const receiptItems = document.getElementById('receipt-items');
-      const receiptTotal = document.getElementById('receipt-total');
-      receiptItems.innerHTML = '';
-
-      let subtotal = 0;
-      cart.forEach(item => {
-        const line = document.createElement('div');
-        line.textContent = `${item.qty} x ${item.name} = Rp${item.qty * item.price}`;
-        receiptItems.appendChild(line);
-        subtotal += item.qty * item.price;
-      });
-
-      const tax = parseFloat(document.getElementById('tax').value) || 0;
-      const discount = parseFloat(document.getElementById('discount').value) || 0;
-      const totalWithTax = subtotal + (subtotal * tax / 100);
-      const totalAfterDiscount = totalWithTax - (totalWithTax * discount / 100);
-      const orderType = document.getElementById('order-type').value;
-      const paymentMethod = document.getElementById('payment-method').value;
-
-      receiptTotal.innerHTML = `
-        <hr>
-        Subtotal: Rp${subtotal}<br>
-        Tax (${tax}%): Rp${(subtotal * tax / 100).toFixed(0)}<br>
-        Discount (${discount}%): Rp${(totalWithTax * discount / 100).toFixed(0)}<br>
-        Order Type: ${orderType}<br>
-        Payment Method: ${paymentMethod}<br>
-        <strong>Total: Rp${totalAfterDiscount.toFixed(0)}</strong>
-      `;
-
-      const printWindow = window.open('', '', 'width=400,height=600');
-      printWindow.document.write('<html><head><title>Receipt</title></head><body>');
-      printWindow.document.write(document.getElementById('receipt').innerHTML);
-      printWindow.document.write('</body></html>');
-      printWindow.document.close();
-      printWindow.print();
-    }
-
-    function saveOrder() {
-      const date = new Date().toLocaleString();
-      const orderType = document.getElementById('order-type').value;
-      const paymentMethod = document.getElementById('payment-method').value;
-      const tax = parseFloat(document.getElementById('tax').value) || 0;
-      const discount = parseFloat(document.getElementById('discount').value) || 0;
-      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-      const totalWithTax = subtotal + (subtotal * tax / 100);
-      const finalTotal = totalWithTax - (totalWithTax * discount / 100);
-
+    function placeOrder() {
+      const now = new Date();
       const order = {
-        date,
-        user: currentUser.username,
-        cart: [...cart],
-        subtotal,
-        tax,
-        discount,
-        finalTotal,
-        orderType,
-        paymentMethod
+        id: Date.now(),
+        user: 'sales',
+        table: 'T1',
+        items: [...cart],
+        time: now.toLocaleTimeString(),
+        date: now.toISOString().split('T')[0]
       };
+      orders.push(order);
+      localStorage.setItem('orders', JSON.stringify(orders));
+      showKOT(order);
+      cart = [];
+      renderCart();
+    }
 
-      const savedOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-      savedOrders.push(order);
-      localStorage.setItem('orders', JSON.stringify(savedOrders));
+    function showKOT(order) {
+      const kitchens = {};
+      order.items.forEach(item => {
+        const cat = categories.find(c => c.name === item.category);
+        if (!kitchens[cat.kitchen]) kitchens[cat.kitchen] = [];
+        kitchens[cat.kitchen].push(item);
+      });
 
-      alert('Order saved successfully.');
-      cart.length = 0;
-      updateCartDisplay();
+      const kotOutput = document.getElementById('kot-output');
+      kotOutput.innerHTML = Object.entries(kitchens).map(([kitchen, items]) => `
+        <div class="kot">
+          <h3>${kitchen} - KOT</h3>
+          <p><strong>Table:</strong> ${order.table}</p>
+          <p><strong>User:</strong> ${order.user}</p>
+          <p><strong>Time:</strong> ${order.time}</p>
+          <ul>${items.map(i => `<li>${i.name} x ${i.qty}</li>`).join('')}</ul>
+        </div>
+      `).join('<hr>');
+
+      document.getElementById('kot-modal').style.display = 'block';
+    }
+
+    function closeKOTModal() {
+      document.getElementById('kot-modal').style.display = 'none';
+    }
+
+    function exportOrdersCSV() {
+      let csv = 'ID,Date,Time,User,Table,Items\n';
+      orders.forEach(o => {
+        const itemStr = o.items.map(i => `${i.name} x ${i.qty}`).join('; ');
+        csv += `${o.id},${o.date},${o.time},${o.user},${o.table},"${itemStr}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'sales.csv';
+      a.click();
+    }
+
+    function printSummary() {
+      const summary = orders.map(o => `
+        <p>Order #${o.id} | ${o.date} ${o.time} | ${o.user} | ${o.table}</p>
+        <ul>${o.items.map(i => `<li>${i.name} x ${i.qty}</li>`).join('')}</ul><hr>`).join('');
+      const newWin = window.open('', '', 'width=600,height=800');
+      newWin.document.write(`<html><body>${summary}</body></html>`);
+      newWin.print();
+    }
+
+    function filterOrders() {
+      const date = document.getElementById('filter-date').value;
+      const filtered = orders.filter(o => o.date === date);
+      document.getElementById('summary').innerHTML = filtered.map(o => `
+        <div>
+          <p><strong>${o.date}</strong> ${o.time} | ${o.user} | ${o.table}</p>
+          <ul>${o.items.map(i => `<li>${i.name} x ${i.qty}</li>`).join('')}</ul>
+        </div>
+      `).join('<hr>');
     }
 
     renderCategories();
-    updateCartDisplay();
+    renderCart();
   </script>
 </body>
 </html>
