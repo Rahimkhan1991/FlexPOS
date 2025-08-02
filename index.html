@@ -77,9 +77,12 @@
     <div class="categories" id="categories"></div>
     <div class="items" id="items"></div>
     <div class="cart">
-      <h3>Cart</h3>
-      <div id="cart-items"></div>
-      <div class="cart-total" id="cart-total">Total: Rp0</div>
+ <!-- Inside the .cart div -->
+<h3>Cart</h3>
+<div id="cart-items"></div>
+<div class="cart-total" id="cart-total">Total: Rp0</div>
+<button onclick="submitOrder()">Submit Order</button>
+
     </div>
   </div>
 
@@ -138,6 +141,46 @@
         total += c.qty * c.price;
       });
       document.getElementById('cart-total').textContent = `Total: Rp${total}`;
+    function submitOrder() {
+  if (cart.length === 0) {
+    alert("Cart is empty!");
+    return;
+  }
+
+  const tableName = prompt("Enter Table Name:");
+  if (!tableName) return;
+
+  const now = new Date();
+  const order = {
+    id: Date.now(),
+    user: currentUser.name,
+    table: tableName,
+    timestamp: now.toISOString(),
+    items: [...cart],
+    kitchenOrders: {},
+  };
+
+  // Group items by kitchen
+  itemsData.forEach(item => {
+    if (!order.kitchenOrders[item.kitchen]) {
+      order.kitchenOrders[item.kitchen] = [];
+    }
+    const found = cart.find(ci => ci.name === item.name);
+    if (found) {
+      order.kitchenOrders[item.kitchen].push({ name: found.name, qty: found.qty });
+    }
+  });
+
+  // Save to localStorage
+  const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+  orders.push(order);
+  localStorage.setItem('orders', JSON.stringify(orders));
+
+  alert("Order submitted!");
+  cart.length = 0;
+  updateCartDisplay();
+}
+
     }
 
     renderCategories();
