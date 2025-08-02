@@ -1,64 +1,198 @@
-<!-- pos.html - Petpooja Style POS Screen -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>POS Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>POS Billing</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      background: #f0f2f5;
+    }
+
+    .sidebar {
+      width: 220px;
+      background-color: #1f2937;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar h2 {
+      padding: 1rem;
+      font-size: 1.2rem;
+      margin: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      padding: 1rem;
+      display: block;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .sidebar a:hover {
+      background-color: #374151;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 1rem;
+      display: flex;
+      flex-direction: row;
+      gap: 1rem;
+    }
+
+    .category-section {
+      width: 160px;
+      background: #ffffff;
+      padding: 0.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      height: fit-content;
+    }
+
+    .category-btn {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #10b981;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .category-btn:hover {
+      background: #059669;
+    }
+
+    .menu-section {
+      flex: 2;
+      background: white;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .items-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    .item-card {
+      background: #fef3c7;
+      padding: 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .item-card:hover {
+      transform: scale(1.05);
+      background: #fde68a;
+    }
+
+    .summary-section {
+      flex: 1;
+      background: white;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .summary-line, .total-line {
+      margin: 8px 0;
+    }
+
+    .total-line {
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .action-buttons button {
+      margin: 6px 4px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      background-color: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+
+    .filter-date input {
+      padding: 6px;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .table-select {
+      margin-bottom: 1rem;
+    }
+    .table-select select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+  </style>
 </head>
 <body>
-  <div class="layout">
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar">
-      <h2>🧾 POS System</h2>
-      <nav>
-        <ul>
-          <li><a href="pos.html" class="active">🛒 Dashboard</a></li>
-          <li><a href="admin.html">⚙️ Admin Panel</a></li>
-        </ul>
-      </nav>
-    </aside>
+  <div class="sidebar">
+    <h2>POS System</h2>
+    <a href="dashboard.html">🏠 Dashboard</a>
+    <a href="pos.html">🧾 POS Billing</a>
+    <a href="receipt.html">🖨️ Print Receipt</a>
+    <a href="report.html">📊 Reports</a>
+    <a href="admin.html">⚙️ Admin</a>
+    <a href="login.html">🚪 Logout</a>
+  </div>
 
-    <!-- Main Content Area -->
-    <main class="pos-container">
-      <!-- Category & Items Section -->
-      <section class="menu-section">
-        <div class="category-buttons">
-          <button class="category-btn active">Drinks</button>
-          <button class="category-btn">Main Course</button>
-          <button class="category-btn">Desserts</button>
-        </div>
-        <div class="items-list" id="itemsList">
-          <!-- Dynamically loaded items -->
-        </div>
-      </section>
+  <div class="main-content">
+    <div class="category-section" id="categoryButtons">
+      <!-- Category buttons loaded here -->
+    </div>
 
-      <!-- Order Summary Section -->
-      <section class="summary-section">
-        <h2>🧾 Order Summary</h2>
-        <div id="orderItems" class="order-items"></div>
+    <div class="menu-section">
+      <h3>Menu</h3>
+      <div class="items-list" id="itemsList">
+        <!-- Menu items loaded dynamically -->
+      </div>
+    </div>
 
-        <div class="summary-line">Subtotal: ₹<span id="subtotal">0.00</span></div>
-        <div class="summary-line">Tax (5%): ₹<span id="tax">0.00</span></div>
-        <div class="summary-line">Discount (10%): -₹<span id="discount">0.00</span></div>
-        <div class="summary-line">Service Charge (5%): ₹<span id="serviceCharge">0.00</span></div>
-        <hr />
-        <div class="total-line">Total: ₹<span id="total">0.00</span></div>
+    <div class="summary-section">
+      <div class="table-select">
+        <label>Select Table:</label>
+        <select id="tableSelect">
+          <option>Table 1</option>
+          <option>Table 2</option>
+          <option>Table 3</option>
+        </select>
+      </div>
+      <h3>Order Summary</h3>
+      <div id="orderItems"></div>
+      <div class="summary-line">Subtotal: ₹<span id="subtotal">0.00</span></div>
+      <div class="summary-line">Tax (5%): ₹<span id="tax">0.00</span></div>
+      <div class="summary-line">Discount (10%): -₹<span id="discount">0.00</span></div>
+      <div class="summary-line">Service Charge (5%): ₹<span id="serviceCharge">0.00</span></div>
+      <hr />
+      <div class="total-line">Total: ₹<span id="total">0.00</span></div>
 
-        <div class="action-buttons">
-          <button onclick="placeOrder()">✅ Place Order</button>
-          <button onclick="exportCSV()">⬇️ Export CSV</button>
-          <button onclick="printSummary()">🖨️ Print Summary</button>
-          <button onclick="printKOT()">🍽️ Print KOT</button>
-        </div>
-
-        <div class="filter-date">
-          <input type="date" id="filterDate">
-          <button onclick="applyDateFilter()">📅 Apply Filter</button>
-        </div>
-      </section>
-    </main>
+      <div class="action-buttons">
+        <button onclick="placeOrder()">Place Order</button>
+        <button onclick="exportCSV()">Export CSV</button>
+        <button onclick="printSummary()">Print Summary</button>
+        <button onclick="printKOT()">Print KOT</button>
+      </div>
+      <div class="filter-date">
+        <input type="date" id="filterDate" onchange="applyDateFilter()" />
+      </div>
+    </div>
   </div>
 
   <script src="pos.js"></script>
