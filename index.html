@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Restaurant POS</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #f0f0f0; }
+    header {
+      background: #2196f3; color: white; padding: 10px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    header h1 { font-size: 20px; }
+    header button { padding: 6px 12px; border: none; background: red; color: white; border-radius: 4px; }
+
+    .container {
+      display: flex; flex-direction: column;
+      padding: 10px;
+    }
+
+    .tables {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 10px; margin-bottom: 10px;
+    }
+    .tables button {
+      padding: 20px; background: white; border: 2px solid #ccc;
+      border-radius: 8px; font-size: 16px; font-weight: bold;
+      cursor: pointer;
+    }
+    .tables button.active {
+      background: #4CAF50; color: white;
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    @media (min-width: 768px) {
+      .content {
+        flex-direction: row;
+      }
+    }
+
+    .menu {
+      flex: 2; background: white; border-radius: 8px; padding: 10px;
+    }
+    .categories {
+      display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;
+    }
+    .categories button {
+      padding: 8px 12px; background: #eee; border: none; border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .items {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .items button {
+      padding: 20px; border: 1px solid #ccc;
+      background: #fafafa; border-radius: 8px; font-size: 14px;
+      text-align: center; cursor: pointer;
+    }
+
+    .cart {
+      flex: 1; background: white; border-radius: 8px;
+      padding: 10px; max-height: 500px; overflow-y: auto;
+    }
+    .cart-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0; border-bottom: 1px solid #eee;
+    }
+    .cart-item button {
+      margin: 0 4px; padding: 4px 8px;
+    }
+
+    .cart-summary {
+      margin-top: 10px;
+    }
+
+    .cart-actions {
+      margin-top: 10px; display: flex; gap: 10px;
+    }
+
+    .cart-actions button {
+      flex: 1;
+      padding: 10px;
+      background: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .modal {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); display: flex;
+      justify-content: center; align-items: center;
+    }
+
+    .modal-content {
+      background: white; padding: 20px; border-radius: 8px;
+      max-width: 400px;
+      width: 90%;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>POS System</h1>
+  <button onclick="logout()">Logout</button>
+</header>
+
+<div class="container">
+  <div class="tables" id="tableList">
+    <!-- Table buttons will be added here dynamically -->
+  </div>
+
+  <div class="content">
+    <div class="menu">
+      <div class="categories" id="categoryList"></div>
+      <div class="items" id="itemList"></div>
+    </div>
+
+    <div class="cart">
+      <h3>Cart</h3>
+      <div id="cartItems"></div>
+      <div class="cart-summary">
+        <strong>Total: $<span id="cartTotal">0</span></strong>
+      </div>
+      <div class="cart-actions">
+        <button onclick="sendToKitchen()">Send to Kitchen</button>
+        <button onclick="printBill()">Print Bill</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for kitchen / bill preview -->
+<div class="modal" id="modal" style="display:none">
+  <div class="modal-content" id="modalContent"></div>
+</div>
+
+<script>
+  const tables = 12; // Change as needed
+  const menu = [
+    { name: "Fried Rice", price: 50, kitchen: "Kitchen 1", category: "Main Course" },
+    { name: "Noodles", price: 45, kitchen: "Kitchen 1", category: "Main Course" },
+    { name: "Pizza", price: 70, kitchen: "Kitchen 2", category: "Main Course" },
+    { name: "Coke", price: 15, kitchen: "Kitchen 2", category: "Beverages" },
+    { name: "Ice Cream", price: 25, kitchen: "Kitchen 2", category: "Dessert" },
+  ];
+
+  const categories = [...new Set(menu.map(item => item.category))];
+  let selectedCategory = categories[0];
+  let selectedTable = null;
+  let cart = [];
+
+  // Generate tables
+  const tableList = document.getElementById("tableList");
+  for (let i = 1; i <= tables; i++) {
+    const btn = document.createElement("button");
+    btn.innerText = `Table ${i}`;
+    btn.onclick = () => selectTable(i, btn);
+    tableList.appendChild(btn);
+  }
+  const parcelBtn = document.createElement("button");
+  parcelBtn.innerText = "Parcel";
+  parcelBtn.onclick = () => selectTable("Parcel", parcelBtn);
+  tableList.appendChild(parcelBtn);
+
+  function selectTable(id, btn) {
+    selectedTable = id;
+    [...tableList.children].forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  }
+
+  // Category buttons
+  const categoryList = document.getElementById("categoryList");
+  categories.forEach(cat => {
+    const btn = document.createElement("button");
+    btn.innerText = cat;
+    btn.onclick = () => {
+      selectedCategory = cat;
+      showItems();
+    };
+    categoryList.appendChild(btn);
+  });
+
+  // Show menu items
+  function showItems() {
+    const itemList = document.getElementById("itemList");
+    itemList.innerHTML = "";
+    menu.filter(item => item.category === selectedCategory).forEach(item => {
+      const btn = document.createElement("button");
+      btn.innerHTML = `<strong>${item.name}</strong><br/>$${item.price}`;
+      btn.onclick = () => addToCart(item);
+      itemList.appendChild(btn);
+    });
+  }
+
+  // Cart logic
+  function addToCart(item) {
+    const existing = cart.find(ci => ci.name === item.name);
+    if (existing) {
+      existing.qty++;
+    } else {
+      cart.push({ ...item, qty: 1 });
+    }
+    renderCart();
+  }
+
+  function renderCart() {
+    const cartItems = document.getElementById("cartItems");
+    const cartTotal = document.getElementById("cartTotal");
+    cartItems.innerHTML = "";
+    let total = 0;
+    cart.forEach((item, index) => {
+      total += item.qty * item.price;
+      cartItems.innerHTML += `
+        <div class="cart-item">
+          <span>${item.name} (${item.kitchen})</span>
+          <div>
+            <button onclick="changeQty(${index}, -1)">-</button>
+            ${item.qty}
+            <button onclick="changeQty(${index}, 1)">+</button>
+            <button onclick="removeItem(${index})">x</button>
+          </div>
+        </div>
+      `;
+    });
+    cartTotal.innerText = total;
+  }
+
+  function changeQty(index, diff) {
+    cart[index].qty += diff;
+    if (cart[index].qty <= 0) cart.splice(index, 1);
+    renderCart();
+  }
+
+  function removeItem(index) {
+    cart.splice(index, 1);
+    renderCart();
+  }
+
+  function sendToKitchen() {
+    if (!selectedTable) return alert("Select table or parcel.");
+    if (cart.length === 0) return alert("Cart is empty.");
+    const grouped = {};
+    cart.forEach(item => {
+      if (!grouped[item.kitchen]) grouped[item.kitchen] = [];
+      grouped[item.kitchen].push(item);
+    });
+    let html = `<h3>Send Order to Kitchen(s)</h3>`;
+    html += `<p><strong>For: ${selectedTable}</strong></p>`;
+    for (const k in grouped) {
+      html += `<h4>${k}</h4><ul>`;
+      grouped[k].forEach(i => {
+        html += `<li>${i.name} x ${i.qty}</li>`;
+      });
+      html += `</ul>`;
+    }
+    showModal(html);
+  }
+
+  function printBill() {
+    if (!selectedTable) return alert("Select table or parcel.");
+    if (cart.length === 0) return alert("Cart is empty.");
+    let html = `<h3>Customer Bill</h3>`;
+    html += `<p><strong>${selectedTable}</strong></p><ul>`;
+    let total = 0;
+    cart.forEach(i => {
+      html += `<li>${i.name} x ${i.qty} - $${i.qty * i.price}</li>`;
+      total += i.qty * i.price;
+    });
+    html += `</ul><p><strong>Total: $${total}</strong></p>`;
+    showModal(html);
+  }
+
+  function showModal(content) {
+    document.getElementById("modalContent").innerHTML = content + `<br/><button onclick="closeModal()">Close</button>`;
+    document.getElementById("modal").style.display = "flex";
+  }
+
+  function closeModal() {
+    document.getElementById("modal").style.display = "none";
+  }
+
+  function logout() {
+    localStorage.removeItem("pos_user");
+    window.location.href = "login.html";
+  }
+
+  // Role check
+  const user = JSON.parse(localStorage.getItem("pos_user"));
+  if (!user) location.href = "login.html";
+  showItems();
+</script>
+
+</body>
+</html>
