@@ -35,7 +35,19 @@
     <div class="cart">
       <h3>Cart</h3>
       <div id="cart-items"></div>
-      <div class="cart-total" id="cart-total">Total: Rp0</div>
+      <div class="cart-total">
+  <div>Total: Rp<span id="cart-subtotal">0</span></div>
+  <div>
+    Tax (%): <input type="number" id="tax" value="10" style="width: 50px;" onchange="updateCartDisplay()">
+  </div>
+  <div>
+    Discount (%): <input type="number" id="discount" value="0" style="width: 50px;" onchange="updateCartDisplay()">
+  </div>
+  <div><strong>Final Total: Rp<span id="cart-total">0</span></strong></div>
+</div>
+<button onclick="printReceipt()" style="margin-top: 10px;">🖨️ Print Receipt</button>
+
+      
       <button onclick="printReceipt()" style="margin-top: 10px;">🖨️ Print Receipt</button>
       <div id="receipt" style="display:none; font-family: monospace;">
   <h3>Restaurant Receipt</h3>
@@ -101,31 +113,31 @@
       updateCart();
     }
 
-   function updateCart() {
+ 
+function changeQty(index, delta) {function updateCartDisplay() {
   const cartDiv = document.getElementById('cart-items');
   cartDiv.innerHTML = '';
-  let total = 0;
+  let subtotal = 0;
 
-  cart.forEach((item, index) => {
+  cart.forEach(c => {
     const div = document.createElement('div');
     div.className = 'cart-item';
-
-    div.innerHTML = `
-      <span>${item.qty} x ${item.name} = Rp${item.qty * item.price}</span>
-      <div>
-        <button onclick="changeQty(${index}, -1)">➖</button>
-        <button onclick="changeQty(${index}, 1)">➕</button>
-        <button onclick="removeItem(${index})">🗑️</button>
-      </div>
-    `;
-
+    div.textContent = `${c.qty} x ${c.name} = Rp${c.qty * c.price}`;
     cartDiv.appendChild(div);
-    total += item.qty * item.price;
+    subtotal += c.qty * c.price;
   });
 
-  document.getElementById('cart-total').textContent = `Total: Rp${total}`;
+  document.getElementById('cart-subtotal').textContent = subtotal;
+
+  const tax = parseFloat(document.getElementById('tax').value) || 0;
+  const discount = parseFloat(document.getElementById('discount').value) || 0;
+
+  let totalWithTax = subtotal + (subtotal * tax / 100);
+  let totalAfterDiscount = totalWithTax - (totalWithTax * discount / 100);
+
+  document.getElementById('cart-total').textContent = totalAfterDiscount.toFixed(0);
 }
-function changeQty(index, delta) {
+
   cart[index].qty += delta;
   if (cart[index].qty <= 0) {
     cart.splice(index, 1);
@@ -140,7 +152,8 @@ function removeItem(index) {
 
 
     renderCategories();
-    function printReceipt() {
+    
+function printReceipt() {
   if (cart.length === 0) {
     alert("Cart is empty!");
     return;
@@ -150,15 +163,28 @@ function removeItem(index) {
   const receiptTotal = document.getElementById('receipt-total');
   receiptItems.innerHTML = '';
 
-  let total = 0;
+  let subtotal = 0;
   cart.forEach(item => {
     const line = document.createElement('div');
     line.textContent = `${item.qty} x ${item.name} = Rp${item.qty * item.price}`;
     receiptItems.appendChild(line);
-    total += item.qty * item.price;
+    subtotal += item.qty * item.price;
   });
 
-  receiptTotal.textContent = `Total: Rp${total}`;
+  const tax = parseFloat(document.getElementById('tax').value) || 0;
+  const discount = parseFloat(document.getElementById('discount').value) || 0;
+  const totalWithTax = subtotal + (subtotal * tax / 100);
+  const totalAfterDiscount = totalWithTax - (totalWithTax * discount / 100);
+
+  const summary = `
+    <hr>
+    Subtotal: Rp${subtotal}<br>
+    Tax (${tax}%): Rp${(subtotal * tax / 100).toFixed(0)}<br>
+    Discount (${discount}%): Rp${(totalWithTax * discount / 100).toFixed(0)}<br>
+    <strong>Total: Rp${totalAfterDiscount.toFixed(0)}</strong>
+  `;
+
+  receiptTotal.innerHTML = summary;
 
   const printWindow = window.open('', '', 'width=400,height=600');
   printWindow.document.write('<html><head><title>Receipt</title></head><body>');
