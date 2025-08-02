@@ -1,200 +1,427 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Petpooja Style POS</title>
+  <meta charset="UTF-8">
+  <title>POS - Restaurant Billing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    * {
-      box-sizing: border-box;
-    }
     body {
-      margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f7f7f7;
-    }
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background-color: white;
-      padding: 10px 15px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .topbar .left {
-      display: flex;
-      align-items: center;
-    }
-    .topbar .left img {
-      height: 30px;
-      margin-right: 10px;
-    }
-    .topbar .left .new-order {
-      background: #d10027;
-      color: white;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 5px;
-      font-weight: bold;
-      margin-right: 10px;
-      cursor: pointer;
-    }
-    .topbar input[type="text"] {
-      padding: 5px;
-      margin-right: 10px;
-    }
-
-    .main {
-      display: flex;
-      height: calc(100vh - 60px);
-    }
-    .categories {
-      width: 180px;
-      background-color: #e2e2e2;
-      padding-top: 10px;
-      overflow-y: auto;
-    }
-    .categories button {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      background: none;
-      border: none;
-      text-align: left;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .categories button.active {
-      background-color: #d10027;
-      color: white;
-    }
-
-    .menu-items {
-      flex: 1;
-      padding: 10px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 10px;
-      background: #fff;
-      overflow-y: auto;
-    }
-    .menu-items button {
-      background-color: white;
-      border: 2px solid #d0d0d0;
-      border-radius: 4px;
-      padding: 15px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .menu-items button:hover {
-      background-color: #f3f3f3;
-    }
-
-    .order-panel {
-      width: 350px;
-      background-color: #fff;
+      margin: 0;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      border-left: 1px solid #ccc;
+      height: 100vh;
     }
-    .order-header {
+
+    header {
+      background: #d63031;
+      color: white;
       padding: 10px;
-      border-bottom: 1px solid #ddd;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #f4f4f4;
-    }
-    .order-items {
-      flex-grow: 1;
-      overflow-y: auto;
       padding: 10px;
+      background: #f1f1f1;
     }
-    .order-items div {
+
+    .tables, .categories {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 5px;
     }
-    .order-footer {
-      border-top: 1px solid #ddd;
+
+    .tables button, .categories button {
+      flex: 1 0 20%;
       padding: 10px;
-      background-color: #fafafa;
-    }
-    .order-footer button {
-      width: 48%;
-      padding: 10px;
-      font-weight: bold;
-      margin: 5px 1%;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+      text-align: center;
       cursor: pointer;
+    }
+
+    .tables button.selected {
+      background: #d63031;
+      color: white;
+    }
+
+    .menu {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .items, .cart {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    .item {
+      background: white;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .item:hover {
+      background: #fceaea;
+    }
+
+    .cart table {
+      width: 100%;
+    }
+
+    .cart th, .cart td {
+      padding: 6px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .bottom-bar {
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f1f1f1;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      background: #27ae60;
+      color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
     }
-    .save {
-      background-color: #d10027;
-      color: white;
+
+    .btn:disabled {
+      background: #aaa;
     }
-    .print {
-      background-color: #000;
-      color: white;
+
+    label.parcel-toggle {
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <div class="left">
-      <img src="logo.png" alt="Logo" />
-      <button class="new-order">New Order</button>
-      <input type="text" placeholder="Bill No" />
+  <header>Restaurant POS</header>
+
+  <div class="top-bar">
+    <div class="tables" id="tableList">
+      <!-- Tables inserted by JS -->
     </div>
-    <div class="right">
-      <strong>Dine In</strong> | Delivery | Pick Up
-      <span style="background:orange; padding:5px 10px; margin-left:10px; border-radius:3px">Outdoor</span>
-    </div>
-  </div>
-  <div class="main">
-    <div class="categories">
-      <button class="active">Coffees</button>
-      <button>Teas</button>
-      <button>Snacks</button>
-      <button>Sandwiches</button>
-      <button>Pizzas</button>
-      <button>Burgers</button>
-      <button>Rice</button>
-    </div>
-    <div class="menu-items">
-      <button>Cappuccino</button>
-      <button>Chocolate Milk Shake</button>
-      <button>Classic Cold Coffee</button>
-      <button>Iced Vietnamese</button>
-      <button>Filter Coffee</button>
-      <button>Iced Americano</button>
-    </div>
-    <div class="order-panel">
-      <div>
-        <div class="order-header">
-          <span>ITEMS</span>
-          <span>QTY</span>
-        </div>
-        <div class="order-items">
-          <div>
-            <span>Cappuccino</span>
-            <span><button>-</button> 1 <button>+</button></span>
-          </div>
-          <div>
-            <span>Chocolate Milk Shake</span>
-            <span><button>-</button> 1 <button>+</button></span>
-          </div>
-        </div>
-      </div>
-      <div class="order-footer">
-        <div>Total: ₹446</div>
-        <button class="save">Save</button>
-        <button class="print">Print & Bill</button>
-      </div>
+    <div>
+      <label class="parcel-toggle"><input type="checkbox" id="parcelChk"> Parcel</label>
     </div>
   </div>
+
+  <div class="categories" id="categoryList">
+    <!-- Categories inserted by JS -->
+  </div>
+
+  <div class="menu">
+    <div class="items" id="itemList">
+      <!-- Items inserted by JS -->
+    </div>
+    <div class="cart" id="cartBox">
+      <h3>Cart</h3>
+      <table id="cartTable"></table>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <div id="selectedInfo"></div>
+    <button class="btn" onclick="saveOrder()">Save & Print</button>
+  </div>
+
+  <script>
+    const categories = [
+      { id: "veg", name: "Veg", kitchen: "Kitchen A" },
+      { id: "nonveg", name: "Non-Veg", kitchen: "Kitchen B" },
+      { id: "drinks", name: "Drinks", kitchen: "Kitchen A" }
+    ];
+
+    const items = [
+      { id: 1, name: "Paneer Butter Masala", price: 120, category: "veg" },
+      { id: 2, name: "Chicken Curry", price: 160, category: "nonveg" },
+      { id: 3, name: "Lassi", price: 40, category: "drinks" },
+      { id: 4, name: "Butter Naan", price: 20, category: "veg" },
+      { id: 5, name: "Biryani", price: 150, category: "nonveg" }
+    ];
+
+    const cart = [];
+    let selectedCategory = "";
+    let selectedTable = "";
+    const maxTables = 10;
+
+    const tableList = document.getElementById("tableList");
+    const categoryList = document.getElementById("categoryList");
+    const itemList = document.getElementById("itemList");
+    const cartTable = document.getElementById("cartTable");
+    const selectedInfo = document.getElementById("selectedInfo");
+
+    function renderTables() {
+      for (let i = 1; i <= maxTables; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = "Table " + i;
+        btn.onclick = () => {
+          document.querySelectorAll(".tables button").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          selectedTable = "Table " + i;
+          updateInfo();
+        };
+        tableList.appendChild(btn);
+      }
+    }
+
+    function renderCategories() {
+      categories.forEach(cat => {
+        const btn = document.createElement("button");
+        btn.textContent = cat.name;
+        btn.onclick = () => {
+          selectedCategory = cat.id;
+          document.querySelectorAll(".categories button").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          renderItems();
+        };
+        categoryList.appendChild(btn);
+      });
+    }
+
+    function renderItems() {
+      itemList.innerHTML = "";
+      items.filter(it => it.category === selectedCategory).forEach(item => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.textContent = `${item.name} - Rp${item.price}`;
+        div.onclick = () => addToCart(item);
+        itemList.appendChild(div);
+      });
+    }
+
+    function addToCart(item) {
+      const found = cart.find(c => c.id === item.id);
+      if (found) {
+        found.qty += 1;
+      } else {
+        cart.push({ ...item, qty: 1 });
+      }
+      renderCart();
+    }
+
+    function removeFromCart(id) {
+      const index = cart.findIndex(i => i.id === id);
+      if (index >= 0) {
+        cart.splice(index, 1);
+      }
+      renderCart();
+    }
+
+    function renderCart() {
+      cartTable.innerHTML = `
+        <tr><th>Item</th><th>Qty</th><th>Price</th><th></th></tr>
+        ${cart.map(item => `
+          <tr>
+            <td>${item.name}</td>
+            <td>${item.qty}</td>
+            <td>Rp${item.qty * item.price}</td>
+            <td><button onclick="removeFromCart(${item.id})">❌</button></td>
+          </tr>
+        `).join("")}
+      `;
+    }
+
+    function updateInfo() {
+      selectedInfo.innerHTML = `
+        ${selectedTable || "No Table"} | 
+        ${document.getElementById("parcelChk").checked ? "Parcel" : "Dine-In"}
+      `;
+    }
+
+    function saveOrder() {
+      if (!selectedTable && !document.getElementById("parcelChk").checked) {
+        alert("Select table or Parcel option");
+        return;
+      }
+      if (cart.length === 0) {
+        alert("Cart is empty");
+        return;
+      }
+
+      const user = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+      const order = {
+        cart,
+        table: selectedTable,<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restaurant POS System</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f2f2f2;
+    }
+    .header {
+      background: #ffffff;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .content {
+      display: flex;
+      height: calc(100vh - 60px);
+    }
+    .categories, .items, .cart {
+      padding: 15px;
+      overflow-y: auto;
+    }
+    .categories {
+      width: 20%;
+      background: #ffffff;
+      border-right: 1px solid #ccc;
+    }
+    .items {
+      width: 50%;
+      background: #ffffff;
+      border-right: 1px solid #ccc;
+    }
+    .cart {
+      width: 30%;
+      background: #ffffff;
+    }
+    .category-btn, .item-btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: #e0e0e0;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .item-btn {
+      background: #d9edf7;
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding: 8px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+    }
+    .cart-total {
+      font-weight: bold;
+      font-size: 18px;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>Restaurant POS</h2>
+    <span id="user-info"></span>
+  </div>
+  <div class="content">
+    <div class="categories" id="categories"></div>
+    <div class="items" id="items"></div>
+    <div class="cart">
+      <h3>Cart</h3>
+      <div id="cart-items"></div>
+      <div class="cart-total" id="cart-total">Total: Rp0</div>
+    </div>
+  </div>
+
+  <script>
+    const itemsData = JSON.parse(localStorage.getItem('items')) || [];
+    const categoriesData = JSON.parse(localStorage.getItem('categories')) || [];
+    const currentUser = JSON.parse(localStorage.getItem('currentUser')) || { name: 'Sales' };
+
+    document.getElementById('user-info').textContent = `User: ${currentUser.name}`;
+
+    const cart = [];
+
+    function renderCategories() {
+      const catDiv = document.getElementById('categories');
+      catDiv.innerHTML = '';
+      categoriesData.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'category-btn';
+        btn.textContent = cat.name;
+        btn.onclick = () => renderItems(cat.name);
+        catDiv.appendChild(btn);
+      });
+    }
+
+    function renderItems(categoryName) {
+      const itemsDiv = document.getElementById('items');
+      itemsDiv.innerHTML = '';
+      itemsData.filter(i => i.category === categoryName).forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'item-btn';
+        btn.textContent = `${item.name} - Rp${item.price}`;
+        btn.onclick = () => addToCart(item);
+        itemsDiv.appendChild(btn);
+      });
+    }
+
+    function addToCart(item) {
+      const existing = cart.find(c => c.name === item.name);
+      if (existing) {
+        existing.qty++;
+      } else {
+        cart.push({ ...item, qty: 1 });
+      }
+      updateCartDisplay();
+    }
+
+    function updateCartDisplay() {
+      const cartDiv = document.getElementById('cart-items');
+      cartDiv.innerHTML = '';
+      let total = 0;
+      cart.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.textContent = `${c.qty} x ${c.name} = Rp${c.qty * c.price}`;
+        cartDiv.appendChild(div);
+        total += c.qty * c.price;
+      });
+      document.getElementById('cart-total').textContent = `Total: Rp${total}`;
+    }
+
+    renderCategories();
+  </script>
+</body>
+</html>
+
+      };
+
+      // Save locally for now
+      const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+      orders.push(order);
+      localStorage.setItem("orders", JSON.stringify(orders));
+
+      alert("Order Saved!");
+      window.print();
+      location.reload();
+    }
+
+    renderTables();
+    renderCategories();
+    updateInfo();
+  </script>
 </body>
 </html>
