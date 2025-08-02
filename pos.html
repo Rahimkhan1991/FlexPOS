@@ -17,6 +17,10 @@
     .item-btn { background: #d9edf7; }
     .cart-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding: 8px; background: #f9f9f9; border: 1px solid #ddd; }
     .cart-total { font-weight: bold; font-size: 18px; padding-top: 10px; }
+    .cart-item div button {
+  margin-left: 5px;
+}
+
   </style>
 </head>
 <body>
@@ -88,19 +92,43 @@
       updateCart();
     }
 
-    function updateCart() {
-      const cartDiv = document.getElementById('cart-items');
-      cartDiv.innerHTML = '';
-      let total = 0;
-      cart.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-        div.textContent = `${item.qty} x ${item.name} = Rp${item.qty * item.price}`;
-        cartDiv.appendChild(div);
-        total += item.qty * item.price;
-      });
-      document.getElementById('cart-total').textContent = `Total: Rp${total}`;
-    }
+   function updateCart() {
+  const cartDiv = document.getElementById('cart-items');
+  cartDiv.innerHTML = '';
+  let total = 0;
+
+  cart.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'cart-item';
+
+    div.innerHTML = `
+      <span>${item.qty} x ${item.name} = Rp${item.qty * item.price}</span>
+      <div>
+        <button onclick="changeQty(${index}, -1)">➖</button>
+        <button onclick="changeQty(${index}, 1)">➕</button>
+        <button onclick="removeItem(${index})">🗑️</button>
+      </div>
+    `;
+
+    cartDiv.appendChild(div);
+    total += item.qty * item.price;
+  });
+
+  document.getElementById('cart-total').textContent = `Total: Rp${total}`;
+}
+function changeQty(index, delta) {
+  cart[index].qty += delta;
+  if (cart[index].qty <= 0) {
+    cart.splice(index, 1);
+  }
+  updateCart();
+}
+
+function removeItem(index) {
+  cart.splice(index, 1);
+  updateCart();
+}
+
 
     renderCategories();
   </script>
