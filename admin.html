@@ -4,51 +4,85 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Panel - POS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f6f8;
+      font-family: 'Inter', sans-serif;
+      background: #f8f9fb;
       color: #333;
     }
     header {
       background: #2c3e50;
       color: white;
-      padding: 12px 20px;
-      font-size: 20px;
+      padding: 14px 20px;
+      font-size: 22px;
       font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .back-btn {
+      background: #ffffff22;
+      color: white;
+      border: 1px solid #ffffff44;
+      padding: 6px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
     }
     .tabs {
       display: flex;
-      border-bottom: 1px solid #ccc;
-      background: #ecf0f1;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      margin-bottom: 10px;
     }
     .tab {
       flex: 1;
       text-align: center;
       padding: 12px;
       cursor: pointer;
-      background: #ecf0f1;
-      border: none;
-      outline: none;
+      font-weight: 500;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease-in-out;
+      background: #f0f2f5;
+    }
+    .tab:hover {
+      background: #e6e8eb;
     }
     .tab.active {
       background: #ffffff;
-      font-weight: bold;
-      border-bottom: 2px solid #2c3e50;
+      border-bottom: 3px solid #2c3e50;
+      font-weight: 600;
     }
     .tab-content {
       display: none;
       padding: 20px;
+      background: white;
+      margin: 0 10px 20px;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     }
     .tab-content.active {
       display: block;
     }
     input, select, button {
-      margin: 5px 0;
-      padding: 8px;
-      font-size: 14px;
+      margin: 8px 0;
+      padding: 10px;
+      font-size: 15px;
       width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      background-color: #28a745;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
     }
     .manage-section {
       margin-bottom: 30px;
@@ -61,28 +95,31 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #f8f8f8;
-      padding: 6px 10px;
-      margin-bottom: 6px;
-      border-radius: 6px;
+      background: #f9fafb;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
     .manage-section li button {
       margin-left: 8px;
-      background: #2c3e50;
-      color: #fff;
+      background: #dc3545;
+      color: white;
       border: none;
-      padding: 5px 10px;
-      border-radius: 4px;
+      padding: 6px 12px;
+      border-radius: 6px;
     }
     .manage-section li button:hover {
-      background: #1a252f;
+      background: #c82333;
     }
-    <a href="pos.html" class="nav-link">← Back to POS</a>
   </style>
 </head>
 <body>
 
-<header>Admin Panel - POS</header>
+<header>
+  Admin Panel - POS
+  <a href="pos.html" class="back-btn">← Back to POS</a>
+</header>
 
 <div class="tabs">
   <button class="tab active" onclick="switchTab('items')">Items</button>
@@ -131,7 +168,6 @@
   <button onclick="saveSettings()">Save Settings</button>
 </div>
 
-<!-- ✅ Manage Tab -->
 <div id="manage" class="tab-content">
   <h2>Manage Records</h2>
 
@@ -228,9 +264,7 @@
     document.getElementById('manage-items-list').innerHTML = items.map((item, i) => `
       <li>
         ${item.name} (${item.category}) - ₹${item.price}
-        <span>
-          <button onclick="deleteItem(${i})">Delete</button>
-        </span>
+        <button onclick="deleteItem(${i})">Delete</button>
       </li>
     `).join('');
 
@@ -286,5 +320,6 @@
 
   window.onload = loadCategories;
 </script>
+
 </body>
 </html>
