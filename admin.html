@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel - POS</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 220px;
+      background-color: #2c3e50;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar h2 {
+      padding: 1rem;
+      font-size: 1.2rem;
+      margin: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      padding: 1rem;
+      display: block;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar a:hover {
+      background-color: #34495e;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 1rem;
+      background: #f9f9f9;
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid #ccc;
+    }
+
+    .tab {
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-weight: bold;
+    }
+
+    .tab.active {
+      border-bottom: 3px solid #3498db;
+      color: #3498db;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .form-group input, .form-group select {
+      padding: 0.5rem;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .admin-card {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+
+    .admin-card h3 {
+      margin-top: 0;
+    }
+
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #2980b9;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>POS Admin</h2>
+    <a href="dashboard.html">🏠 Dashboard</a>
+    <a href="pos.html">🧾 POS Billing</a>
+    <a href="receipt.html">🖨️ Print Receipt</a>
+    <a href="report.html">📊 Reports</a>
+    <a href="admin.html">⚙️ Admin</a>
+    <a href="login.html">🚪 Logout</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('items')">Items</button>
+      <button class="tab" onclick="switchTab('categories')">Categories</button>
+      <button class="tab" onclick="switchTab('users')">Users</button>
+      <button class="tab" onclick="switchTab('tables')">Tables</button>
+      <button class="tab" onclick="switchTab('settings')">Tax/Discount</button>
+    </div>
+
+    <!-- Items Tab -->
+    <div id="items" class="tab-content active">
+      <div class="admin-card">
+        <h3>Add Item</h3>
+        <div class="form-group">
+          <label>Item Name</label>
+          <input type="text" id="item-name" />
+        </div>
+        <div class="form-group">
+          <label>Price</label>
+          <input type="number" id="item-price" />
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="item-category">
+            <option value="Main">Main</option>
+            <option value="Kitchen1">Kitchen 1</option>
+            <option value="Kitchen2">Kitchen 2</option>
+          </select>
+        </div>
+        <button>Add Item</button>
+      </div>
+    </div>
+
+    <!-- Categories Tab -->
+    <div id="categories" class="tab-content">
+      <div class="admin-card">
+        <h3>Add Category</h3>
+        <div class="form-group">
+          <label>Category Name</label>
+          <input type="text" id="category-name" />
+        </div>
+        <button>Add Category</button>
+      </div>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="users" class="tab-content">
+      <div class="admin-card">
+        <h3>Add User</h3>
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="user-name" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="user-pass" />
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <select id="user-role">
+            <option>admin</option>
+            <option>sales</option>
+          </select>
+        </div>
+        <button>Add User</button>
+      </div>
+    </div>
+
+    <!-- Tables Tab -->
+    <div id="tables" class="tab-content">
+      <div class="admin-card">
+        <h3>Add Table</h3>
+        <div class="form-group">
+          <label>Table Name</label>
+          <input type="text" id="table-name" />
+        </div>
+        <button>Add Table</button>
+      </div>
+    </div>
+
+    <!-- Tax/Discount Tab -->
+    <div id="settings" class="tab-content">
+      <div class="admin-card">
+        <h3>Tax/Discount Settings</h3>
+        <div class="form-group">
+          <label>Tax (%)</label>
+          <input type="number" id="tax-value" />
+        </div>
+        <div class="form-group">
+          <label>Discount (%)</label>
+          <input type="number" id="discount-value" />
+        </div>
+        <div class="form-group">
+          <label>Service Charge (%)</label>
+          <input type="number" id="service-value" />
+        </div>
+        <button>Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      document.querySelector(`.tab[onclick*="${tab}"]`).classList.add('active');
+      document.getElementById(tab).classList.add('active');
+    }
+  </script>
+</body>
+</html>
