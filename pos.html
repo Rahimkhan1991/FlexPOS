@@ -17,10 +17,8 @@
     .item-btn { background: #d9edf7; }
     .cart-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding: 8px; background: #f9f9f9; border: 1px solid #ddd; }
     .cart-total { font-weight: bold; font-size: 18px; padding-top: 10px; }
-    .cart-item div button {
-  margin-left: 5px;
-}
-
+    .cart-item div button { margin-left: 5px; }
+    .cart input, .cart select { margin: 5px 0; width: 100%; padding: 5px; }
   </style>
 </head>
 <body>
@@ -36,39 +34,40 @@
       <h3>Cart</h3>
       <div id="cart-items"></div>
       <div class="cart-total">
-  <div>Total: Rp<span id="cart-subtotal">0</span></div>
-  <div>
-    Tax (%): <input type="number" id="tax" value="10" style="width: 50px;" onchange="updateCartDisplay()">
-  </div>
-  <div>
-    Discount (%): <input type="number" id="discount" value="0" style="width: 50px;" onchange="updateCartDisplay()">
-  </div>
-  <div><strong>Final Total: Rp<span id="cart-total">0</span></strong></div>
-</div>
-<button onclick="printReceipt()" style="margin-top: 10px;">🖨️ Print Receipt</button>
-
-      
-      <button onclick="printReceipt()" style="margin-top: 10px;">🖨️ Print Receipt</button>
+        <div>Total: Rp<span id="cart-subtotal">0</span></div>
+        <div>Tax (%): <input type="number" id="tax" value="10" onchange="updateCartDisplay()"></div>
+        <div>Discount (%): <input type="number" id="discount" value="0" onchange="updateCartDisplay()"></div>
+        <div>Order Type: 
+          <select id="order-type">
+            <option value="Dine-In">Dine-In</option>
+            <option value="Parcel">Parcel</option>
+          </select>
+        </div>
+        <div>Payment Method: 
+          <select id="payment-method">
+            <option value="Cash">Cash</option>
+            <option value="QR">QR</option>
+            <option value="Card">Card</option>
+          </select>
+        </div>
+        <div><strong>Final Total: Rp<span id="cart-total">0</span></strong></div>
+      </div>
+      <button onclick="printReceipt()">🖨️ Print Receipt</button>
+      <button onclick="saveOrder()">💾 Save Order</button>
       <div id="receipt" style="display:none; font-family: monospace;">
-  <h3>Restaurant Receipt</h3>
-  <div id="receipt-items"></div>
-  <div id="receipt-total"></div>
-  <p style="font-size: 12px;">Thank you for your order!</p>
-</div>
-
-
+        <h3>Restaurant Receipt</h3>
+        <div id="receipt-items"></div>
+        <div id="receipt-total"></div>
+        <p style="font-size: 12px;">Thank you for your order!</p>
+      </div>
     </div>
   </div>
 
   <script>
-    // Check login
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (!currentUser) {
-      window.location.href = "index.html";
-    }
+    if (!currentUser) window.location.href = "index.html";
     document.getElementById("user-info").textContent = `User: ${currentUser.username} (${currentUser.role})`;
 
-    // Sample Data (Later replace with data.js or backend)
     const categories = ["Makanan", "Minuman"];
     const items = [
       { name: "Nasi Goreng", price: 20000, category: "Makanan" },
@@ -105,118 +104,123 @@
 
     function addToCart(item) {
       const existing = cart.find(c => c.name === item.name);
-      if (existing) {
-        existing.qty++;
-      } else {
-        cart.push({ ...item, qty: 1 });
-      }
-      updateCart();
+      if (existing) existing.qty++;
+      else cart.push({ ...item, qty: 1 });
+      updateCartDisplay();
     }
-      function updateCart() {
-  const cartDiv = document.getElementById('cart-items');
-  cartDiv.innerHTML = '';
-  let total = 0;
 
-  cart.forEach((item, index) => {
-    const div = document.createElement('div');
-    div.className = 'cart-item';
+    function changeQty(index, delta) {
+      cart[index].qty += delta;
+      if (cart[index].qty <= 0) cart.splice(index, 1);
+      updateCartDisplay();
+    }
 
-    div.innerHTML = `
-      <span>${item.qty} x ${item.name} = Rp${item.qty * item.price}</span>
-      <div>
-        <button onclick="changeQty(${index}, -1)">➖</button>
-        <button onclick="changeQty(${index}, 1)">➕</button>
-        <button onclick="removeItem(${index})">🗑️</button>
-      </div>
-    `;
+    function removeItem(index) {
+      cart.splice(index, 1);
+      updateCartDisplay();
+    }
 
-    cartDiv.appendChild(div);
-    total += item.qty * item.price;
-  });
+    function updateCartDisplay() {
+      const cartDiv = document.getElementById('cart-items');
+      cartDiv.innerHTML = '';
+      let subtotal = 0;
+      cart.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `
+          <span>${item.qty} x ${item.name} = Rp${item.qty * item.price}</span>
+          <div>
+            <button onclick="changeQty(${index}, -1)">➖</button>
+            <button onclick="changeQty(${index}, 1)">➕</button>
+            <button onclick="removeItem(${index})">🗑️</button>
+          </div>`;
+        cartDiv.appendChild(div);
+        subtotal += item.qty * item.price;
+      });
+      document.getElementById('cart-subtotal').textContent = subtotal;
 
-  document.getElementById('cart-total').textContent = `Total: Rp${total}`;
-}
- 
-function changeQty(index, delta) {function updateCartDisplay() {
-  const cartDiv = document.getElementById('cart-items');
-  cartDiv.innerHTML = '';
-  let subtotal = 0;
+      const tax = parseFloat(document.getElementById('tax').value) || 0;
+      const discount = parseFloat(document.getElementById('discount').value) || 0;
 
-  cart.forEach(c => {
-    const div = document.createElement('div');
-    div.className = 'cart-item';
-    div.textContent = `${c.qty} x ${c.name} = Rp${c.qty * c.price}`;
-    cartDiv.appendChild(div);
-    subtotal += c.qty * c.price;
-  });
+      let totalWithTax = subtotal + (subtotal * tax / 100);
+      let totalAfterDiscount = totalWithTax - (totalWithTax * discount / 100);
 
-  document.getElementById('cart-subtotal').textContent = subtotal;
+      document.getElementById('cart-total').textContent = totalAfterDiscount.toFixed(0);
+    }
 
-  const tax = parseFloat(document.getElementById('tax').value) || 0;
-  const discount = parseFloat(document.getElementById('discount').value) || 0;
+    function printReceipt() {
+      if (cart.length === 0) return alert("Cart is empty!");
 
-  let totalWithTax = subtotal + (subtotal * tax / 100);
-  let totalAfterDiscount = totalWithTax - (totalWithTax * discount / 100);
+      const receiptItems = document.getElementById('receipt-items');
+      const receiptTotal = document.getElementById('receipt-total');
+      receiptItems.innerHTML = '';
 
-  document.getElementById('cart-total').textContent = totalAfterDiscount.toFixed(0);
-}
+      let subtotal = 0;
+      cart.forEach(item => {
+        const line = document.createElement('div');
+        line.textContent = `${item.qty} x ${item.name} = Rp${item.qty * item.price}`;
+        receiptItems.appendChild(line);
+        subtotal += item.qty * item.price;
+      });
 
-  cart[index].qty += delta;
-  if (cart[index].qty <= 0) {
-    cart.splice(index, 1);
-  }
-  updateCart();
-}
+      const tax = parseFloat(document.getElementById('tax').value) || 0;
+      const discount = parseFloat(document.getElementById('discount').value) || 0;
+      const totalWithTax = subtotal + (subtotal * tax / 100);
+      const totalAfterDiscount = totalWithTax - (totalWithTax * discount / 100);
+      const orderType = document.getElementById('order-type').value;
+      const paymentMethod = document.getElementById('payment-method').value;
 
-function removeItem(index) {
-  cart.splice(index, 1);
-  updateCart();
-}
+      receiptTotal.innerHTML = `
+        <hr>
+        Subtotal: Rp${subtotal}<br>
+        Tax (${tax}%): Rp${(subtotal * tax / 100).toFixed(0)}<br>
+        Discount (${discount}%): Rp${(totalWithTax * discount / 100).toFixed(0)}<br>
+        Order Type: ${orderType}<br>
+        Payment Method: ${paymentMethod}<br>
+        <strong>Total: Rp${totalAfterDiscount.toFixed(0)}</strong>
+      `;
 
+      const printWindow = window.open('', '', 'width=400,height=600');
+      printWindow.document.write('<html><head><title>Receipt</title></head><body>');
+      printWindow.document.write(document.getElementById('receipt').innerHTML);
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.print();
+    }
+
+    function saveOrder() {
+      const date = new Date().toLocaleString();
+      const orderType = document.getElementById('order-type').value;
+      const paymentMethod = document.getElementById('payment-method').value;
+      const tax = parseFloat(document.getElementById('tax').value) || 0;
+      const discount = parseFloat(document.getElementById('discount').value) || 0;
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const totalWithTax = subtotal + (subtotal * tax / 100);
+      const finalTotal = totalWithTax - (totalWithTax * discount / 100);
+
+      const order = {
+        date,
+        user: currentUser.username,
+        cart: [...cart],
+        subtotal,
+        tax,
+        discount,
+        finalTotal,
+        orderType,
+        paymentMethod
+      };
+
+      const savedOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+      savedOrders.push(order);
+      localStorage.setItem('orders', JSON.stringify(savedOrders));
+
+      alert('Order saved successfully.');
+      cart.length = 0;
+      updateCartDisplay();
+    }
 
     renderCategories();
-    
-function printReceipt() {
-  if (cart.length === 0) {
-    alert("Cart is empty!");
-    return;
-  }
-
-  const receiptItems = document.getElementById('receipt-items');
-  const receiptTotal = document.getElementById('receipt-total');
-  receiptItems.innerHTML = '';
-
-  let subtotal = 0;
-  cart.forEach(item => {
-    const line = document.createElement('div');
-    line.textContent = `${item.qty} x ${item.name} = Rp${item.qty * item.price}`;
-    receiptItems.appendChild(line);
-    subtotal += item.qty * item.price;
-  });
-
-  const tax = parseFloat(document.getElementById('tax').value) || 0;
-  const discount = parseFloat(document.getElementById('discount').value) || 0;
-  const totalWithTax = subtotal + (subtotal * tax / 100);
-  const totalAfterDiscount = totalWithTax - (totalWithTax * discount / 100);
-
-  const summary = `
-    <hr>
-    Subtotal: Rp${subtotal}<br>
-    Tax (${tax}%): Rp${(subtotal * tax / 100).toFixed(0)}<br>
-    Discount (${discount}%): Rp${(totalWithTax * discount / 100).toFixed(0)}<br>
-    <strong>Total: Rp${totalAfterDiscount.toFixed(0)}</strong>
-  `;
-
-  receiptTotal.innerHTML = summary;
-
-  const printWindow = window.open('', '', 'width=400,height=600');
-  printWindow.document.write('<html><head><title>Receipt</title></head><body>');
-  printWindow.document.write(document.getElementById('receipt').innerHTML);
-  printWindow.document.write('</body></html>');
-  printWindow.document.close();
-  printWindow.print();
-}
-
+    updateCartDisplay();
   </script>
 </body>
 </html>
