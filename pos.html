@@ -112,7 +112,30 @@
       }
       updateCart();
     }
+      function updateCart() {
+  const cartDiv = document.getElementById('cart-items');
+  cartDiv.innerHTML = '';
+  let total = 0;
 
+  cart.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'cart-item';
+
+    div.innerHTML = `
+      <span>${item.qty} x ${item.name} = Rp${item.qty * item.price}</span>
+      <div>
+        <button onclick="changeQty(${index}, -1)">➖</button>
+        <button onclick="changeQty(${index}, 1)">➕</button>
+        <button onclick="removeItem(${index})">🗑️</button>
+      </div>
+    `;
+
+    cartDiv.appendChild(div);
+    total += item.qty * item.price;
+  });
+
+  document.getElementById('cart-total').textContent = `Total: Rp${total}`;
+}
  
 function changeQty(index, delta) {function updateCartDisplay() {
   const cartDiv = document.getElementById('cart-items');
