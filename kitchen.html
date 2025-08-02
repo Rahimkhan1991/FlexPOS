@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kitchen Order View</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .order {
+      background: white;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .order-items {
+      padding-left: 20px;
+    }
+    .order-items li {
+      margin-bottom: 5px;
+    }
+    .kitchen-type {
+      color: #555;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <h2>Kitchen Orders</h2>
+
+  <div id="orderContainer">
+    <!-- Orders will appear here -->
+  </div>
+
+  <script>
+    // Simulate receiving kitchen order data via localStorage or mock
+    const sampleOrders = JSON.parse(localStorage.getItem("kitchenOrders")) || [
+      {
+        table: "Table 4",
+        type: "Dine-In",
+        kitchen: "Kitchen 1",
+        items: ["Fried Rice x 1", "Spring Roll x 2"]
+      },
+      {
+        table: "Parcel",
+        type: "Parcel",
+        kitchen: "Kitchen 2",
+        items: ["Pizza x 1", "Garlic Bread x 1"]
+      }
+    ];
+
+    const orderContainer = document.getElementById("orderContainer");
+
+    function renderOrders() {
+      orderContainer.innerHTML = "";
+      sampleOrders.forEach(order => {
+        const div = document.createElement("div");
+        div.className = "order";
+        div.innerHTML = `
+          <div class="order-header">
+            <span>${order.table} (${order.type})</span>
+            <span class="kitchen-type">${order.kitchen}</span>
+          </div>
+          <ul class="order-items">
+            ${order.items.map(i => `<li>${i}</li>`).join("")}
+          </ul>
+        `;
+        orderContainer.appendChild(div);
+      });
+    }
+
+    renderOrders();
+  </script>
+</body>
+</html>
