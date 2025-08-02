@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Restaurant POS</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="header">
+    <h2>Restaurant POS</h2>
+    <div>
+      <span id="user-role"></span>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="categories" id="categories"></div>
+    <div class="items" id="items"></div>
+    <div class="cart">
+      <h3>Cart</h3>
+      <div id="cart-items"></div>
+      <div class="cart-total" id="cart-total">Total: Rp0</div>
+      <button onclick="printBill()">Print Bill</button>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script>
+    const currentUser = JSON.parse(localStorage.getItem('currentUser')) || { name: 'Unknown', role: '' };
+    document.getElementById('user-role').innerText = `User: ${currentUser.username} (${currentUser.role})`;
+
+    const cart = [];
+
+    function logout() {
+      localStorage.removeItem('currentUser');
+      window.location.href = 'index.html';
+    }
+
+    function renderCategories() {
+      const catDiv = document.getElementById('categories');
+      catDiv.innerHTML = '';
+      categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'category-btn';
+        btn.textContent = cat;
+        btn.onclick = () => renderItems(cat);
+        catDiv.appendChild(btn);
+      });
+    }
+
+    function renderItems(category) {
+      const itemsDiv = document.getElementById('items');
+      itemsDiv.innerHTML = '';
+      const filteredItems = items.filter(i => i.category === category);
+      filteredItems.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'item-btn';
+        btn.textContent = `${item.name} - Rp${item.price}`;
+        btn.onclick = () => addToCart(item);
+        itemsDiv.appendChild(btn);
+      });
+    }
+
+    function addToCart(item) {
+      const existing = cart.find(c => c.name === item.name);
+      if (existing) {
+        existing.qty++;
+      } else {
+        cart.push({ ...item, qty: 1 });
+      }
+      updateCartDisplay();
+    }
+
+    function updateCartDisplay() {
+      const cartDiv = document.getElementById('cart-items');
+      cartDiv.innerHTML = '';
+      let total = 0;
+      cart.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.textContent = `${c.qty} x ${c.name} = Rp${c.qty * c.price}`;
+        cartDiv.appendChild(div);
+        total += c.qty * c.price;
+      });
+      document.getElementById('cart-total').textContent = `Total: Rp${total}`;
+    }
+
+    function printBill() {
+      let bill = `Restaurant POS Bill\nUser: ${currentUser.username}\n\n`;
+      let total = 0;
+      cart.forEach(c => {
+        bill += `${c.qty} x ${c.name} = Rp${c.qty * c.price}\n`;
+        total += c.qty * c.price;
+      });
+      bill += `\nTotal: Rp${total}`;
+      alert(bill); // replace with window.print() if needed
+      cart.length = 0;
+      updateCartDisplay();
+    }
+
+    renderCategories();
+  </script>
+</body>
+</html>

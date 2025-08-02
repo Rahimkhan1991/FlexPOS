@@ -1,0 +1,11 @@
+// data.js
+const categories = ["Food", "Drinks", "Dessert"];
+
+const items = [
+  { name: "Nasi Goreng", price: 25000, category: "Food" },
+  { name: "Mie Ayam", price: 20000, category: "Food" },
+  { name: "Teh Manis", price: 8000, category: "Drinks" },
+  { name: "Es Jeruk", price: 9000, category: "Drinks" },
+  { name: "Pisang Goreng", price: 12000, category: "Dessert" },
+  { name: "Ice Cream", price: 15000, category: "Dessert" }
+];
