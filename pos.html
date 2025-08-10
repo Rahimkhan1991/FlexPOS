@@ -270,150 +270,120 @@
     </div>
   </div>
 
+<!-- Just inside your pos.html, replace your existing script or add this -->
+
 <script>
-  // ======= DATA KEYS & CONSTANTS =======
-  const TAX_RATE = 0.05;
-  const DISCOUNT_RATE = 0.10;
-  const SERVICE_CHARGE_RATE = 0.05;
+  // Load admin data from localStorage or fallback empty arrays
+  let categories = JSON.parse(localStorage.getItem('categories') || '[]');
+  let items = JSON.parse(localStorage.getItem('items') || '[]');
+  let tables = JSON.parse(localStorage.getItem('tables') || '[]');
+  let kitchens = JSON.parse(localStorage.getItem('kitchens') || '[]');
 
-  // ======= INITIAL DATA (can be replaced by Admin Panel data) =======
-  let categories = JSON.parse(localStorage.getItem('categories')) || ['Drinks', 'Snacks', 'Main Course'];
-  let menuItems = JSON.parse(localStorage.getItem('items')) || [
-    { id: 1, name: "Coke", category: "Drinks", price: 30 },
-    { id: 2, name: "Pepsi", category: "Drinks", price: 30 },
-    { id: 3, name: "Burger", category: "Snacks", price: 100 },
-    { id: 4, name: "Pizza", category: "Main Course", price: 250 }
-  ];
-  let tables = JSON.parse(localStorage.getItem('tables')) || ['Table 1', 'Table 2', 'Table 3'];
+  // Current order items array
+  let orderItems = [];
 
-  let currentOrder = [];
-  let selectedTable = tables[0];
-  let filteredDate = null;
-
-  // ======= INIT =======
-  const categoryButtons = document.getElementById('categoryButtons');
-  const itemsList = document.getElementById('itemsList');
-  const tableSelect = document.getElementById('tableSelect');
+  // References to DOM elements
+  const categoryButtonsDiv = document.getElementById('categoryButtons');
+  const itemsListDiv = document.getElementById('itemsList');
   const orderItemsDiv = document.getElementById('orderItems');
-  const filterDateInput = document.getElementById('filterDate');
+  const tableSelect = document.getElementById('tableSelect');
 
-  // Load categories as buttons
+  // Initialize categories buttons
   function loadCategories() {
-    categoryButtons.innerHTML = '';
-    categories.forEach((cat, idx) => {
+    categoryButtonsDiv.innerHTML = '';
+    if(categories.length === 0) {
+      categoryButtonsDiv.innerHTML = '<p>No categories found. Please add categories in Admin.</p>';
+      return;
+    }
+    categories.forEach((cat, index) => {
       const btn = document.createElement('button');
-      btn.textContent = cat;
+      btn.textContent = cat.name;
       btn.className = 'category-btn';
-      if (idx === 0) btn.classList.add('active');
-      btn.onclick = () => {
-        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        loadMenuItems(cat);
-      };
-      categoryButtons.appendChild(btn);
+      btn.onclick = () => loadItemsByCategory(cat.name, btn);
+      categoryButtonsDiv.appendChild(btn);
+      if(index === 0) {
+        btn.click(); // load first category by default
+      }
     });
   }
 
-  // Load menu items filtered by category
-  function loadMenuItems(category) {
-    itemsList.innerHTML = '';
-    const filteredItems = menuItems.filter(i => i.category === category);
+  // Load items filtered by category
+  function loadItemsByCategory(categoryName, btn) {
+    // Highlight active category button
+    document.querySelectorAll('.category-btn').forEach(b => b.style.backgroundColor = '#10b981');
+    btn.style.backgroundColor = '#059669';
+
+    // Filter items by category
+    const filteredItems = items.filter(i => i.category === categoryName);
+    itemsListDiv.innerHTML = '';
+
+    if(filteredItems.length === 0) {
+      itemsListDiv.innerHTML = `<p>No items found in category "${categoryName}"</p>`;
+      return;
+    }
+
     filteredItems.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'item-card';
-      div.textContent = `${item.name} - ₹${item.price.toFixed(2)}`;
-      div.onclick = () => addItemToOrder(item);
-      itemsList.appendChild(div);
+      const card = document.createElement('div');
+      card.className = 'item-card';
+      card.innerHTML = `
+        <strong>${item.name}</strong><br/>
+        ₹${item.price.toFixed(2)}
+      `;
+      card.onclick = () => addItemToOrder(item);
+      itemsListDiv.appendChild(card);
     });
   }
 
-  // Add item to current order or increase qty
+  // Add item to order or increase quantity if exists
   function addItemToOrder(item) {
-    const existing = currentOrder.find(i => i.id === item.id);
-    if (existing) {
+    const existing = orderItems.find(i => i.id === item.id);
+    if(existing) {
       existing.qty++;
     } else {
-      currentOrder.push({ ...item, qty: 1 });
+      orderItems.push({...item, qty: 1});
     }
-    renderOrderSummary();
+    renderOrder();
   }
 
-  // Render order summary with qty controls
-  function renderOrderSummary() {
+  // Render order summary
+  function renderOrder() {
     orderItemsDiv.innerHTML = '';
-    if (currentOrder.length === 0) {
-      orderItemsDiv.textContent = "No items in order";
+    if(orderItems.length === 0) {
+      orderItemsDiv.innerHTML = '<p>No items added.</p>';
       updateSummary(0);
       return;
     }
 
-    let subtotal = 0;
-    currentOrder.forEach(item => {
+    orderItems.forEach((item, idx) => {
       const div = document.createElement('div');
-      div.className = 'order-item';
+      div.className = 'order-line';
+      div.style.display = 'flex';
+      div.style.justifyContent = 'space-between';
+      div.style.marginBottom = '8px';
 
-      const nameSpan = document.createElement('span');
-      nameSpan.textContent = item.name;
-      div.appendChild(nameSpan);
-
-      const qtyControls = document.createElement('span');
-      qtyControls.className = 'qty-controls';
-
-      const minusBtn = document.createElement('button');
-      minusBtn.textContent = '-';
-      minusBtn.onclick = () => {
-        if (item.qty > 1) item.qty--;
-        else removeItemFromOrder(item.id);
-        renderOrderSummary();
-      };
-      qtyControls.appendChild(minusBtn);
-
-      const qtySpan = document.createElement('span');
-      qtySpan.textContent = item.qty;
-      qtySpan.style.margin = '0 6px';
-      qtyControls.appendChild(qtySpan);
-
-      const plusBtn = document.createElement('button');
-      plusBtn.textContent = '+';
-      plusBtn.onclick = () => {
-        item.qty++;
-        renderOrderSummary();
-      };
-      qtyControls.appendChild(plusBtn);
-
-      div.appendChild(qtyControls);
-
-      const priceSpan = document.createElement('span');
-      priceSpan.textContent = `₹${(item.price * item.qty).toFixed(2)}`;
-      div.appendChild(priceSpan);
-
-      const removeBtn = document.createElement('span');
-      removeBtn.textContent = '×';
-      removeBtn.className = 'remove-btn';
-      removeBtn.title = 'Remove item';
-      removeBtn.onclick = () => {
-        removeItemFromOrder(item.id);
-        renderOrderSummary();
-      };
-      div.appendChild(removeBtn);
-
+      div.innerHTML = `
+        <div>${item.name} x ${item.qty}</div>
+        <div>₹${(item.price * item.qty).toFixed(2)} <button onclick="removeItem(${idx})" style="margin-left:8px;">✖</button></div>
+      `;
       orderItemsDiv.appendChild(div);
-
-      subtotal += item.price * item.qty;
     });
 
+    const subtotal = orderItems.reduce((sum, i) => sum + i.price * i.qty, 0);
     updateSummary(subtotal);
   }
 
-  function removeItemFromOrder(id) {
-    currentOrder = currentOrder.filter(i => i.id !== id);
+  // Remove item from order
+  function removeItem(index) {
+    orderItems.splice(index, 1);
+    renderOrder();
   }
 
+  // Update price summary with tax, discount, service charge
   function updateSummary(subtotal) {
-    const tax = subtotal * TAX_RATE;
-    const discount = subtotal * DISCOUNT_RATE;
-    const serviceCharge = subtotal * SERVICE_CHARGE_RATE;
-    const total = subtotal + tax - discount + serviceCharge;
+    const tax = subtotal * 0.05;
+    const discount = subtotal * 0.10;
+    const serviceCharge = subtotal * 0.05;
+    const total = subtotal + tax + serviceCharge - discount;
 
     document.getElementById('subtotal').textContent = subtotal.toFixed(2);
     document.getElementById('tax').textContent = tax.toFixed(2);
@@ -422,157 +392,54 @@
     document.getElementById('total').textContent = total.toFixed(2);
   }
 
-  // Load tables in dropdown
+  // Load tables to dropdown
   function loadTables() {
     tableSelect.innerHTML = '';
-    tables.forEach(table => {
+    if(tables.length === 0) {
+      tableSelect.innerHTML = '<option>No tables added</option>';
+      return;
+    }
+    tables.forEach(t => {
       const opt = document.createElement('option');
-      opt.value = table;
-      opt.textContent = table;
+      opt.value = t.name;
+      opt.textContent = t.name;
       tableSelect.appendChild(opt);
     });
-    selectedTable = tables[0];
-    tableSelect.value = selectedTable;
   }
 
-  tableSelect.onchange = (e) => {
-    selectedTable = e.target.value;
-  };
-
-  // Save current order to localStorage orders array
+  // Place order and save to localStorage
   function placeOrder() {
-    if (currentOrder.length === 0) {
-      alert('Add items to place order.');
+    if(orderItems.length === 0) {
+      alert("Add items before placing order.");
       return;
     }
-    const orderDate = new Date().toISOString().split('T')[0];
-
-    // Load previous orders or init array
+    const selectedTable = tableSelect.value || "No Table";
     const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-
-    const subtotal = parseFloat(document.getElementById('subtotal').textContent);
-    const tax = parseFloat(document.getElementById('tax').textContent);
-    const discount = parseFloat(document.getElementById('discount').textContent);
-    const serviceCharge = parseFloat(document.getElementById('serviceCharge').textContent);
-    const total = parseFloat(document.getElementById('total').textContent);
-
-    const orderData = {
+    const newOrder = {
       id: Date.now(),
+      date: new Date().toISOString().split('T')[0],
+      time: new Date().toLocaleTimeString(),
       table: selectedTable,
-      date: orderDate,
-      items: currentOrder,
-      subtotal,
-      tax,
-      discount,
-      serviceCharge,
-      total
+      items: orderItems,
+      subtotal: parseFloat(document.getElementById('subtotal').textContent),
+      tax: parseFloat(document.getElementById('tax').textContent),
+      discount: parseFloat(document.getElementById('discount').textContent),
+      serviceCharge: parseFloat(document.getElementById('serviceCharge').textContent),
+      total: parseFloat(document.getElementById('total').textContent),
     };
-
-    orders.push(orderData);
+    orders.push(newOrder);
     localStorage.setItem('orders', JSON.stringify(orders));
-    alert('Order placed successfully!');
-
-    // Reset order
-    currentOrder = [];
-    renderOrderSummary();
+    alert("Order placed successfully!");
+    orderItems = [];
+    renderOrder();
   }
 
-  // Export all orders as CSV
-  function exportCSV() {
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-    if (orders.length === 0) {
-      alert('No orders to export.');
-      return;
-    }
+  // Initial load
+  loadCategories();
+  loadTables();
+  renderOrder();
 
-    let csv = 'OrderID,Date,Table,Item,Qty,Price,Subtotal,Tax,Discount,ServiceCharge,Total\n';
-
-    orders.forEach(o => {
-      o.items.forEach(item => {
-        csv += `${o.id},${o.date},${o.table},${item.name},${item.qty},${item.price},${o.subtotal},${o.tax},${o.discount},${o.serviceCharge},${o.total}\n`;
-      });
-    });
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'pos_orders.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  // Print Order Summary
-  function printSummary() {
-    if (currentOrder.length === 0) {
-      alert('No items in order to print.');
-      return;
-    }
-
-    let printWindow = window.open('', '', 'width=400,height=600');
-    printWindow.document.write('<html><head><title>Order Summary</title></head><body>');
-    printWindow.document.write(`<h2>Table: ${selectedTable}</h2>`);
-    printWindow.document.write(`<p>Date: ${new Date().toLocaleString()}</p>`);
-    printWindow.document.write('<ul>');
-
-    currentOrder.forEach(item => {
-      printWindow.document.write(`<li>${item.name} x ${item.qty} = ₹${(item.price * item.qty).toFixed(2)}</li>`);
-    });
-
-    printWindow.document.write('</ul>');
-
-    printWindow.document.write(`<p>Subtotal: ₹${document.getElementById('subtotal').textContent}</p>`);
-    printWindow.document.write(`<p>Tax (5%): ₹${document.getElementById('tax').textContent}</p>`);
-    printWindow.document.write(`<p>Discount (10%): -₹${document.getElementById('discount').textContent}</p>`);
-    printWindow.document.write(`<p>Service Charge (5%): ₹${document.getElementById('serviceCharge').textContent}</p>`);
-    printWindow.document.write(`<hr><h3>Total: ₹${document.getElementById('total').textContent}</h3>`);
-
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
-  }
-
-  // Print Kitchen Order Ticket (KOT)
-  function printKOT() {
-    if (currentOrder.length === 0) {
-      alert('No items in order to print.');
-      return;
-    }
-
-    let printWindow = window.open('', '', 'width=300,height=400');
-    printWindow.document.write('<html><head><title>KOT</title></head><body>');
-    printWindow.document.write(`<h3>KITCHEN ORDER TICKET</h3>`);
-    printWindow.document.write(`<p>Table: ${selectedTable}</p>`);
-    printWindow.document.write(`<p>Date: ${new Date().toLocaleString()}</p>`);
-    printWindow.document.write('<ul>');
-
-    currentOrder.forEach(item => {
-      printWindow.document.write(`<li>${item.name} x ${item.qty}</li>`);
-    });
-
-    printWindow.document.write('</ul>');
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
-  }
-
-  // Apply filter by date to orders (for export or future use)
-  function applyDateFilter() {
-    filteredDate = filterDateInput.value || null;
-  }
-
-  // Initial loading
-  window.onload = () => {
-    loadCategories();
-    loadTables();
-    loadMenuItems(categories[0]);
-    renderOrderSummary();
-  };
 </script>
+
 </body>
 </html>
