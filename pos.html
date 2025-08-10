@@ -4,19 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>POS Billing</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2s+lHh1p7n5K24Jq4i+c6A5aJ6K6O4f3T2X6Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* Reset */
+        /* General Styling and Fonts */
         * {
             box-sizing: border-box;
         }
 
         body {
             margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f9fafb;
+            font-family: 'Inter', sans-serif;
+            background: #f1f5f9; /* Lighter background */
             display: flex;
             height: 100vh;
             overflow: hidden;
+            font-size: 14px;
         }
 
         /* Sidebar */
@@ -28,11 +30,12 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            transition: width 0.3s ease;
+            transition: width 0.3s ease, border-radius 0.3s;
             position: relative;
             overflow-y: auto;
             box-shadow: 2px 0 6px rgba(79, 70, 229, 0.3);
             z-index: 10;
+            border-radius: 0 15px 15px 0;
         }
 
         .sidebar.collapsed {
@@ -45,7 +48,7 @@
             padding: 1.5rem 1rem;
             font-size: 1.3rem;
             font-weight: 700;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -54,11 +57,11 @@
         .nav-link {
             display: flex;
             align-items: center;
-            padding: 1rem 1rem;
+            padding: 1rem;
             color: white;
             text-decoration: none;
             font-weight: 600;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             transition: background-color 0.2s;
             white-space: nowrap;
             overflow: hidden;
@@ -87,154 +90,148 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 1rem 1.5rem;
+            padding: 1.5rem;
             overflow-y: auto;
         }
 
         /* Toggle button */
         .toggle-btn {
             position: fixed;
-            top: 12px;
-            left: 12px;
+            top: 20px;
+            left: 20px;
             background: #4f46e5;
             border: none;
             color: white;
-            padding: 8px 10px;
-            border-radius: 6px;
+            padding: 10px 14px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 1.3rem;
             z-index: 20;
-            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
-            transition: background-color 0.2s;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
+            transition: background-color 0.2s, transform 0.2s;
         }
         .toggle-btn:hover {
             background: #4338ca;
+            transform: scale(1.05);
         }
 
         /* Content layout */
         .content-wrapper {
             display: flex;
-            gap: 1rem;
+            gap: 1.5rem;
+            height: 100%;
+        }
+
+        /* Panels */
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
             height: 100%;
         }
 
         /* Categories panel */
         .category-section {
-            width: 180px;
+            width: 200px;
+            min-width: 200px;
+            max-width: 200px;
             background: #e0e7ff;
-            border-radius: 12px;
+            border-radius: 15px;
             padding: 1rem;
-            box-shadow: 0 2px 10px rgba(79, 70, 229, 0.2);
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
             overflow-y: auto;
         }
         .category-btn {
             width: 100%;
-            padding: 12px 16px;
-            margin-bottom: 10px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
             background: #6366f1;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-weight: 700;
             color: white;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.2s;
             text-align: center;
         }
         .category-btn:hover {
             background: #4f46e5;
+            transform: translateY(-2px);
         }
         .category-btn.active {
             background: #3730a3;
-            box-shadow: 0 0 8px #3730a3;
+            box-shadow: 0 0 10px rgba(55, 48, 163, 0.5);
+            transform: translateY(-2px);
         }
 
         /* Menu items */
         .menu-section {
             flex: 2;
-            background: white;
-            border-radius: 12px;
-            padding: 1rem;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-        }
-        .menu-section h3 {
-            margin-top: 0;
-            font-weight: 700;
-            color: #4b5563;
-            margin-bottom: 1rem;
-            user-select: none;
         }
         .items-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
             overflow-y: auto;
             flex-grow: 1;
             padding-right: 5px;
         }
         .item-card {
             background: #fef3c7;
-            border-radius: 12px;
+            border-radius: 15px;
             padding: 10px;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            box-shadow: 0 4px 8px rgb(254 243 199 / 0.6);
-            transition: box-shadow 0.3s, transform 0.2s;
+            box-shadow: 0 4px 10px rgb(254 243 199 / 0.6);
+            transition: box-shadow 0.3s, transform 0.2s, background-color 0.3s;
             user-select: none;
-            aspect-ratio: 1 / 1;
-            overflow: hidden;
-            position: relative;
+            aspect-ratio: 1 / 1.1;
         }
         .item-card:hover {
-            box-shadow: 0 6px 14px rgb(254 243 199 / 0.9);
-            transform: scale(1.06);
+            box-shadow: 0 6px 16px rgb(254 243 199 / 0.9);
+            transform: scale(1.03) translateY(-3px);
             background: #fde68a;
         }
         .item-card img {
-            width: 100%;
-            height: 60%;
+            width: 90%;
+            height: 65%;
             object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 5px;
-            user-select: none;
+            border-radius: 10px;
+            margin-bottom: 8px;
         }
         .item-name {
             font-weight: 700;
             font-size: 1rem;
-            margin-bottom: 2px;
             color: #1e293b;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             width: 100%;
+            padding: 0 5px;
         }
         .item-price {
             font-weight: 600;
             color: #15803d;
             font-size: 0.9rem;
+            margin-top: auto;
         }
 
         /* Order summary */
         .order-summary {
             flex: 1;
-            background: white;
-            border-radius: 12px;
-            padding: 1rem 1.5rem;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            display: flex;
-            flex-direction: column;
-            max-height: 100%;
+            min-width: 300px;
         }
         .order-summary h3 {
             margin-top: 0;
             margin-bottom: 1rem;
             font-weight: 700;
             color: #374151;
-            user-select: none;
         }
         .table-select {
             margin-bottom: 1rem;
@@ -244,202 +241,181 @@
             margin-bottom: 0.4rem;
             font-weight: 600;
             color: #374151;
-            user-select: none;
         }
         .table-select select {
             width: 100%;
-            padding: 8px;
-            border-radius: 8px;
+            padding: 10px;
+            border-radius: 10px;
             border: 1px solid #d1d5db;
             font-size: 1rem;
-            user-select: none;
         }
+
+        /* Order items list */
         #orderItems {
             flex-grow: 1;
             overflow-y: auto;
             margin-bottom: 1rem;
-            border-top: 1px solid #e5e7eb;
-            border-bottom: 1px solid #e5e7eb;
             padding-top: 10px;
             padding-bottom: 10px;
-            user-select: none;
+            border-top: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
         }
         .order-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             font-weight: 600;
             color: #1f2937;
-            user-select: none;
             padding: 8px;
+            background: #f8fafc;
             border-radius: 8px;
-            background: #f9fafb;
         }
         .order-item-details {
             flex-grow: 1;
-            margin-right: 10px;
-        }
-        .order-item-name {
-            font-weight: 700;
-            font-size: 0.95rem;
-        }
-        .order-item-price {
-            font-size: 0.85rem;
-            color: #6b7280;
         }
         .order-item-controls {
             display: flex;
             align-items: center;
             gap: 8px;
+            min-width: 120px;
+            justify-content: flex-end;
         }
-        .order-item .qty-btn {
+        .order-item .qty-btn,
+        .order-item .remove-btn {
             background-color: #6366f1;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 5px;
             width: 28px;
             height: 28px;
             cursor: pointer;
             font-weight: 700;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, transform 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
         }
         .order-item .qty-btn:hover {
             background-color: #4f46e5;
-        }
-        .order-item .qty-display {
-            font-weight: 700;
-            min-width: 25px;
-            text-align: center;
-            background: white;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            padding: 4px 8px;
+            transform: scale(1.1);
         }
         .order-item .remove-btn {
             background-color: #ef4444;
-            border: none;
-            color: white;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 28px;
-            height: 28px;
-            font-weight: 700;
-            transition: background-color 0.2s;
-            font-size: 1rem;
         }
         .order-item .remove-btn:hover {
-            background-color: #dc2626;
+            background-color: #b91c1c;
+            transform: scale(1.1);
         }
-        .order-item .item-total {
+        .order-item .qty-display {
             font-weight: 700;
-            color: #15803d;
+            min-width: 20px;
+            text-align: center;
+            font-size: 1rem;
+        }
+        .order-item .item-price {
+            font-weight: 600;
             min-width: 60px;
             text-align: right;
         }
 
-        .summary-section {
-            border-top: 2px solid #e5e7eb;
-            padding-top: 1rem;
-            margin-top: 1rem;
-        }
-
+        /* Summary lines */
         .summary-line, .total-line {
+            margin: 8px 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 8px 0;
             font-weight: 600;
             font-size: 1rem;
             color: #374151;
-            user-select: none;
         }
 
-        .discount-input, .service-input {
+        .summary-input-group {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
-        .discount-input input, .service-input input {
-            width: 60px;
-            padding: 4px 6px;
+        .summary-input-group input {
+            width: 80px;
+            padding: 8px;
+            border-radius: 8px;
             border: 1px solid #d1d5db;
-            border-radius: 4px;
-            text-align: center;
-            font-weight: 600;
+            text-align: right;
         }
 
         .total-line {
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             color: #111827;
             font-weight: 700;
-            border-top: 1px solid #d1d5db;
-            padding-top: 8px;
-            margin-top: 8px;
+            margin-top: 1rem;
+        }
+        .total-line span {
+            color: #15803d;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #e5e7eb;
+            margin: 1.5rem 0;
         }
 
         .action-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-top: 1rem;
         }
-
         .action-buttons button {
-            padding: 12px 16px;
+            flex: 1;
+            padding: 12px 18px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s;
-            user-select: none;
-            font-size: 0.9rem;
+            transition: background-color 0.3s, transform 0.2s;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            min-width: 100px;
         }
         .action-buttons button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
         }
         .btn-place {
             background-color: #10b981;
-            color: white;
-            grid-column: 1 / -1;
         }
         .btn-export {
             background-color: #3b82f6;
-            color: white;
         }
         .btn-print {
             background-color: #6366f1;
-            color: white;
         }
         .btn-kot {
             background-color: #f97316;
-            color: white;
-        }
-        .btn-clear {
-            background-color: #ef4444;
-            color: white;
         }
 
         /* Scrollbar styling */
         #orderItems::-webkit-scrollbar,
         .items-list::-webkit-scrollbar,
         .category-section::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
+        }
+        #orderItems::-webkit-scrollbar-track,
+        .items-list::-webkit-scrollbar-track,
+        .category-section::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
         }
         #orderItems::-webkit-scrollbar-thumb,
         .items-list::-webkit-scrollbar-thumb,
         .category-section::-webkit-scrollbar-thumb {
-            background-color: #a5b4fc;
-            border-radius: 3px;
+            background-color: #cbd5e1;
+            border-radius: 10px;
+            border: 2px solid #f1f5f9;
         }
 
-        /* Modal styling */
+        /* Modal for custom alerts */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -455,7 +431,7 @@
         .modal-content {
             background-color: white;
             padding: 2rem;
-            border-radius: 12px;
+            border-radius: 15px;
             text-align: center;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             width: 90%;
@@ -472,144 +448,115 @@
         }
         .modal-content button {
             margin-top: 1rem;
-            padding: 10px 20px;
+            padding: 12px 24px;
             background-color: #6366f1;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: 700;
+            transition: transform 0.2s;
+        }
+        .modal-content button:hover {
+            transform: scale(1.05);
         }
 
-        /* Empty state styling */
-        .empty-state {
-            text-align: center;
-            color: #6b7280;
-            font-style: italic;
-            padding: 2rem;
-        }
-
-        /* Quick order info */
-        .order-info {
-            background: #f0f9ff;
-            border: 1px solid #0ea5e9;
-            border-radius: 8px;
-            padding: 8px;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-            color: #0369a1;
-        }
-
-        /* Responsive design */
+        /* Responsive */
         @media (max-width: 900px) {
             .category-section {
                 display: none;
             }
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
             .sidebar:not(.collapsed) {
-                transform: translateX(0);
+                position: absolute;
+                left: 0;
+                top: 0;
+                z-index: 100;
+            }
+            .sidebar.collapsed {
+                display: none;
             }
             .toggle-btn {
-                left: 10px;
-                top: 10px;
+                left: 20px;
+                top: 20px;
             }
             .main-content {
-                padding: 1rem 0.8rem;
+                padding: 1rem;
             }
             .content-wrapper {
                 flex-direction: column;
+                gap: 1rem;
             }
-            .order-summary {
-                order: -1;
-                max-height: 40vh;
-            }
-            .action-buttons {
-                grid-template-columns: 1fr;
+            .order-summary, .menu-section {
+                min-width: 100%;
+                flex: none;
+                height: auto;
             }
         }
     </style>
 </head>
 <body>
-    <button class="toggle-btn" title="Toggle Menu" aria-label="Toggle Menu">&#9776;</button>
+    <button class="toggle-btn" title="Toggle Menu" aria-label="Toggle Menu"><i class="fas fa-bars"></i></button>
 
     <nav class="sidebar">
         <h2>POS System</h2>
-        <a href="dashboard.html" class="nav-link"><span class="icon">🏠</span><span class="text">Dashboard</span></a>
-        <a href="pos.html" class="nav-link"><span class="icon">🧾</span><span class="text">POS Billing</span></a>
-        <a href="receipt.html" class="nav-link"><span class="icon">🖨️</span><span class="text">Print Receipt</span></a>
-        <a href="report.html" class="nav-link"><span class="icon">📊</span><span class="text">Reports</span></a>
-        <a href="admin.html" class="nav-link"><span class="icon">⚙️</span><span class="text">Admin</span></a>
-        <a href="login.html" class="nav-link"><span class="icon">🚪</span><span class="text">Logout</span></a>
+        <a href="dashboard.html" class="nav-link"><span class="icon"><i class="fas fa-chart-line"></i></span><span class="text">Dashboard</span></a>
+        <a href="pos.html" class="nav-link"><span class="icon"><i class="fas fa-cash-register"></i></span><span class="text">POS Billing</span></a>
+        <a href="receipt.html" class="nav-link"><span class="icon"><i class="fas fa-receipt"></i></span><span class="text">Print Receipt</span></a>
+        <a href="report.html" class="nav-link"><span class="icon"><i class="fas fa-chart-bar"></i></span><span class="text">Reports</span></a>
+        <a href="admin.html" class="nav-link"><span class="icon"><i class="fas fa-cog"></i></span><span class="text">Admin</span></a>
+        <a href="login.html" class="nav-link"><span class="icon"><i class="fas fa-sign-out-alt"></i></span><span class="text">Logout</span></a>
     </nav>
 
     <main class="main-content">
         <div class="content-wrapper">
             <section class="category-section" id="categoryButtons"></section>
 
-            <section class="menu-section">
-                <h3 id="menuTitle">Menu</h3>
+            <section class="menu-section panel">
+                <h3>Menu</h3>
                 <div class="items-list" id="itemsList"></div>
             </section>
 
-            <aside class="order-summary">
+            <aside class="order-summary panel">
                 <div class="table-select">
                     <label for="tableSelect">Select Table:</label>
                     <select id="tableSelect"></select>
                 </div>
 
-                <div class="order-info" id="orderInfo" style="display: none;">
-                    Order #<span id="orderNumber"></span> • <span id="orderTime"></span>
-                </div>
-
                 <h3>Order Summary</h3>
-                <div id="orderItems">
-                    <div class="empty-state">No items added yet</div>
+                <div id="orderItems">No items added yet.</div>
+
+                <div class="summary-line">
+                    Subtotal: <span>₹<span id="subtotal">0.00</span></span>
                 </div>
 
-                <div class="summary-section">
-                    <div class="summary-line">
-                        <span>Subtotal:</span>
-                        <span>₹<span id="subtotal">0.00</span></span>
-                    </div>
-                    <div class="summary-line">
-                        <span>Tax (5%):</span>
-                        <span>₹<span id="tax">0.00</span></span>
-                    </div>
-                    <div class="summary-line">
-                        <span>Discount:</span>
-                        <div class="discount-input">
-                            <input type="number" id="discountPercent" value="10" min="0" max="100" />
-                            <span>% = -₹<span id="discount">0.00</span></span>
-                        </div>
-                    </div>
-                    <div class="summary-line">
-                        <span>Service Charge:</span>
-                        <div class="service-input">
-                            <input type="number" id="servicePercent" value="5" min="0" max="100" />
-                            <span>% = ₹<span id="serviceCharge">0.00</span></span>
-                        </div>
-                    </div>
-                    <div class="total-line">
-                        <span>Total:</span>
-                        <span>₹<span id="total">0.00</span></span>
-                    </div>
+                <div class="summary-line summary-input-group">
+                    Discount: <input type="number" id="discountInput" value="0" min="0" />
+                </div>
+
+                <div class="summary-line summary-input-group">
+                    Service Charge: <input type="number" id="serviceChargeInput" value="0" min="0" />
+                </div>
+
+                <div class="summary-line">
+                    Tax (5%): <span>₹<span id="tax">0.00</span></span>
+                </div>
+
+                <hr />
+                <div class="total-line">
+                    Total: <span>₹<span id="total">0.00</span></span>
                 </div>
 
                 <div class="action-buttons">
                     <button class="btn-place" onclick="placeOrder()">Place Order</button>
-                    <button class="btn-kot" onclick="printKOT()">Print KOT</button>
-                    <button class="btn-print" onclick="printSummary()">Print Bill</button>
                     <button class="btn-export" onclick="exportCSV()">Export CSV</button>
-                    <button class="btn-clear" onclick="clearOrder()">Clear Order</button>
+                    <button class="btn-print" onclick="printSummary()">Print Summary</button>
+                    <button class="btn-kot" onclick="printKOT()">Print KOT</button>
                 </div>
             </aside>
         </div>
     </main>
 
-    <!-- Modal for alerts -->
+    <!-- Modal for custom alerts -->
     <div id="modalOverlay" class="modal-overlay">
         <div class="modal-content">
             <h4 id="modalTitle"></h4>
@@ -622,19 +569,11 @@
         // Sidebar toggle
         const sidebar = document.querySelector('.sidebar');
         const toggleBtn = document.querySelector('.toggle-btn');
+        const mainContent = document.querySelector('.main-content');
+        const contentWrapper = document.querySelector('.content-wrapper');
 
         toggleBtn.addEventListener('click', () => {
             sidebar.classList.toggle('collapsed');
-        });
-
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', (e) => {
-            if (window.innerWidth <= 900 && 
-                !sidebar.contains(e.target) && 
-                !toggleBtn.contains(e.target) && 
-                !sidebar.classList.contains('collapsed')) {
-                sidebar.classList.add('collapsed');
-            }
         });
 
         // Custom modal for alerts
@@ -643,8 +582,8 @@
         const modalMessage = document.getElementById('modalMessage');
         const modalCloseBtn = document.getElementById('modalCloseBtn');
 
-        function showAlert(message, title = 'Notification') {
-            modalTitle.textContent = title;
+        function showAlert(message) {
+            modalTitle.textContent = 'Notification';
             modalMessage.textContent = message;
             modalOverlay.style.display = 'flex';
         }
@@ -653,46 +592,24 @@
             modalOverlay.style.display = 'none';
         });
 
-        // Data - Sample data if localStorage is empty
-        let categories = JSON.parse(localStorage.getItem('categories') || '["Starters", "Main Course", "Beverages", "Desserts"]');
+        // Data
+        let categories = JSON.parse(localStorage.getItem('categories') || '[]');
         let items = JSON.parse(localStorage.getItem('items') || '[]');
-        let tables = JSON.parse(localStorage.getItem('tables') || '["Table 1", "Table 2", "Table 3", "Table 4", "Counter"]');
-
-        // Sample items if none exist
-        if (items.length === 0) {
-            items = [
-                {id: 1, name: "Paneer Tikka", category: "Starters", price: 180, image: "https://placehold.co/120x120?text=Paneer+Tikka", description: "Grilled cottage cheese with spices", kitchen: "Main Kitchen"},
-                {id: 2, name: "Chicken Curry", category: "Main Course", price: 220, image: "https://placehold.co/120x120?text=Chicken+Curry", description: "Spicy chicken curry", kitchen: "Main Kitchen"},
-                {id: 3, name: "Masala Tea", category: "Beverages", price: 25, image: "https://placehold.co/120x120?text=Masala+Tea", description: "Indian spiced tea", kitchen: "Beverage Counter"},
-                {id: 4, name: "Gulab Jamun", category: "Desserts", price: 60, image: "https://placehold.co/120x120?text=Gulab+Jamun", description: "Sweet milk dumplings", kitchen: "Dessert Section"}
-            ];
-            localStorage.setItem('items', JSON.stringify(items));
-        }
+        let tables = JSON.parse(localStorage.getItem('tables') || '[]');
 
         // Elements
         const categoryButtonsDiv = document.getElementById('categoryButtons');
         const itemsListDiv = document.getElementById('itemsList');
-        const menuTitle = document.getElementById('menuTitle');
         const tableSelect = document.getElementById('tableSelect');
         const orderItemsDiv = document.getElementById('orderItems');
         const subtotalSpan = document.getElementById('subtotal');
         const taxSpan = document.getElementById('tax');
-        const discountSpan = document.getElementById('discount');
-        const serviceChargeSpan = document.getElementById('serviceCharge');
+        const discountInput = document.getElementById('discountInput');
+        const serviceChargeInput = document.getElementById('serviceChargeInput');
         const totalSpan = document.getElementById('total');
-        const discountPercentInput = document.getElementById('discountPercent');
-        const servicePercentInput = document.getElementById('servicePercent');
-        const orderInfo = document.getElementById('orderInfo');
-        const orderNumber = document.getElementById('orderNumber');
-        const orderTime = document.getElementById('orderTime');
 
         let currentCategory = '';
         let order = [];
-        let currentOrderId = null;
-
-        // Event listeners for discount and service charge inputs
-        discountPercentInput.addEventListener('input', renderOrder);
-        servicePercentInput.addEventListener('input', renderOrder);
 
         // Load tables
         function loadTables() {
@@ -717,7 +634,7 @@
         function renderCategories() {
             categoryButtonsDiv.innerHTML = '';
             if (categories.length === 0) {
-                categoryButtonsDiv.innerHTML = '<div class="empty-state">No categories added</div>';
+                categoryButtonsDiv.textContent = 'No categories added';
                 return;
             }
             categories.forEach((cat, idx) => {
@@ -742,28 +659,23 @@
         function renderItems() {
             itemsListDiv.innerHTML = '';
             if (!currentCategory) {
-                itemsListDiv.innerHTML = '<div class="empty-state">No category selected</div>';
-                menuTitle.textContent = 'Menu';
+                itemsListDiv.textContent = 'No category selected';
                 return;
             }
-            
-            menuTitle.textContent = `Menu - ${currentCategory}`;
             const filtered = items.filter(i => i.category === currentCategory);
-            
             if (filtered.length === 0) {
-                itemsListDiv.innerHTML = '<div class="empty-state">No items in this category</div>';
+                itemsListDiv.textContent = 'No items in this category';
                 return;
             }
-            
             filtered.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'item-card';
-                card.title = `${item.name}\n${item.description || ''}\nKitchen: ${item.kitchen || 'Main Kitchen'}`;
+                card.title = `${item.name}\n${item.description || ''}\nKitchen: ${item.kitchen || '-'}`;
 
                 card.innerHTML = `
-                    <img src="${item.image || 'https://placehold.co/120x120?text=No+Image'}" alt="${item.name}" onerror="this.src='https://placehold.co/120x120?text=No+Image'" />
+                    <img src="${item.image || 'https://placehold.co/150x150?text=No+Image'}" alt="${item.name}" />
                     <div class="item-name">${item.name}</div>
-                    <div class="item-price">₹${parseFloat(item.price || 0).toFixed(2)}</div>
+                    <div class="item-price">₹${parseFloat(item.price).toFixed(2)}</div>
                 `;
                 card.addEventListener('click', () => addItemToOrder(item));
                 itemsListDiv.appendChild(card);
@@ -778,71 +690,171 @@
             } else {
                 order.push({ ...item, qty: 1 });
             }
-            
-            // Show order info if this is the first item
-            if (order.length === 1 && !currentOrderId) {
-                currentOrderId = Date.now();
-                orderNumber.textContent = `#${currentOrderId}`;
-                orderTime.textContent = new Date().toLocaleTimeString();
-                orderInfo.style.display = 'block';
-            }
-            
             renderOrder();
         }
 
-        // Render order
+        // Increment item quantity in order
+        function incrementOrderItem(id) {
+            const item = order.find(o => o.id === id);
+            if (item) {
+                item.qty++;
+                renderOrder();
+            }
+        }
+
+        // Decrement item quantity in order
+        function decrementOrderItem(id) {
+            const item = order.find(o => o.id === id);
+            if (item && item.qty > 1) {
+                item.qty--;
+                renderOrder();
+            }
+        }
+        
+        // Remove item from order
+        function removeOrderItem(id) {
+            order = order.filter(i => i.id !== id);
+            renderOrder();
+        }
+
+        // Render order and recalculate totals
         function renderOrder() {
             orderItemsDiv.innerHTML = '';
-            
             if (order.length === 0) {
-                orderItemsDiv.innerHTML = '<div class="empty-state">No items added yet</div>';
+                orderItemsDiv.textContent = 'No items added yet.';
                 subtotalSpan.textContent = '0.00';
                 taxSpan.textContent = '0.00';
-                discountSpan.textContent = '0.00';
-                serviceChargeSpan.textContent = '0.00';
                 totalSpan.textContent = '0.00';
-                orderInfo.style.display = 'none';
-                currentOrderId = null;
                 return;
             }
-
+            
             let subtotal = 0;
             order.forEach(item => {
-                subtotal += (item.price || 0) * item.qty;
+                subtotal += item.price * item.qty;
                 const div = document.createElement('div');
                 div.className = 'order-item';
                 div.innerHTML = `
-                    <div class="order-item-details">
-                        <div class="order-item-name">${item.name}</div>
-                        <div class="order-item-price">₹${parseFloat(item.price || 0).toFixed(2)} each</div>
-                    </div>
+                    <span class="order-item-details">${item.name}</span>
                     <div class="order-item-controls">
-                        <button class="qty-btn" onclick="decrementOrderItem('${item.id}')" type="button">-</button>
+                        <button class="qty-btn" data-id="${item.id}" data-action="decrement"><i class="fas fa-minus"></i></button>
                         <span class="qty-display">${item.qty}</span>
-                        <button class="qty-btn" onclick="incrementOrderItem('${item.id}')" type="button">+</button>
-                        <div class="item-total">₹${((item.price || 0) * item.qty).toFixed(2)}</div>
-                        <button class="remove-btn" onclick="removeOrderItem('${item.id}')" type="button" title="Remove item">×</button>
+                        <button class="qty-btn" data-id="${item.id}" data-action="increment"><i class="fas fa-plus"></i></button>
+                        <span class="item-price">₹${(item.price * item.qty).toFixed(2)}</span>
+                        <button class="remove-btn" data-id="${item.id}" aria-label="Remove ${item.name}"><i class="fas fa-times"></i></button>
                     </div>
                 `;
                 orderItemsDiv.appendChild(div);
             });
 
-            // Calculate totals
-            const discountPercent = parseFloat(discountPercentInput.value) || 0;
-            const servicePercent = parseFloat(servicePercentInput.value) || 0;
-            
+            // Re-attach event listeners for the new buttons
+            orderItemsDiv.querySelectorAll('.qty-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-id');
+                    const action = btn.getAttribute('data-action');
+                    if (action === 'increment') {
+                        incrementOrderItem(id);
+                    } else if (action === 'decrement') {
+                        decrementOrderItem(id);
+                    }
+                });
+            });
+
+            orderItemsDiv.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-id');
+                    removeOrderItem(id);
+                });
+            });
+
+            // Recalculate totals
             const tax = subtotal * 0.05;
-            const discount = subtotal * (discountPercent / 100);
-            const serviceCharge = subtotal * (servicePercent / 100);
+            const discount = parseFloat(discountInput.value) || 0;
+            const serviceCharge = parseFloat(serviceChargeInput.value) || 0;
             const total = subtotal + tax + serviceCharge - discount;
 
             subtotalSpan.textContent = subtotal.toFixed(2);
             taxSpan.textContent = tax.toFixed(2);
-            discountSpan.textContent = discount.toFixed(2);
-            serviceChargeSpan.textContent = serviceCharge.toFixed(2);
-            totalSpan.textContent = Math.max(0, total).toFixed(2);
+            totalSpan.textContent = Math.max(0, total).toFixed(2); // Prevent negative total
         }
 
-        // Order manipulation functions
-        function incrementOrderItem(id) {
-            const item = order.find(o => o.id == i
+        // Add event listeners for the new discount and service charge inputs
+        discountInput.addEventListener('input', renderOrder);
+        serviceChargeInput.addEventListener('input', renderOrder);
+
+        // Place order
+        function placeOrder() {
+            if (order.length === 0) {
+                showAlert('Add some items to place an order.');
+                return;
+            }
+            if (tables.length === 0) {
+                showAlert('No tables available. Please add tables in the admin section.');
+                return;
+            }
+            const table = tableSelect.value;
+            if (!table) {
+                showAlert('Please select a table.');
+                return;
+            }
+
+            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            const newOrder = {
+                id: Date.now(),
+                table,
+                items: order,
+                date: new Date().toISOString().split('T')[0],
+                time: new Date().toLocaleTimeString(),
+                subtotal: parseFloat(subtotalSpan.textContent),
+                tax: parseFloat(taxSpan.textContent),
+                discount: parseFloat(discountInput.value) || 0,
+                serviceCharge: parseFloat(serviceChargeInput.value) || 0,
+                total: parseFloat(totalSpan.textContent),
+            };
+            orders.push(newOrder);
+            localStorage.setItem('orders', JSON.stringify(orders));
+            showAlert(`Order for Table ${table} has been placed successfully!`);
+            order = [];
+            discountInput.value = 0;
+            serviceChargeInput.value = 0;
+            renderOrder();
+        }
+
+        // Export CSV (basic)
+        function exportCSV() {
+            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            if (orders.length === 0) {
+                showAlert('No orders to export.');
+                return;
+            }
+            let csv = 'Order ID,Table,Item,Qty,Price,Date,Time,Subtotal,Tax,Discount,Service Charge,Total\n';
+            orders.forEach(order => {
+                order.items.forEach(item => {
+                    csv += `${order.id},${order.table},"${item.name}",${item.qty},${item.price},${order.date},${order.time},${order.subtotal},${order.tax},${order.discount},${order.serviceCharge},${order.total}\n`;
+                });
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `orders_${Date.now()}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showAlert('Orders exported successfully!');
+        }
+
+        // Dummy placeholders for print
+        function printSummary() {
+            showAlert('Print summary feature coming soon!');
+        }
+        function printKOT() {
+            showAlert('Print KOT feature coming soon!');
+        }
+
+        // Initialize UI
+        loadTables();
+        renderCategories();
+        renderItems();
+        renderOrder();
+    </script>
+</body>
+</html>
