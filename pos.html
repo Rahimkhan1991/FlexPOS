@@ -115,7 +115,7 @@
             transform: scale(1.05);
         }
 
-        /* Content layout */
+        /* Content layout - Restored to original design */
         .content-wrapper {
             display: flex;
             gap: 1.5rem;
@@ -131,6 +131,13 @@
             display: flex;
             flex-direction: column;
             height: 100%;
+        }
+        
+        /* Category and Menu sections in a flex container */
+        .menu-and-categories {
+            flex: 2;
+            display: flex;
+            gap: 1.5rem;
         }
 
         /* Categories panel */
@@ -169,7 +176,7 @@
 
         /* Menu items */
         .menu-section {
-            flex: 2;
+            flex: 1;
         }
         .items-list {
             display: grid;
@@ -337,8 +344,15 @@
             gap: 10px;
         }
 
+        .summary-input-group select {
+            width: 100px;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+        }
+
         .summary-input-group input {
-            width: 80px;
+            flex: 1;
             padding: 8px;
             border-radius: 8px;
             border: 1px solid #d1d5db;
@@ -412,7 +426,7 @@
         .category-section::-webkit-scrollbar-thumb {
             background-color: #cbd5e1;
             border-radius: 10px;
-            border: 2px solid #f1f5f9;
+            border: 2px solid #f1f5e9;
         }
 
         /* Modal for custom alerts */
@@ -486,7 +500,7 @@
                 flex-direction: column;
                 gap: 1rem;
             }
-            .order-summary, .menu-section {
+            .order-summary, .menu-and-categories {
                 min-width: 100%;
                 flex: none;
                 height: auto;
@@ -509,12 +523,13 @@
 
     <main class="main-content">
         <div class="content-wrapper">
-            <section class="category-section" id="categoryButtons"></section>
-
-            <section class="menu-section panel">
-                <h3>Menu</h3>
-                <div class="items-list" id="itemsList"></div>
-            </section>
+            <div class="menu-and-categories">
+                <section class="category-section" id="categoryButtons"></section>
+                <section class="menu-section panel">
+                    <h3>Menu</h3>
+                    <div class="items-list" id="itemsList"></div>
+                </section>
+            </div>
 
             <aside class="order-summary panel">
                 <div class="table-select">
@@ -529,12 +544,26 @@
                     Subtotal: <span>₹<span id="subtotal">0.00</span></span>
                 </div>
 
-                <div class="summary-line summary-input-group">
-                    Discount: <input type="number" id="discountInput" value="0" min="0" />
+                <div class="summary-line">
+                    <span>Discount:</span>
+                    <div class="summary-input-group">
+                        <select id="discountTypeSelect">
+                            <option value="manual">Manual (₹)</option>
+                            <option value="percentage">Percentage (%)</option>
+                        </select>
+                        <input type="number" id="discountInput" value="0" min="0" />
+                    </div>
                 </div>
 
-                <div class="summary-line summary-input-group">
-                    Service Charge: <input type="number" id="serviceChargeInput" value="0" min="0" />
+                <div class="summary-line">
+                    <span>Service Charge:</span>
+                    <div class="summary-input-group">
+                        <select id="serviceChargeTypeSelect">
+                            <option value="manual">Manual (₹)</option>
+                            <option value="percentage">Percentage (%)</option>
+                        </select>
+                        <input type="number" id="serviceChargeInput" value="0" min="0" />
+                    </div>
                 </div>
 
                 <div class="summary-line">
@@ -604,8 +633,12 @@
         const orderItemsDiv = document.getElementById('orderItems');
         const subtotalSpan = document.getElementById('subtotal');
         const taxSpan = document.getElementById('tax');
+
+        const discountTypeSelect = document.getElementById('discountTypeSelect');
         const discountInput = document.getElementById('discountInput');
+        const serviceChargeTypeSelect = document.getElementById('serviceChargeTypeSelect');
         const serviceChargeInput = document.getElementById('serviceChargeInput');
+        
         const totalSpan = document.getElementById('total');
 
         let currentCategory = '';
@@ -693,30 +726,6 @@
             renderOrder();
         }
 
-        // Increment item quantity in order
-        function incrementOrderItem(id) {
-            const item = order.find(o => o.id === id);
-            if (item) {
-                item.qty++;
-                renderOrder();
-            }
-        }
-
-        // Decrement item quantity in order
-        function decrementOrderItem(id) {
-            const item = order.find(o => o.id === id);
-            if (item && item.qty > 1) {
-                item.qty--;
-                renderOrder();
-            }
-        }
-        
-        // Remove item from order
-        function removeOrderItem(id) {
-            order = order.filter(i => i.id !== id);
-            renderOrder();
-        }
-
         // Render order and recalculate totals
         function renderOrder() {
             orderItemsDiv.innerHTML = '';
@@ -730,7 +739,7 @@
             
             let subtotal = 0;
             order.forEach(item => {
-                subtotal += item.price * item.qty;
+                subtotal += parseFloat(item.price) * item.qty;
                 const div = document.createElement('div');
                 div.className = 'order-item';
                 div.innerHTML = `
@@ -751,10 +760,14 @@
                 btn.addEventListener('click', () => {
                     const id = btn.getAttribute('data-id');
                     const action = btn.getAttribute('data-action');
-                    if (action === 'increment') {
-                        incrementOrderItem(id);
-                    } else if (action === 'decrement') {
-                        decrementOrderItem(id);
+                    const item = order.find(o => o.id === id);
+                    if (item) {
+                        if (action === 'increment') {
+                            item.qty++;
+                        } else if (action === 'decrement' && item.qty > 1) {
+                            item.qty--;
+                        }
+                        renderOrder();
                     }
                 });
             });
@@ -762,15 +775,24 @@
             orderItemsDiv.querySelectorAll('.remove-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const id = btn.getAttribute('data-id');
-                    removeOrderItem(id);
+                    order = order.filter(i => i.id !== id);
+                    renderOrder();
                 });
             });
 
             // Recalculate totals
-            const tax = subtotal * 0.05;
-            const discount = parseFloat(discountInput.value) || 0;
-            const serviceCharge = parseFloat(serviceChargeInput.value) || 0;
-            const total = subtotal + tax + serviceCharge - discount;
+            const taxRate = 0.05;
+            const discountValue = parseFloat(discountInput.value) || 0;
+            const serviceChargeValue = parseFloat(serviceChargeInput.value) || 0;
+
+            const discountIsPercentage = discountTypeSelect.value === 'percentage';
+            const serviceChargeIsPercentage = serviceChargeTypeSelect.value === 'percentage';
+            
+            const effectiveDiscount = discountIsPercentage ? subtotal * (discountValue / 100) : discountValue;
+            const effectiveServiceCharge = serviceChargeIsPercentage ? subtotal * (serviceChargeValue / 100) : serviceChargeValue;
+
+            const tax = (subtotal - effectiveDiscount + effectiveServiceCharge) * taxRate;
+            const total = subtotal - effectiveDiscount + effectiveServiceCharge + tax;
 
             subtotalSpan.textContent = subtotal.toFixed(2);
             taxSpan.textContent = tax.toFixed(2);
@@ -779,7 +801,9 @@
 
         // Add event listeners for the new discount and service charge inputs
         discountInput.addEventListener('input', renderOrder);
+        discountTypeSelect.addEventListener('change', renderOrder);
         serviceChargeInput.addEventListener('input', renderOrder);
+        serviceChargeTypeSelect.addEventListener('change', renderOrder);
 
         // Place order
         function placeOrder() {
@@ -807,7 +831,7 @@
                 subtotal: parseFloat(subtotalSpan.textContent),
                 tax: parseFloat(taxSpan.textContent),
                 discount: parseFloat(discountInput.value) || 0,
-                serviceCharge: parseFloat(serviceChargeInput.value) || 0,
+                serviceCharge: parseFloat(serviceChargeInput.textContent) || 0,
                 total: parseFloat(totalSpan.textContent),
             };
             orders.push(newOrder);
