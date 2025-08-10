@@ -21,7 +21,7 @@
 
         /* Sidebar */
         .sidebar {
-            background-color: #4f46e5; /* Indigo-600 */
+            background-color: #4f46e5;
             color: white;
             width: 250px;
             min-width: 250px;
@@ -66,7 +66,7 @@
             cursor: pointer;
         }
         .nav-link:hover {
-            background-color: #4338ca; /* Indigo-700 */
+            background-color: #4338ca;
         }
         .nav-link .icon {
             margin-right: 12px;
@@ -75,7 +75,6 @@
             text-align: center;
         }
 
-        /* Hide text when collapsed */
         .sidebar.collapsed .nav-link span.text {
             display: none;
         }
@@ -122,7 +121,7 @@
         /* Categories panel */
         .category-section {
             width: 180px;
-            background: #e0e7ff; /* Indigo-100 */
+            background: #e0e7ff;
             border-radius: 12px;
             padding: 1rem;
             box-shadow: 0 2px 10px rgba(79, 70, 229, 0.2);
@@ -132,7 +131,7 @@
             width: 100%;
             padding: 12px 16px;
             margin-bottom: 10px;
-            background: #6366f1; /* Indigo-500 */
+            background: #6366f1;
             border: none;
             border-radius: 8px;
             font-weight: 700;
@@ -142,10 +141,10 @@
             text-align: center;
         }
         .category-btn:hover {
-            background: #4f46e5; /* Indigo-600 */
+            background: #4f46e5;
         }
         .category-btn.active {
-            background: #3730a3; /* Indigo-800 */
+            background: #3730a3;
             box-shadow: 0 0 8px #3730a3;
         }
 
@@ -162,7 +161,7 @@
         .menu-section h3 {
             margin-top: 0;
             font-weight: 700;
-            color: #4b5563; /* Gray-700 */
+            color: #4b5563;
             margin-bottom: 1rem;
             user-select: none;
         }
@@ -174,7 +173,6 @@
             flex-grow: 1;
             padding-right: 5px;
         }
-        /* Updated item card styling */
         .item-card {
             background: #fef3c7;
             border-radius: 12px;
@@ -187,7 +185,6 @@
             box-shadow: 0 4px 8px rgb(254 243 199 / 0.6);
             transition: box-shadow 0.3s, transform 0.2s;
             user-select: none;
-            /* Make it a square-like shape */
             aspect-ratio: 1 / 1;
             overflow: hidden;
             position: relative;
@@ -199,7 +196,7 @@
         }
         .item-card img {
             width: 100%;
-            height: 60%; /* Adjust size for a better look */
+            height: 60%;
             object-fit: cover;
             border-radius: 8px;
             margin-bottom: 5px;
@@ -209,18 +206,15 @@
             font-weight: 700;
             font-size: 1rem;
             margin-bottom: 2px;
-            color: #1e293b; /* Slate-900 */
+            color: #1e293b;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             width: 100%;
         }
-        .item-desc {
-            display: none; /* Hide the description for a more compact look */
-        }
         .item-price {
             font-weight: 600;
-            color: #15803d; /* Green-700 */
+            color: #15803d;
             font-size: 0.9rem;
         }
 
@@ -239,7 +233,7 @@
             margin-top: 0;
             margin-bottom: 1rem;
             font-weight: 700;
-            color: #374151; /* Gray-700 */
+            color: #374151;
             user-select: none;
         }
         .table-select {
@@ -270,7 +264,6 @@
             padding-bottom: 10px;
             user-select: none;
         }
-        /* Updated order item styling */
         .order-item {
             display: flex;
             justify-content: space-between;
@@ -279,96 +272,161 @@
             font-weight: 600;
             color: #1f2937;
             user-select: none;
+            padding: 8px;
+            border-radius: 8px;
+            background: #f9fafb;
         }
         .order-item-details {
             flex-grow: 1;
+            margin-right: 10px;
+        }
+        .order-item-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        .order-item-price {
+            font-size: 0.85rem;
+            color: #6b7280;
         }
         .order-item-controls {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
         }
         .order-item .qty-btn {
             background-color: #6366f1;
             color: white;
             border: none;
-            border-radius: 4px;
-            width: 24px;
-            height: 24px;
+            border-radius: 6px;
+            width: 28px;
+            height: 28px;
             cursor: pointer;
             font-weight: 700;
             transition: background-color 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 1.1rem;
         }
         .order-item .qty-btn:hover {
             background-color: #4f46e5;
         }
         .order-item .qty-display {
             font-weight: 700;
-            min-width: 20px;
+            min-width: 25px;
             text-align: center;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 4px 8px;
         }
         .order-item .remove-btn {
             background-color: #ef4444;
             border: none;
             color: white;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             font-weight: 700;
             transition: background-color 0.2s;
+            font-size: 1rem;
         }
         .order-item .remove-btn:hover {
-            background-color: #b91c1c;
+            background-color: #dc2626;
+        }
+        .order-item .item-total {
+            font-weight: 700;
+            color: #15803d;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .summary-section {
+            border-top: 2px solid #e5e7eb;
+            padding-top: 1rem;
+            margin-top: 1rem;
         }
 
         .summary-line, .total-line {
-            margin: 6px 0;
-            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0;
+            font-weight: 600;
             font-size: 1rem;
             color: #374151;
             user-select: none;
         }
+
+        .discount-input, .service-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .discount-input input, .service-input input {
+            width: 60px;
+            padding: 4px 6px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 600;
+        }
+
         .total-line {
             font-size: 1.4rem;
             color: #111827;
+            font-weight: 700;
+            border-top: 1px solid #d1d5db;
+            padding-top: 8px;
+            margin-top: 8px;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 1rem;
         }
 
         .action-buttons button {
-            margin-top: 8px;
-            margin-right: 8px;
-            padding: 10px 18px;
+            padding: 12px 16px;
             border: none;
             border-radius: 8px;
             font-weight: 700;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.2s;
             user-select: none;
+            font-size: 0.9rem;
         }
         .action-buttons button:hover {
-            filter: brightness(90%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         .btn-place {
-            background-color: #10b981; /* Green-500 */
+            background-color: #10b981;
             color: white;
+            grid-column: 1 / -1;
         }
         .btn-export {
-            background-color: #3b82f6; /* Blue-500 */
+            background-color: #3b82f6;
             color: white;
         }
         .btn-print {
-            background-color: #6366f1; /* Indigo-500 */
+            background-color: #6366f1;
             color: white;
         }
         .btn-kot {
-            background-color: #f97316; /* Orange-500 */
+            background-color: #f97316;
+            color: white;
+        }
+        .btn-clear {
+            background-color: #ef4444;
             color: white;
         }
 
-        /* Scrollbar for order and menu */
+        /* Scrollbar styling */
         #orderItems::-webkit-scrollbar,
         .items-list::-webkit-scrollbar,
         .category-section::-webkit-scrollbar {
@@ -381,7 +439,7 @@
             border-radius: 3px;
         }
 
-        /* Modal for alerts */
+        /* Modal styling */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -423,13 +481,36 @@
             font-weight: 700;
         }
 
-        /* Responsive */
+        /* Empty state styling */
+        .empty-state {
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+            padding: 2rem;
+        }
+
+        /* Quick order info */
+        .order-info {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #0369a1;
+        }
+
+        /* Responsive design */
         @media (max-width: 900px) {
             .category-section {
                 display: none;
             }
-            .sidebar.collapsed {
-                display: none;
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            .sidebar:not(.collapsed) {
+                transform: translateX(0);
             }
             .toggle-btn {
                 left: 10px;
@@ -437,6 +518,16 @@
             }
             .main-content {
                 padding: 1rem 0.8rem;
+            }
+            .content-wrapper {
+                flex-direction: column;
+            }
+            .order-summary {
+                order: -1;
+                max-height: 40vh;
+            }
+            .action-buttons {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -459,7 +550,7 @@
             <section class="category-section" id="categoryButtons"></section>
 
             <section class="menu-section">
-                <h3>Menu</h3>
+                <h3 id="menuTitle">Menu</h3>
                 <div class="items-list" id="itemsList"></div>
             </section>
 
@@ -469,27 +560,56 @@
                     <select id="tableSelect"></select>
                 </div>
 
-                <h3>Order Summary</h3>
-                <div id="orderItems">No items added yet.</div>
+                <div class="order-info" id="orderInfo" style="display: none;">
+                    Order #<span id="orderNumber"></span> • <span id="orderTime"></span>
+                </div>
 
-                <div class="summary-line">Subtotal: ₹<span id="subtotal">0.00</span></div>
-                <div class="summary-line">Tax (5%): ₹<span id="tax">0.00</span></div>
-                <div class="summary-line">Discount (10%): -₹<span id="discount">0.00</span></div>
-                <div class="summary-line">Service Charge (5%): ₹<span id="serviceCharge">0.00</span></div>
-                <hr />
-                <div class="total-line">Total: ₹<span id="total">0.00</span></div>
+                <h3>Order Summary</h3>
+                <div id="orderItems">
+                    <div class="empty-state">No items added yet</div>
+                </div>
+
+                <div class="summary-section">
+                    <div class="summary-line">
+                        <span>Subtotal:</span>
+                        <span>₹<span id="subtotal">0.00</span></span>
+                    </div>
+                    <div class="summary-line">
+                        <span>Tax (5%):</span>
+                        <span>₹<span id="tax">0.00</span></span>
+                    </div>
+                    <div class="summary-line">
+                        <span>Discount:</span>
+                        <div class="discount-input">
+                            <input type="number" id="discountPercent" value="10" min="0" max="100" />
+                            <span>% = -₹<span id="discount">0.00</span></span>
+                        </div>
+                    </div>
+                    <div class="summary-line">
+                        <span>Service Charge:</span>
+                        <div class="service-input">
+                            <input type="number" id="servicePercent" value="5" min="0" max="100" />
+                            <span>% = ₹<span id="serviceCharge">0.00</span></span>
+                        </div>
+                    </div>
+                    <div class="total-line">
+                        <span>Total:</span>
+                        <span>₹<span id="total">0.00</span></span>
+                    </div>
+                </div>
 
                 <div class="action-buttons">
                     <button class="btn-place" onclick="placeOrder()">Place Order</button>
-                    <button class="btn-export" onclick="exportCSV()">Export CSV</button>
-                    <button class="btn-print" onclick="printSummary()">Print Summary</button>
                     <button class="btn-kot" onclick="printKOT()">Print KOT</button>
+                    <button class="btn-print" onclick="printSummary()">Print Bill</button>
+                    <button class="btn-export" onclick="exportCSV()">Export CSV</button>
+                    <button class="btn-clear" onclick="clearOrder()">Clear Order</button>
                 </div>
             </aside>
         </div>
     </main>
 
-    <!-- Modal HTML for custom alerts -->
+    <!-- Modal for alerts -->
     <div id="modalOverlay" class="modal-overlay">
         <div class="modal-content">
             <h4 id="modalTitle"></h4>
@@ -507,14 +627,24 @@
             sidebar.classList.toggle('collapsed');
         });
 
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 900 && 
+                !sidebar.contains(e.target) && 
+                !toggleBtn.contains(e.target) && 
+                !sidebar.classList.contains('collapsed')) {
+                sidebar.classList.add('collapsed');
+            }
+        });
+
         // Custom modal for alerts
         const modalOverlay = document.getElementById('modalOverlay');
         const modalTitle = document.getElementById('modalTitle');
         const modalMessage = document.getElementById('modalMessage');
         const modalCloseBtn = document.getElementById('modalCloseBtn');
 
-        function showAlert(message) {
-            modalTitle.textContent = 'Notification';
+        function showAlert(message, title = 'Notification') {
+            modalTitle.textContent = title;
             modalMessage.textContent = message;
             modalOverlay.style.display = 'flex';
         }
@@ -523,14 +653,26 @@
             modalOverlay.style.display = 'none';
         });
 
-        // Data
-        let categories = JSON.parse(localStorage.getItem('categories') || '[]');
+        // Data - Sample data if localStorage is empty
+        let categories = JSON.parse(localStorage.getItem('categories') || '["Starters", "Main Course", "Beverages", "Desserts"]');
         let items = JSON.parse(localStorage.getItem('items') || '[]');
-        let tables = JSON.parse(localStorage.getItem('tables') || '[]');
+        let tables = JSON.parse(localStorage.getItem('tables') || '["Table 1", "Table 2", "Table 3", "Table 4", "Counter"]');
+
+        // Sample items if none exist
+        if (items.length === 0) {
+            items = [
+                {id: 1, name: "Paneer Tikka", category: "Starters", price: 180, image: "https://placehold.co/120x120?text=Paneer+Tikka", description: "Grilled cottage cheese with spices", kitchen: "Main Kitchen"},
+                {id: 2, name: "Chicken Curry", category: "Main Course", price: 220, image: "https://placehold.co/120x120?text=Chicken+Curry", description: "Spicy chicken curry", kitchen: "Main Kitchen"},
+                {id: 3, name: "Masala Tea", category: "Beverages", price: 25, image: "https://placehold.co/120x120?text=Masala+Tea", description: "Indian spiced tea", kitchen: "Beverage Counter"},
+                {id: 4, name: "Gulab Jamun", category: "Desserts", price: 60, image: "https://placehold.co/120x120?text=Gulab+Jamun", description: "Sweet milk dumplings", kitchen: "Dessert Section"}
+            ];
+            localStorage.setItem('items', JSON.stringify(items));
+        }
 
         // Elements
         const categoryButtonsDiv = document.getElementById('categoryButtons');
         const itemsListDiv = document.getElementById('itemsList');
+        const menuTitle = document.getElementById('menuTitle');
         const tableSelect = document.getElementById('tableSelect');
         const orderItemsDiv = document.getElementById('orderItems');
         const subtotalSpan = document.getElementById('subtotal');
@@ -538,9 +680,19 @@
         const discountSpan = document.getElementById('discount');
         const serviceChargeSpan = document.getElementById('serviceCharge');
         const totalSpan = document.getElementById('total');
+        const discountPercentInput = document.getElementById('discountPercent');
+        const servicePercentInput = document.getElementById('servicePercent');
+        const orderInfo = document.getElementById('orderInfo');
+        const orderNumber = document.getElementById('orderNumber');
+        const orderTime = document.getElementById('orderTime');
 
         let currentCategory = '';
         let order = [];
+        let currentOrderId = null;
+
+        // Event listeners for discount and service charge inputs
+        discountPercentInput.addEventListener('input', renderOrder);
+        servicePercentInput.addEventListener('input', renderOrder);
 
         // Load tables
         function loadTables() {
@@ -565,7 +717,7 @@
         function renderCategories() {
             categoryButtonsDiv.innerHTML = '';
             if (categories.length === 0) {
-                categoryButtonsDiv.textContent = 'No categories added';
+                categoryButtonsDiv.innerHTML = '<div class="empty-state">No categories added</div>';
                 return;
             }
             categories.forEach((cat, idx) => {
@@ -590,24 +742,28 @@
         function renderItems() {
             itemsListDiv.innerHTML = '';
             if (!currentCategory) {
-                itemsListDiv.textContent = 'No category selected';
+                itemsListDiv.innerHTML = '<div class="empty-state">No category selected</div>';
+                menuTitle.textContent = 'Menu';
                 return;
             }
+            
+            menuTitle.textContent = `Menu - ${currentCategory}`;
             const filtered = items.filter(i => i.category === currentCategory);
+            
             if (filtered.length === 0) {
-                itemsListDiv.textContent = 'No items in this category';
+                itemsListDiv.innerHTML = '<div class="empty-state">No items in this category</div>';
                 return;
             }
+            
             filtered.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'item-card';
-                card.title = `${item.name}\n${item.description || ''}\nKitchen: ${item.kitchen || '-'}`;
+                card.title = `${item.name}\n${item.description || ''}\nKitchen: ${item.kitchen || 'Main Kitchen'}`;
 
                 card.innerHTML = `
-                    <img src="${item.image || 'https://placehold.co/100x100?text=No+Image'}" alt="${item.name}" />
+                    <img src="${item.image || 'https://placehold.co/120x120?text=No+Image'}" alt="${item.name}" onerror="this.src='https://placehold.co/120x120?text=No+Image'" />
                     <div class="item-name">${item.name}</div>
-                    <div class="item-desc">${item.description || ''}</div>
-                    <div class="item-price">₹${parseFloat(item.price).toFixed(2)}</div>
+                    <div class="item-price">₹${parseFloat(item.price || 0).toFixed(2)}</div>
                 `;
                 card.addEventListener('click', () => addItemToOrder(item));
                 itemsListDiv.appendChild(card);
@@ -622,160 +778,71 @@
             } else {
                 order.push({ ...item, qty: 1 });
             }
-            renderOrder();
-        }
-
-        // Increment item quantity in order
-        function incrementOrderItem(id) {
-            const item = order.find(o => o.id === id);
-            if (item) {
-                item.qty++;
-                renderOrder();
+            
+            // Show order info if this is the first item
+            if (order.length === 1 && !currentOrderId) {
+                currentOrderId = Date.now();
+                orderNumber.textContent = `#${currentOrderId}`;
+                orderTime.textContent = new Date().toLocaleTimeString();
+                orderInfo.style.display = 'block';
             }
-        }
-
-        // Decrement item quantity in order
-        function decrementOrderItem(id) {
-            const item = order.find(o => o.id === id);
-            if (item && item.qty > 1) {
-                item.qty--;
-                renderOrder();
-            }
-        }
-        
-        // Remove item from order
-        function removeOrderItem(id) {
-            order = order.filter(i => i.id !== id);
+            
             renderOrder();
         }
 
         // Render order
         function renderOrder() {
             orderItemsDiv.innerHTML = '';
+            
             if (order.length === 0) {
-                orderItemsDiv.textContent = 'No items added yet.';
+                orderItemsDiv.innerHTML = '<div class="empty-state">No items added yet</div>';
                 subtotalSpan.textContent = '0.00';
                 taxSpan.textContent = '0.00';
                 discountSpan.textContent = '0.00';
                 serviceChargeSpan.textContent = '0.00';
                 totalSpan.textContent = '0.00';
+                orderInfo.style.display = 'none';
+                currentOrderId = null;
                 return;
             }
+
             let subtotal = 0;
             order.forEach(item => {
-                subtotal += item.price * item.qty;
+                subtotal += (item.price || 0) * item.qty;
                 const div = document.createElement('div');
                 div.className = 'order-item';
                 div.innerHTML = `
-                    <div class="order-item-details">${item.name}</div>
+                    <div class="order-item-details">
+                        <div class="order-item-name">${item.name}</div>
+                        <div class="order-item-price">₹${parseFloat(item.price || 0).toFixed(2)} each</div>
+                    </div>
                     <div class="order-item-controls">
-                        <button class="qty-btn" data-id="${item.id}" data-action="decrement">-</button>
+                        <button class="qty-btn" onclick="decrementOrderItem('${item.id}')" type="button">-</button>
                         <span class="qty-display">${item.qty}</span>
-                        <button class="qty-btn" data-id="${item.id}" data-action="increment">+</button>
-                        <span>₹${(item.price * item.qty).toFixed(2)}</span>
-                        <button class="remove-btn" data-id="${item.id}" aria-label="Remove ${item.name} from order">x</button>
+                        <button class="qty-btn" onclick="incrementOrderItem('${item.id}')" type="button">+</button>
+                        <div class="item-total">₹${((item.price || 0) * item.qty).toFixed(2)}</div>
+                        <button class="remove-btn" onclick="removeOrderItem('${item.id}')" type="button" title="Remove item">×</button>
                     </div>
                 `;
                 orderItemsDiv.appendChild(div);
             });
 
-            // Add event listeners to the new buttons
-            orderItemsDiv.querySelectorAll('.qty-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const id = btn.getAttribute('data-id');
-                    const action = btn.getAttribute('data-action');
-                    if (action === 'increment') {
-                        incrementOrderItem(id);
-                    } else if (action === 'decrement') {
-                        decrementOrderItem(id);
-                    }
-                });
-            });
-
-            orderItemsDiv.querySelectorAll('.remove-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const id = btn.getAttribute('data-id');
-                    removeOrderItem(id);
-                });
-            });
-
+            // Calculate totals
+            const discountPercent = parseFloat(discountPercentInput.value) || 0;
+            const servicePercent = parseFloat(servicePercentInput.value) || 0;
+            
             const tax = subtotal * 0.05;
-            const discount = subtotal * 0.10;
-            const serviceCharge = subtotal * 0.05;
+            const discount = subtotal * (discountPercent / 100);
+            const serviceCharge = subtotal * (servicePercent / 100);
             const total = subtotal + tax + serviceCharge - discount;
 
             subtotalSpan.textContent = subtotal.toFixed(2);
             taxSpan.textContent = tax.toFixed(2);
             discountSpan.textContent = discount.toFixed(2);
             serviceChargeSpan.textContent = serviceCharge.toFixed(2);
-            totalSpan.textContent = total.toFixed(2);
+            totalSpan.textContent = Math.max(0, total).toFixed(2);
         }
 
-        // Place order
-        function placeOrder() {
-            if (order.length === 0) {
-                showAlert('Add some items to place order');
-                return;
-            }
-            if (tables.length === 0) {
-                showAlert('No tables available');
-                return;
-            }
-            const table = tableSelect.value;
-            if (!table) {
-                showAlert('Select a table');
-                return;
-            }
-            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-            const newOrder = {
-                id: Date.now(),
-                table,
-                items: order,
-                date: new Date().toISOString().split('T')[0],
-                time: new Date().toLocaleTimeString(),
-            };
-            orders.push(newOrder);
-            localStorage.setItem('orders', JSON.stringify(orders));
-            showAlert('Order placed!');
-            order = [];
-            renderOrder();
-        }
-
-        // Export CSV (basic)
-        function exportCSV() {
-            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-            if (orders.length === 0) {
-                showAlert('No orders to export');
-                return;
-            }
-            let csv = 'Order ID,Table,Item,Qty,Price,Date,Time\n';
-            orders.forEach(order => {
-                order.items.forEach(item => {
-                    csv += `${order.id},${order.table},"${item.name}",${item.qty},${item.price},${order.date},${order.time}\n`;
-                });
-            });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `orders_${Date.now()}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        // Dummy placeholders for print
-        function printSummary() {
-            showAlert('Print summary feature coming soon!');
-        }
-        function printKOT() {
-            showAlert('Print KOT feature coming soon!');
-        }
-
-        // Initialize UI
-        loadTables();
-        renderCategories();
-        renderItems();
-        renderOrder();
-    </script>
-</body>
-</html>
+        // Order manipulation functions
+        function incrementOrderItem(id) {
+            const item = order.find(o => o.id == i
