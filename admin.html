@@ -1,11 +1,9 @@
-<!-- admin.html - POS Admin Panel UI with Sidebar -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Panel - Full POS Management</title>
   <style>
     body {
       margin: 0;
@@ -35,31 +33,43 @@
       border: none;
       cursor: pointer;
       text-align: left;
+      border-radius: 4px;
+      transition: background 0.2s;
     }
-    .sidebar button.active {
+    .sidebar button.active,
+    .sidebar button:hover {
       background: #ff9900;
     }
     .main-panel {
       flex: 1;
       padding: 20px;
       overflow-y: auto;
+      background: white;
+      border-radius: 0 10px 10px 0;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
     }
     .form-section {
-      margin-bottom: 20px;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
     }
     .form-section h3 {
       margin-top: 0;
+      margin-bottom: 10px;
+      color: #222;
     }
-    .form-section input, .form-section select {
+    .form-section input,
+    .form-section select,
+    .form-section textarea {
       width: 100%;
       padding: 8px;
-      margin: 10px 0;
+      margin: 6px 0 12px;
       border: 1px solid #ccc;
       border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+    .form-section textarea {
+      font-family: Arial, sans-serif;
     }
     .form-section button {
       background: #28a745;
@@ -68,46 +78,100 @@
       padding: 10px 20px;
       border-radius: 4px;
       cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+    .form-section button:hover {
+      background: #218838;
     }
     .data-preview {
-      background: #fff;
+      background: #f9f9f9;
       padding: 15px;
       border-radius: 6px;
-      box-shadow: 0 0 3px rgba(0,0,0,0.1);
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+      max-height: 300px;
+      overflow-y: auto;
+      font-size: 14px;
     }
     .data-preview h4 {
       margin-top: 0;
+      margin-bottom: 10px;
+      color: #444;
     }
-    .data-preview ul {
-      padding-left: 20px;
+    ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+    li.list-item {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    li.list-item:last-child {
+      border-bottom: none;
+    }
+    li.list-item button {
+      background: #dc3545;
+      border: none;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.2s;
+    }
+    li.list-item button:hover {
+      background: #c82333;
+    }
+    label {
+      font-weight: 600;
+      color: #333;
     }
   </style>
 </head>
 <body>
   <div class="sidebar">
     <h2>Admin Panel</h2>
-    <button class="tab-btn active" onclick="showSection('items')">Items</button>
-    <button class="tab-btn" onclick="showSection('categories')">Categories</button>
-    <button class="tab-btn" onclick="showSection('users')">Users</button>
-    <button class="tab-btn" onclick="showSection('tables')">Tables</button>
-    <button class="tab-btn" onclick="showSection('kitchens')">Kitchens</button>
-    <button class="tab-btn" onclick="showSection('manage')">Manage</button>
+    <button class="tab-btn active" onclick="showSection('items', event)">Items</button>
+    <button class="tab-btn" onclick="showSection('categories', event)">Categories</button>
+    <button class="tab-btn" onclick="showSection('kitchens', event)">Kitchens</button>
+    <button class="tab-btn" onclick="showSection('tables', event)">Tables</button>
+    <button class="tab-btn" onclick="showSection('users', event)">Users</button>
     <button onclick="window.location.href='pos.html'">Go to POS</button>
   </div>
 
   <div class="main-panel">
+    <!-- ITEMS -->
     <div id="items" class="form-section">
       <h3>Add Item</h3>
       <input type="text" id="itemName" placeholder="Item Name" />
-      <input type="number" id="itemPrice" placeholder="Item Price" />
+      
+      <label for="itemCategory">Category</label>
+      <select id="itemCategory"></select>
+      
+      <input type="number" id="itemPrice" placeholder="Item Price" step="0.01" />
+      <input type="number" id="itemTax" placeholder="Tax % (e.g., 5)" step="0.01" />
+      <input type="number" id="itemDiscount" placeholder="Discount % (optional)" step="0.01" />
+      
+      <label for="itemKitchen">Kitchen</label>
+      <select id="itemKitchen"></select>
+      
+      <textarea id="itemDescription" placeholder="Description (optional)" rows="2"></textarea>
+      <input type="text" id="itemSKU" placeholder="SKU / Code (optional)" />
+      
       <button onclick="addItem()">Add Item</button>
+      
       <div class="data-preview">
         <h4>Items:</h4>
         <ul id="itemList"></ul>
       </div>
     </div>
 
-    <div id="categories" class="form-section" style="display:none">
+    <!-- CATEGORIES -->
+    <div id="categories" class="form-section" style="display:none;">
       <h3>Add Category</h3>
       <input type="text" id="categoryName" placeholder="Category Name" />
       <button onclick="addCategory()">Add Category</button>
@@ -117,7 +181,30 @@
       </div>
     </div>
 
-    <div id="users" class="form-section" style="display:none">
+    <!-- KITCHENS -->
+    <div id="kitchens" class="form-section" style="display:none;">
+      <h3>Add Kitchen</h3>
+      <input type="text" id="kitchenName" placeholder="Kitchen Name" />
+      <button onclick="addKitchen()">Add Kitchen</button>
+      <div class="data-preview">
+        <h4>Kitchens:</h4>
+        <ul id="kitchenList"></ul>
+      </div>
+    </div>
+
+    <!-- TABLES -->
+    <div id="tables" class="form-section" style="display:none;">
+      <h3>Add Table</h3>
+      <input type="text" id="tableName" placeholder="Table Name" />
+      <button onclick="addTable()">Add Table</button>
+      <div class="data-preview">
+        <h4>Tables:</h4>
+        <ul id="tableList"></ul>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div id="users" class="form-section" style="display:none;">
       <h3>Add User</h3>
       <input type="text" id="userName" placeholder="User Name" />
       <select id="userRole">
@@ -130,93 +217,288 @@
         <ul id="userList"></ul>
       </div>
     </div>
-
-    <div id="tables" class="form-section" style="display:none">
-      <h3>Add Table</h3>
-      <input type="text" id="tableName" placeholder="Table Name" />
-      <button onclick="addTable()">Add Table</button>
-      <div class="data-preview">
-        <h4>Tables:</h4>
-        <ul id="tableList"></ul>
-      </div>
-    </div>
-
-    <div id="kitchens" class="form-section" style="display:none">
-      <h3>Add Kitchen</h3>
-      <input type="text" id="kitchenName" placeholder="Kitchen Name" />
-      <button onclick="addKitchen()">Add Kitchen</button>
-      <div class="data-preview">
-        <h4>Kitchens:</h4>
-        <ul id="kitchenList"></ul>
-      </div>
-    </div>
-
-    <div id="manage" class="form-section" style="display:none">
-      <h3>Manage Items / Users / Categories</h3>
-      <p>To be implemented...</p>
-    </div>
   </div>
 
-  <script>
-    function showSection(id) {
-      document.querySelectorAll('.form-section').forEach(sec => sec.style.display = 'none');
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(id).style.display = 'block';
-      event.target.classList.add('active');
+<script>
+  // Globals to hold data arrays from localStorage or empty arrays
+  let items = JSON.parse(localStorage.getItem('items') || '[]');
+  let categories = JSON.parse(localStorage.getItem('categories') || '[]');
+  let kitchens = JSON.parse(localStorage.getItem('kitchens') || '[]');
+  let tables = JSON.parse(localStorage.getItem('tables') || '[]');
+  let users = JSON.parse(localStorage.getItem('users') || '[]');
+
+  // Show/hide sections and toggle active button
+  function showSection(id, event) {
+    document.querySelectorAll('.form-section').forEach(sec => sec.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(id).style.display = 'block';
+    if(event) event.target.classList.add('active');
+  }
+
+  // Save all data to localStorage
+  function saveData() {
+    localStorage.setItem('items', JSON.stringify(items));
+    localStorage.setItem('categories', JSON.stringify(categories));
+    localStorage.setItem('kitchens', JSON.stringify(kitchens));
+    localStorage.setItem('tables', JSON.stringify(tables));
+    localStorage.setItem('users', JSON.stringify(users));
+  }
+
+  // ----- Categories -----
+  function renderCategories() {
+    const list = document.getElementById('categoryList');
+    list.innerHTML = '';
+    categories.forEach((cat, i) => {
+      const li = document.createElement('li');
+      li.className = 'list-item';
+      li.textContent = cat;
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = () => {
+        if(confirm(`Delete category "${cat}"?`)) {
+          categories.splice(i,1);
+          saveData();
+          renderCategories();
+          populateItemCategories();
+        }
+      };
+      li.appendChild(delBtn);
+      list.appendChild(li);
+    });
+  }
+  function addCategory() {
+    const name = document.getElementById('categoryName').value.trim();
+    if (!name) return alert('Enter category name.');
+    if(categories.includes(name)) return alert('Category already exists.');
+    categories.push(name);
+    saveData();
+    renderCategories();
+    populateItemCategories();
+    document.getElementById('categoryName').value = '';
+  }
+
+  // Populate category dropdown in Items section
+  function populateItemCategories() {
+    const sel = document.getElementById('itemCategory');
+    sel.innerHTML = '';
+    if(categories.length === 0){
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No categories available';
+      sel.appendChild(opt);
+      sel.disabled = true;
+    } else {
+      sel.disabled = false;
+      categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        sel.appendChild(opt);
+      });
+    }
+  }
+
+  // ----- Kitchens -----
+  function renderKitchens() {
+    const list = document.getElementById('kitchenList');
+    list.innerHTML = '';
+    kitchens.forEach((kitchen, i) => {
+      const li = document.createElement('li');
+      li.className = 'list-item';
+      li.textContent = kitchen;
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = () => {
+        if(confirm(`Delete kitchen "${kitchen}"?`)) {
+          kitchens.splice(i,1);
+          saveData();
+          renderKitchens();
+          populateKitchenList();
+        }
+      };
+      li.appendChild(delBtn);
+      list.appendChild(li);
+    });
+  }
+  function addKitchen() {
+    const name = document.getElementById('kitchenName').value.trim();
+    if (!name) return alert('Enter kitchen name.');
+    if(kitchens.includes(name)) return alert('Kitchen already exists.');
+    kitchens.push(name);
+    saveData();
+    renderKitchens();
+    populateKitchenList();
+    document.getElementById('kitchenName').value = '';
+  }
+  function populateKitchenList() {
+    const sel = document.getElementById('itemKitchen');
+    sel.innerHTML = '';
+    if(kitchens.length === 0){
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No kitchens available';
+      sel.appendChild(opt);
+      sel.disabled = true;
+    } else {
+      sel.disabled = false;
+      kitchens.forEach(k => {
+        const opt = document.createElement('option');
+        opt.value = k;
+        opt.textContent = k;
+        sel.appendChild(opt);
+      });
+    }
+  }
+
+  // ----- Tables -----
+  function renderTables() {
+    const list = document.getElementById('tableList');
+    list.innerHTML = '';
+    tables.forEach((table, i) => {
+      const li = document.createElement('li');
+      li.className = 'list-item';
+      li.textContent = table;
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = () => {
+        if(confirm(`Delete table "${table}"?`)) {
+          tables.splice(i,1);
+          saveData();
+          renderTables();
+        }
+      };
+      li.appendChild(delBtn);
+      list.appendChild(li);
+    });
+  }
+  function addTable() {
+    const name = document.getElementById('tableName').value.trim();
+    if (!name) return alert('Enter table name.');
+    if(tables.includes(name)) return alert('Table already exists.');
+    tables.push(name);
+    saveData();
+    renderTables();
+    document.getElementById('tableName').value = '';
+  }
+
+  // ----- Users -----
+  function renderUsers() {
+    const list = document.getElementById('userList');
+    list.innerHTML = '';
+    users.forEach((user, i) => {
+      const li = document.createElement('li');
+      li.className = 'list-item';
+      li.textContent = `${user.name} (${user.role})`;
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = () => {
+        if(confirm(`Delete user "${user.name}"?`)) {
+          users.splice(i,1);
+          saveData();
+          renderUsers();
+        }
+      };
+      li.appendChild(delBtn);
+      list.appendChild(li);
+    });
+  }
+  function addUser() {
+    const name = document.getElementById('userName').value.trim();
+    const role = document.getElementById('userRole').value;
+    if (!name) return alert('Enter user name.');
+    if(users.find(u => u.name.toLowerCase() === name.toLowerCase())) return alert('User already exists.');
+    users.push({name, role});
+    saveData();
+    renderUsers();
+    document.getElementById('userName').value = '';
+  }
+
+  // ----- Items -----
+  function renderItems() {
+    const list = document.getElementById('itemList');
+    list.innerHTML = '';
+    items.forEach((item, i) => {
+      const li = document.createElement('li');
+      li.className = 'list-item';
+      li.innerHTML = `
+        <div style="flex:1;">
+          <strong>${item.name}</strong> (${item.category}) - ₹${item.price.toFixed(2)}<br/>
+          Tax: ${item.tax}%, Discount: ${item.discount}%, Kitchen: ${item.kitchen}<br/>
+          SKU: ${item.sku || '-'}<br/>
+          <em>${item.description || '-'}</em>
+        </div>
+      `;
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = () => {
+        if(confirm(`Delete item "${item.name}"?`)) {
+          items.splice(i,1);
+          saveData();
+          renderItems();
+        }
+      };
+      li.appendChild(delBtn);
+      list.appendChild(li);
+    });
+  }
+  function addItem() {
+    const name = document.getElementById('itemName').value.trim();
+    const category = document.getElementById('itemCategory').value;
+    const price = parseFloat(document.getElementById('itemPrice').value);
+    const tax = parseFloat(document.getElementById('itemTax').value) || 0;
+    const discount = parseFloat(document.getElementById('itemDiscount').value) || 0;
+    const kitchen = document.getElementById('itemKitchen').value;
+    const description = document.getElementById('itemDescription').value.trim();
+    const sku = document.getElementById('itemSKU').value.trim();
+
+    if (!name || !category || isNaN(price) || price <= 0) {
+      return alert('Please enter valid item name, category, and price.');
+    }
+    if(!kitchen){
+      return alert('Please select a kitchen.');
     }
 
-    function addItem() {
-      const name = document.getElementById('itemName').value;
-      const price = document.getElementById('itemPrice').value;
-      if (!name || !price) return;
-      const list = document.getElementById('itemList');
-      const li = document.createElement('li');
-      li.textContent = `${name} - ₹${price}`;
-      list.appendChild(li);
-      document.getElementById('itemName').value = '';
-      document.getElementById('itemPrice').value = '';
-    }
+    // Create unique id
+    const id = Date.now() + Math.floor(Math.random() * 1000);
 
-    function addCategory() {
-      const name = document.getElementById('categoryName').value;
-      if (!name) return;
-      const list = document.getElementById('categoryList');
-      const li = document.createElement('li');
-      li.textContent = name;
-      list.appendChild(li);
-      document.getElementById('categoryName').value = '';
-    }
+    const newItem = {
+      id,
+      name,
+      category,
+      price,
+      tax,
+      discount,
+      kitchen,
+      description,
+      sku
+    };
 
-    function addUser() {
-      const name = document.getElementById('userName').value;
-      const role = document.getElementById('userRole').value;
-      if (!name) return;
-      const list = document.getElementById('userList');
-      const li = document.createElement('li');
-      li.textContent = `${name} (${role})`;
-      list.appendChild(li);
-      document.getElementById('userName').value = '';
-    }
+    items.push(newItem);
+    saveData();
+    renderItems();
 
-    function addTable() {
-      const name = document.getElementById('tableName').value;
-      if (!name) return;
-      const list = document.getElementById('tableList');
-      const li = document.createElement('li');
-      li.textContent = name;
-      list.appendChild(li);
-      document.getElementById('tableName').value = '';
-    }
+    // Clear inputs
+    document.getElementById('itemName').value = '';
+    document.getElementById('itemPrice').value = '';
+    document.getElementById('itemTax').value = '';
+    document.getElementById('itemDiscount').value = '';
+    if(kitchens.length) document.getElementById('itemKitchen').value = kitchens[0];
+    document.getElementById('itemDescription').value = '';
+    document.getElementById('itemSKU').value = '';
+  }
 
-    function addKitchen() {
-      const name = document.getElementById('kitchenName').value;
-      if (!name) return;
-      const list = document.getElementById('kitchenList');
-      const li = document.createElement('li');
-      li.textContent = name;
-      list.appendChild(li);
-      document.getElementById('kitchenName').value = '';
-    }
-  </script>
+  // Initialize UI and load data on page load
+  window.onload = () => {
+    renderCategories();
+    renderItems();
+    renderTables();
+    renderUsers();
+    renderKitchens();
+    populateItemCategories();
+    populateKitchenList();
+    // Show items tab by default
+    showSection('items');
+  };
+</script>
 </body>
 </html>
