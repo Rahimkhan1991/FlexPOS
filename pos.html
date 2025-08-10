@@ -2,444 +2,645 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>POS Billing</title>
   <style>
+    /* Reset */
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9fafb;
       display: flex;
-      background: #f0f2f5;
       height: 100vh;
-    }
-
-    .sidebar {
-      width: 220px;
-      background-color: #1f2937;
-      color: white;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      padding: 1rem 0;
-    }
-    .sidebar h2 {
-      padding: 0 1rem 1rem;
-      font-size: 1.2rem;
-      margin: 0;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    .sidebar a {
-      color: white;
-      text-decoration: none;
-      padding: 1rem;
-      display: block;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      cursor: pointer;
-    }
-    .sidebar a:hover {
-      background-color: #374151;
-    }
-
-    .main-content {
-      flex: 1;
-      padding: 1rem;
-      display: flex;
-      flex-direction: row;
-      gap: 1rem;
       overflow: hidden;
     }
 
-    .category-section {
-      width: 160px;
-      background: #ffffff;
-      padding: 0.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      height: fit-content;
+    /* Sidebar */
+    .sidebar {
+      background-color: #4f46e5; /* Indigo-600 */
+      color: white;
+      width: 250px;
+      min-width: 250px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: width 0.3s ease;
+      position: relative;
+      overflow-y: auto;
+      box-shadow: 2px 0 6px rgba(79, 70, 229, 0.3);
+      z-index: 10;
+    }
+
+    .sidebar.collapsed {
+      width: 60px;
+      min-width: 60px;
+    }
+
+    .sidebar h2 {
+      margin: 0;
+      padding: 1.5rem 1rem;
+      font-size: 1.3rem;
+      font-weight: 700;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 1rem 1rem;
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      transition: background-color 0.2s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+    }
+    .nav-link:hover {
+      background-color: #4338ca; /* Indigo-700 */
+    }
+    .nav-link .icon {
+      margin-right: 12px;
+      font-size: 1.2rem;
+      min-width: 24px;
+      text-align: center;
+    }
+
+    /* Hide text when collapsed */
+    .sidebar.collapsed .nav-link span.text {
+      display: none;
+    }
+    .sidebar.collapsed h2 {
+      text-align: center;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem 1.5rem;
       overflow-y: auto;
     }
 
-    .category-btn {
-      display: block;
-      width: 100%;
-      margin-bottom: 10px;
-      padding: 10px;
-      background: #10b981;
-      color: white;
+    /* Toggle button */
+    .toggle-btn {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      background: #4f46e5;
       border: none;
+      color: white;
+      padding: 8px 10px;
       border-radius: 6px;
       cursor: pointer;
-      font-weight: 500;
-      text-align: center;
+      font-size: 1.3rem;
+      z-index: 20;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
+      transition: background-color 0.2s;
     }
-    .category-btn.active, .category-btn:hover {
-      background: #059669;
+    .toggle-btn:hover {
+      background: #4338ca;
     }
 
+    /* Content layout */
+    .content-wrapper {
+      display: flex;
+      gap: 1rem;
+      height: 100%;
+    }
+
+    /* Categories panel */
+    .category-section {
+      width: 180px;
+      background: #e0e7ff; /* Indigo-100 */
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 10px rgba(79, 70, 229, 0.2);
+      overflow-y: auto;
+    }
+    .category-btn {
+      width: 100%;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      background: #6366f1; /* Indigo-500 */
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      text-align: center;
+    }
+    .category-btn:hover {
+      background: #4f46e5; /* Indigo-600 */
+    }
+    .category-btn.active {
+      background: #3730a3; /* Indigo-800 */
+      box-shadow: 0 0 8px #3730a3;
+    }
+
+    /* Menu items */
     .menu-section {
       flex: 2;
       background: white;
-      border-radius: 8px;
+      border-radius: 12px;
       padding: 1rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
       display: flex;
       flex-direction: column;
-      overflow-y: auto;
-      max-height: 90vh;
     }
-
+    .menu-section h3 {
+      margin-top: 0;
+      font-weight: 700;
+      color: #4b5563; /* Gray-700 */
+      margin-bottom: 1rem;
+      user-select: none;
+    }
     .items-list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 10px;
-      flex-grow: 1;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 15px;
       overflow-y: auto;
+      flex-grow: 1;
+      padding-right: 5px;
     }
-
     .item-card {
       background: #fef3c7;
-      padding: 0.5rem;
-      border-radius: 6px;
+      border-radius: 12px;
+      padding: 10px;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
-      transition: transform 0.2s;
+      box-shadow: 0 4px 8px rgb(254 243 199 / 0.6);
+      transition: box-shadow 0.3s, transform 0.2s;
       user-select: none;
     }
     .item-card:hover {
-      transform: scale(1.05);
+      box-shadow: 0 6px 14px rgb(254 243 199 / 0.9);
+      transform: scale(1.06);
       background: #fde68a;
     }
-
-    .summary-section {
-      flex: 1;
-      background: white;
-      border-radius: 8px;
-      padding: 1rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      display: flex;
-      flex-direction: column;
-      max-height: 90vh;
-      overflow-y: auto;
+    .item-card img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      user-select: none;
+    }
+    .item-name {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 4px;
+      color: #1e293b; /* Slate-900 */
+    }
+    .item-desc {
+      font-size: 0.85rem;
+      color: #6b7280; /* Gray-500 */
+      margin-bottom: 6px;
+      min-height: 36px;
+    }
+    .item-price {
+      font-weight: 600;
+      color: #15803d; /* Green-700 */
     }
 
+    /* Order summary */
+    .order-summary {
+      flex: 1;
+      background: white;
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      max-height: 100%;
+    }
+    .order-summary h3 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-weight: 700;
+      color: #374151; /* Gray-700 */
+      user-select: none;
+    }
     .table-select {
       margin-bottom: 1rem;
     }
     .table-select label {
       display: block;
-      margin-bottom: 6px;
+      margin-bottom: 0.4rem;
       font-weight: 600;
+      color: #374151;
+      user-select: none;
     }
     .table-select select {
       width: 100%;
       padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 1rem;
+      user-select: none;
     }
-
     #orderItems {
       flex-grow: 1;
       overflow-y: auto;
-      margin-bottom: 10px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 10px;
-      background: #fafafa;
+      margin-bottom: 1rem;
+      border-top: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e5e7eb;
+      padding-top: 10px;
+      padding-bottom: 10px;
+      user-select: none;
     }
-
     .order-item {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 6px;
       align-items: center;
-    }
-    .order-item span {
-      user-select: none;
-    }
-    .order-item .qty-controls button {
-      padding: 2px 6px;
-      margin: 0 2px;
-      border: none;
-      background: #2563eb;
-      color: white;
-      border-radius: 4px;
-      cursor: pointer;
+      margin-bottom: 12px;
       font-weight: 600;
-    }
-    .order-item .remove-btn {
-      cursor: pointer;
-      color: red;
-      margin-left: 8px;
-      font-weight: bold;
+      color: #1f2937;
       user-select: none;
+    }
+    .order-item span.qty {
+      background: #e0e7ff;
+      border-radius: 50%;
+      padding: 4px 10px;
+      font-weight: 700;
+      color: #4338ca;
+      margin-left: 10px;
+      user-select: none;
+    }
+    .order-item button {
+      background: #ef4444;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      padding: 3px 9px;
+      font-weight: 700;
+      transition: background-color 0.2s;
+      user-select: none;
+    }
+    .order-item button:hover {
+      background: #b91c1c;
     }
 
     .summary-line, .total-line {
       margin: 6px 0;
+      font-weight: 700;
       font-size: 1rem;
+      color: #374151;
+      user-select: none;
     }
     .total-line {
-      font-weight: bold;
-      font-size: 1.2rem;
-      border-top: 1px solid #ccc;
-      padding-top: 6px;
+      font-size: 1.4rem;
+      color: #111827;
     }
 
     .action-buttons button {
-      margin: 6px 4px;
-      padding: 8px 12px;
+      margin-top: 8px;
+      margin-right: 8px;
+      padding: 10px 18px;
       border: none;
-      border-radius: 6px;
-      background-color: #2563eb;
-      color: white;
+      border-radius: 8px;
+      font-weight: 700;
       cursor: pointer;
-      font-weight: 600;
+      transition: background-color 0.3s;
       user-select: none;
-      transition: background-color 0.2s;
     }
     .action-buttons button:hover {
-      background-color: #1e40af;
+      filter: brightness(90%);
+    }
+    .btn-place {
+      background-color: #10b981; /* Green-500 */
+      color: white;
+    }
+    .btn-export {
+      background-color: #3b82f6; /* Blue-500 */
+      color: white;
+    }
+    .btn-print {
+      background-color: #6366f1; /* Indigo-500 */
+      color: white;
+    }
+    .btn-kot {
+      background-color: #f97316; /* Orange-500 */
+      color: white;
     }
 
-    .filter-date {
-      margin-top: auto;
-    }
-    .filter-date input {
-      padding: 6px;
-      width: 100%;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    /* Scrollbars */
-    .items-list::-webkit-scrollbar, #orderItems::-webkit-scrollbar, .category-section::-webkit-scrollbar {
+    /* Scrollbar for order and menu */
+    #orderItems::-webkit-scrollbar,
+    .items-list::-webkit-scrollbar,
+    .category-section::-webkit-scrollbar {
       width: 6px;
     }
-    .items-list::-webkit-scrollbar-thumb, #orderItems::-webkit-scrollbar-thumb, .category-section::-webkit-scrollbar-thumb {
-      background: rgba(0,0,0,0.1);
+    #orderItems::-webkit-scrollbar-thumb,
+    .items-list::-webkit-scrollbar-thumb,
+    .category-section::-webkit-scrollbar-thumb {
+      background-color: #a5b4fc;
       border-radius: 3px;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .category-section {
+        display: none;
+      }
+      .sidebar.collapsed {
+        display: none;
+      }
+      .toggle-btn {
+        left: 10px;
+        top: 10px;
+      }
+      .main-content {
+        padding: 1rem 0.8rem;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="sidebar">
+  <button class="toggle-btn" title="Toggle Menu" aria-label="Toggle Menu">&#9776;</button>
+
+  <nav class="sidebar">
     <h2>POS System</h2>
-    <a href="dashboard.html">🏠 Dashboard</a>
-    <a href="pos.html">🧾 POS Billing</a>
-    <a href="receipt.html">🖨️ Print Receipt</a>
-    <a href="report.html">📊 Reports</a>
-    <a href="admin.html">⚙️ Admin</a>
-    <a href="login.html">🚪 Logout</a>
-  </div>
+    <a href="dashboard.html" class="nav-link"><span class="icon">🏠</span><span class="text">Dashboard</span></a>
+    <a href="pos.html" class="nav-link"><span class="icon">🧾</span><span class="text">POS Billing</span></a>
+    <a href="receipt.html" class="nav-link"><span class="icon">🖨️</span><span class="text">Print Receipt</span></a>
+    <a href="report.html" class="nav-link"><span class="icon">📊</span><span class="text">Reports</span></a>
+    <a href="admin.html" class="nav-link"><span class="icon">⚙️</span><span class="text">Admin</span></a>
+    <a href="login.html" class="nav-link"><span class="icon">🚪</span><span class="text">Logout</span></a>
+  </nav>
 
-  <div class="main-content">
-    <div class="category-section" id="categoryButtons"></div>
+  <main class="main-content">
+    <div class="content-wrapper">
+      <section class="category-section" id="categoryButtons"></section>
 
-    <div class="menu-section">
-      <h3>Menu</h3>
-      <div class="items-list" id="itemsList"></div>
+      <section class="menu-section">
+        <h3>Menu</h3>
+        <div class="items-list" id="itemsList"></div>
+      </section>
+
+      <aside class="order-summary">
+        <div class="table-select">
+          <label for="tableSelect">Select Table:</label>
+          <select id="tableSelect"></select>
+        </div>
+
+        <h3>Order Summary</h3>
+        <div id="orderItems">No items added yet.</div>
+
+        <div class="summary-line">Subtotal: ₹<span id="subtotal">0.00</span></div>
+        <div class="summary-line">Tax (5%): ₹<span id="tax">0.00</span></div>
+        <div class="summary-line">Discount (10%): -₹<span id="discount">0.00</span></div>
+        <div class="summary-line">Service Charge (5%): ₹<span id="serviceCharge">0.00</span></div>
+        <hr />
+        <div class="total-line">Total: ₹<span id="total">0.00</span></div>
+
+        <div class="action-buttons">
+          <button class="btn-place" onclick="placeOrder()">Place Order</button>
+          <button class="btn-export" onclick="exportCSV()">Export CSV</button>
+          <button class="btn-print" onclick="printSummary()">Print Summary</button>
+          <button class="btn-kot" onclick="printKOT()">Print KOT</button>
+        </div>
+      </aside>
     </div>
+  </main>
 
-    <div class="summary-section">
-      <div class="table-select">
-        <label for="tableSelect">Select Table:</label>
-        <select id="tableSelect"></select>
-      </div>
+  <script>
+    // Sidebar toggle
+    const sidebar = document.querySelector('.sidebar');
+    const toggleBtn = document.querySelector('.toggle-btn');
 
-      <h3>Order Summary</h3>
-      <div id="orderItems"></div>
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+    });
 
-      <div class="summary-line">Subtotal: ₹<span id="subtotal">0.00</span></div>
-      <div class="summary-line">Tax (5%): ₹<span id="tax">0.00</span></div>
-      <div class="summary-line">Discount (10%): -₹<span id="discount">0.00</span></div>
-      <div class="summary-line">Service Charge (5%): ₹<span id="serviceCharge">0.00</span></div>
-      <hr />
-      <div class="total-line">Total: ₹<span id="total">0.00</span></div>
+    // Data
+    let categories = JSON.parse(localStorage.getItem('categories') || '[]');
+    let items = JSON.parse(localStorage.getItem('items') || '[]');
+    let tables = JSON.parse(localStorage.getItem('tables') || '[]');
 
-      <div class="action-buttons">
-        <button onclick="placeOrder()">Place Order</button>
-        <button onclick="exportCSV()">Export Orders CSV</button>
-        <button onclick="printSummary()">Print Summary</button>
-        <button onclick="printKOT()">Print KOT</button>
-      </div>
+    // Elements
+    const categoryButtonsDiv = document.getElementById('categoryButtons');
+    const itemsListDiv = document.getElementById('itemsList');
+    const tableSelect = document.getElementById('tableSelect');
+    const orderItemsDiv = document.getElementById('orderItems');
+    const subtotalSpan = document.getElementById('subtotal');
+    const taxSpan = document.getElementById('tax');
+    const discountSpan = document.getElementById('discount');
+    const serviceChargeSpan = document.getElementById('serviceCharge');
+    const totalSpan = document.getElementById('total');
 
-      <div class="filter-date" style="margin-top: 20px;">
-        <label for="filterDate">Filter Orders by Date:</label>
-        <input type="date" id="filterDate" onchange="applyDateFilter()" />
-      </div>
-    </div>
-  </div>
+    let currentCategory = '';
+    let order = [];
 
-<!-- Just inside your pos.html, replace your existing script or add this -->
-
-<script>
-  // Load admin data from localStorage or fallback empty arrays
-  let categories = JSON.parse(localStorage.getItem('categories') || '[]');
-  let items = JSON.parse(localStorage.getItem('items') || '[]');
-  let tables = JSON.parse(localStorage.getItem('tables') || '[]');
-  let kitchens = JSON.parse(localStorage.getItem('kitchens') || '[]');
-
-  // Current order items array
-  let orderItems = [];
-
-  // References to DOM elements
-  const categoryButtonsDiv = document.getElementById('categoryButtons');
-  const itemsListDiv = document.getElementById('itemsList');
-  const orderItemsDiv = document.getElementById('orderItems');
-  const tableSelect = document.getElementById('tableSelect');
-
-  // Initialize categories buttons
-  function loadCategories() {
-    categoryButtonsDiv.innerHTML = '';
-    if(categories.length === 0) {
-      categoryButtonsDiv.innerHTML = '<p>No categories found. Please add categories in Admin.</p>';
-      return;
-    }
-    categories.forEach((cat, index) => {
-      const btn = document.createElement('button');
-      btn.textContent = cat.name;
-      btn.className = 'category-btn';
-      btn.onclick = () => loadItemsByCategory(cat.name, btn);
-      categoryButtonsDiv.appendChild(btn);
-      if(index === 0) {
-        btn.click(); // load first category by default
+    // Load tables
+    function loadTables() {
+      tableSelect.innerHTML = '';
+      if (tables.length === 0) {
+        const option = document.createElement('option');
+        option.textContent = 'No Tables Added';
+        tableSelect.appendChild(option);
+        tableSelect.disabled = true;
+      } else {
+        tables.forEach(t => {
+          const option = document.createElement('option');
+          option.value = t;
+          option.textContent = t;
+          tableSelect.appendChild(option);
+        });
+        tableSelect.disabled = false;
       }
-    });
-  }
-
-  // Load items filtered by category
-  function loadItemsByCategory(categoryName, btn) {
-    // Highlight active category button
-    document.querySelectorAll('.category-btn').forEach(b => b.style.backgroundColor = '#10b981');
-    btn.style.backgroundColor = '#059669';
-
-    // Filter items by category
-    const filteredItems = items.filter(i => i.category === categoryName);
-    itemsListDiv.innerHTML = '';
-
-    if(filteredItems.length === 0) {
-      itemsListDiv.innerHTML = `<p>No items found in category "${categoryName}"</p>`;
-      return;
     }
 
-    filteredItems.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'item-card';
-      card.innerHTML = `
-        <strong>${item.name}</strong><br/>
-        ₹${item.price.toFixed(2)}
-      `;
-      card.onclick = () => addItemToOrder(item);
-      itemsListDiv.appendChild(card);
-    });
-  }
-
-  // Add item to order or increase quantity if exists
-  function addItemToOrder(item) {
-    const existing = orderItems.find(i => i.id === item.id);
-    if(existing) {
-      existing.qty++;
-    } else {
-      orderItems.push({...item, qty: 1});
+    // Render categories
+    function renderCategories() {
+      categoryButtonsDiv.innerHTML = '';
+      if (categories.length === 0) {
+        categoryButtonsDiv.textContent = 'No categories added';
+        return;
+      }
+      categories.forEach((cat, idx) => {
+        const btn = document.createElement('button');
+        btn.textContent = cat;
+        btn.className = 'category-btn';
+        if (idx === 0) {
+          btn.classList.add('active');
+          currentCategory = cat;
+        }
+        btn.addEventListener('click', () => {
+          currentCategory = cat;
+          renderItems();
+          document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+        categoryButtonsDiv.appendChild(btn);
+      });
     }
+
+    // Render items of current category
+    function renderItems() {
+      itemsListDiv.innerHTML = '';
+      if (!currentCategory) {
+        itemsListDiv.textContent = 'No category selected';
+        return;
+      }
+      const filtered = items.filter(i => i.category === currentCategory);
+      if (filtered.length === 0) {
+        itemsListDiv.textContent = 'No items in this category';
+        return;
+      }
+      filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.title = `${item.name}\n${item.description || ''}\nKitchen: ${item.kitchen || '-'}`;
+
+        card.innerHTML = `
+          <img src="${item.image || 'https://via.placeholder.com/100x100?text=No+Image'}" alt="${item.name}" />
+          <div class="item-name">${item.name}</div>
+          <div class="item-desc">${item.description || ''}</div>
+          <div class="item-price">₹${parseFloat(item.price).toFixed(2)}</div>
+        `;
+        card.addEventListener('click', () => addItemToOrder(item));
+        itemsListDiv.appendChild(card);
+      });
+    }
+
+    // Add item to order
+    function addItemToOrder(item) {
+      const existing = order.find(o => o.id === item.id);
+      if (existing) {
+        existing.qty++;
+      } else {
+        order.push({ ...item, qty: 1 });
+      }
+      renderOrder();
+    }
+
+    // Render order
+    function renderOrder() {
+      orderItemsDiv.innerHTML = '';
+      if (order.length === 0) {
+        orderItemsDiv.textContent = 'No items added yet.';
+        subtotalSpan.textContent = '0.00';
+        taxSpan.textContent = '0.00';
+        discountSpan.textContent = '0.00';
+        serviceChargeSpan.textContent = '0.00';
+        totalSpan.textContent = '0.00';
+        return;
+      }
+      let subtotal = 0;
+      order.forEach(item => {
+        subtotal += item.price * item.qty;
+        const div = document.createElement('div');
+        div.className = 'order-item';
+        div.innerHTML = `
+          <span>${item.name}</span>
+          <span>x <span class="qty">${item.qty}</span></span>
+          <span>₹${(item.price * item.qty).toFixed(2)}</span>
+          <button aria-label="Remove ${item.name} from order">x</button>
+        `;
+        div.querySelector('button').addEventListener('click', () => {
+          removeOrderItem(item.id);
+        });
+        orderItemsDiv.appendChild(div);
+      });
+
+      const tax = subtotal * 0.05;
+      const discount = subtotal * 0.10;
+      const serviceCharge = subtotal * 0.05;
+      const total = subtotal + tax + serviceCharge - discount;
+
+      subtotalSpan.textContent = subtotal.toFixed(2);
+      taxSpan.textContent = tax.toFixed(2);
+      discountSpan.textContent = discount.toFixed(2);
+      serviceChargeSpan.textContent = serviceCharge.toFixed(2);
+      totalSpan.textContent = total.toFixed(2);
+    }
+
+    // Remove item from order
+    function removeOrderItem(id) {
+      order = order.filter(i => i.id !== id);
+      renderOrder();
+    }
+
+    // Place order
+    function placeOrder() {
+      if (order.length === 0) {
+        alert('Add some items to place order');
+        return;
+      }
+      if (tables.length === 0) {
+        alert('No tables available');
+        return;
+      }
+      const table = tableSelect.value;
+      if (!table) {
+        alert('Select a table');
+        return;
+      }
+      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+      const newOrder = {
+        id: Date.now(),
+        table,
+        items: order,
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString(),
+      };
+      orders.push(newOrder);
+      localStorage.setItem('orders', JSON.stringify(orders));
+      alert('Order placed!');
+      order = [];
+      renderOrder();
+    }
+
+    // Export CSV (basic)
+    function exportCSV() {
+      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+      if (orders.length === 0) {
+        alert('No orders to export');
+        return;
+      }
+      let csv = 'Order ID,Table,Item,Qty,Price,Date,Time\n';
+      orders.forEach(order => {
+        order.items.forEach(item => {
+          csv += `${order.id},${order.table},"${item.name}",${item.qty},${item.price},${order.date},${order.time}\n`;
+        });
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `orders_${Date.now()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Dummy placeholders for print
+    function printSummary() {
+      alert('Print summary feature coming soon!');
+    }
+    function printKOT() {
+      alert('Print KOT feature coming soon!');
+    }
+
+    // Initialize UI
+    loadTables();
+    renderCategories();
+    renderItems();
     renderOrder();
-  }
-
-  // Render order summary
-  function renderOrder() {
-    orderItemsDiv.innerHTML = '';
-    if(orderItems.length === 0) {
-      orderItemsDiv.innerHTML = '<p>No items added.</p>';
-      updateSummary(0);
-      return;
-    }
-
-    orderItems.forEach((item, idx) => {
-      const div = document.createElement('div');
-      div.className = 'order-line';
-      div.style.display = 'flex';
-      div.style.justifyContent = 'space-between';
-      div.style.marginBottom = '8px';
-
-      div.innerHTML = `
-        <div>${item.name} x ${item.qty}</div>
-        <div>₹${(item.price * item.qty).toFixed(2)} <button onclick="removeItem(${idx})" style="margin-left:8px;">✖</button></div>
-      `;
-      orderItemsDiv.appendChild(div);
-    });
-
-    const subtotal = orderItems.reduce((sum, i) => sum + i.price * i.qty, 0);
-    updateSummary(subtotal);
-  }
-
-  // Remove item from order
-  function removeItem(index) {
-    orderItems.splice(index, 1);
-    renderOrder();
-  }
-
-  // Update price summary with tax, discount, service charge
-  function updateSummary(subtotal) {
-    const tax = subtotal * 0.05;
-    const discount = subtotal * 0.10;
-    const serviceCharge = subtotal * 0.05;
-    const total = subtotal + tax + serviceCharge - discount;
-
-    document.getElementById('subtotal').textContent = subtotal.toFixed(2);
-    document.getElementById('tax').textContent = tax.toFixed(2);
-    document.getElementById('discount').textContent = discount.toFixed(2);
-    document.getElementById('serviceCharge').textContent = serviceCharge.toFixed(2);
-    document.getElementById('total').textContent = total.toFixed(2);
-  }
-
-  // Load tables to dropdown
-  function loadTables() {
-    tableSelect.innerHTML = '';
-    if(tables.length === 0) {
-      tableSelect.innerHTML = '<option>No tables added</option>';
-      return;
-    }
-    tables.forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t.name;
-      opt.textContent = t.name;
-      tableSelect.appendChild(opt);
-    });
-  }
-
-  // Place order and save to localStorage
-  function placeOrder() {
-    if(orderItems.length === 0) {
-      alert("Add items before placing order.");
-      return;
-    }
-    const selectedTable = tableSelect.value || "No Table";
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-    const newOrder = {
-      id: Date.now(),
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toLocaleTimeString(),
-      table: selectedTable,
-      items: orderItems,
-      subtotal: parseFloat(document.getElementById('subtotal').textContent),
-      tax: parseFloat(document.getElementById('tax').textContent),
-      discount: parseFloat(document.getElementById('discount').textContent),
-      serviceCharge: parseFloat(document.getElementById('serviceCharge').textContent),
-      total: parseFloat(document.getElementById('total').textContent),
-    };
-    orders.push(newOrder);
-    localStorage.setItem('orders', JSON.stringify(orders));
-    alert("Order placed successfully!");
-    orderItems = [];
-    renderOrder();
-  }
-
-  // Initial load
-  loadCategories();
-  loadTables();
-  renderOrder();
-
-</script>
-
+  </script>
 </body>
 </html>
