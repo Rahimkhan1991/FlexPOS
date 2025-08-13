@@ -4,907 +4,511 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>POS Billing</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" xintegrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* General Styling and Fonts */
-        * {
-            box-sizing: border-box;
-        }
-
         body {
-            margin: 0;
             font-family: 'Inter', sans-serif;
-            background: #f1f5f9; /* Lighter background */
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-            font-size: 14px;
         }
-
-        /* Sidebar */
-        .sidebar {
-            background-color: #4f46e5;
-            color: white;
-            width: 250px;
-            min-width: 250px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            transition: width 0.3s ease;
-            position: relative;
-            overflow-y: auto;
-            box-shadow: 2px 0 6px rgba(79, 70, 229, 0.3);
-            z-index: 10;
-            border-radius: 0 15px 15px 0;
-        }
-
-        .sidebar.collapsed {
-            width: 60px;
-            min-width: 60px;
-        }
-
-        .sidebar h2 {
-            margin: 0;
-            padding: 1.5rem 1rem;
-            font-size: 1.3rem;
-            font-weight: 700;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            transition: background-color 0.2s;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            cursor: pointer;
-        }
-        .nav-link:hover {
-            background-color: #4338ca;
-        }
-        .nav-link .icon {
-            margin-right: 12px;
-            font-size: 1.2rem;
-            min-width: 24px;
-            text-align: center;
-        }
-
-        .sidebar.collapsed .nav-link span.text {
-            display: none;
-        }
-        .sidebar.collapsed h2 {
-            text-align: center;
-        }
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem;
-            overflow-y: auto;
-        }
-
-        /* Toggle button */
-        .toggle-btn {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: #4f46e5;
-            border: none;
-            color: white;
-            padding: 10px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1.3rem;
-            z-index: 20;
-            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
-            transition: background-color 0.2s, transform 0.2s;
-        }
-        .toggle-btn:hover {
-            background: #4338ca;
-            transform: scale(1.05);
-        }
-
-        /* Content layout */
-        .content-wrapper {
-            display: flex;
-            gap: 1.5rem;
-            height: 100%;
-        }
-
-        /* Panels */
-        .panel {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-        
-        /* Category and Menu sections in a flex container */
-        .menu-and-categories {
-            flex: 2;
-            display: flex;
-            gap: 1.5rem;
-            min-height: 0; /* Fix for flexbox overflow */
-        }
-
-        /* Categories panel */
-        .category-section {
-            width: 200px;
-            min-width: 200px;
-            background: #e0e7ff;
-            border-radius: 15px;
-            padding: 1rem;
-            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
-            overflow-y: auto;
-        }
-        .category-btn {
-            width: 100%;
-            padding: 14px 16px;
-            margin-bottom: 12px;
-            background: #6366f1;
-            border: none;
-            border-radius: 10px;
-            font-weight: 700;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-            text-align: center;
-        }
-        .category-btn:hover {
-            background: #4f46e5;
-            transform: translateY(-2px);
-        }
-        .category-btn.active {
-            background: #3730a3;
-            box-shadow: 0 0 10px rgba(55, 48, 163, 0.5);
-            transform: translateY(-2px);
-        }
-
-        /* Menu items */
-        .menu-section {
-            flex: 1;
-            min-height: 0; /* Fix for flexbox overflow */
-        }
-        .items-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1rem;
-            overflow-y: auto;
-            flex-grow: 1;
-            padding-right: 5px;
-        }
-        .item-card {
-            background: #fef3c7;
-            border-radius: 15px;
-            padding: 10px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            box-shadow: 0 4px 10px rgb(254 243 199 / 0.6);
-            transition: box-shadow 0.3s, transform 0.2s, background-color 0.3s;
-            user-select: none;
-            aspect-ratio: 1 / 1.1;
-        }
-        .item-card:hover {
-            box-shadow: 0 6px 16px rgb(254 243 199 / 0.9);
-            transform: scale(1.03) translateY(-3px);
-            background: #fde68a;
-        }
-        .item-card img {
-            width: 90%;
-            height: 65%;
-            object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 8px;
-        }
-        .item-name {
-            font-weight: 700;
-            font-size: 1rem;
-            color: #1e293b;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
-            padding: 0 5px;
-        }
-        .item-price {
-            font-weight: 600;
-            color: #15803d;
-            font-size: 0.9rem;
-            margin-top: auto;
-        }
-
-        /* Order summary */
-        .order-summary {
-            flex: 1;
-            min-width: 300px;
-        }
-        .order-summary h3 {
-            margin-top: 0;
-            margin-bottom: 1rem;
-            font-weight: 700;
-            color: #374151;
-        }
-        .table-select {
-            margin-bottom: 1rem;
-        }
-        .table-select label {
-            display: block;
-            margin-bottom: 0.4rem;
-            font-weight: 600;
-            color: #374151;
-        }
-        .table-select select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid #d1d5db;
-            font-size: 1rem;
-        }
-
-        /* Order items list */
-        #orderItems {
-            flex-grow: 1;
-            overflow-y: auto;
-            margin-bottom: 1rem;
-            padding: 10px 5px 10px 0;
-            border-top: 1px solid #e5e7eb;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        .order-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: #1f2937;
-            padding: 8px;
-            background: #f8fafc;
-            border-radius: 8px;
-        }
-        .order-item-details {
-            flex-grow: 1;
-        }
-        .order-item-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            min-width: 120px;
-            justify-content: flex-end;
-        }
-        .order-item .qty-btn,
-        .order-item .remove-btn {
-            background-color: #6366f1;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            width: 28px;
-            height: 28px;
-            cursor: pointer;
-            font-weight: 700;
-            transition: background-color 0.2s, transform 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-        .order-item .qty-btn:hover {
-            background-color: #4f46e5;
-            transform: scale(1.1);
-        }
-        .order-item .remove-btn {
-            background-color: #ef4444;
-        }
-        .order-item .remove-btn:hover {
-            background-color: #b91c1c;
-            transform: scale(1.1);
-        }
-        .order-item .qty-display {
-            font-weight: 700;
-            min-width: 20px;
-            text-align: center;
-            font-size: 1rem;
-        }
-        .order-item .item-price {
-            font-weight: 600;
-            min-width: 60px;
-            text-align: right;
-        }
-
-        /* Summary lines */
-        .summary-line, .total-line {
-            margin: 8px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            font-size: 1rem;
-            color: #374151;
-        }
-
-        .summary-input-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .summary-input-group select {
-            width: 100px;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid #d1d5db;
-        }
-
-        .summary-input-group input {
-            flex: 1;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid #d1d5db;
-            text-align: right;
-        }
-
-        .total-line {
-            font-size: 1.5rem;
-            color: #111827;
-            font-weight: 700;
-            margin-top: 1rem;
-        }
-        .total-line span {
-            color: #15803d;
-        }
-
-        hr {
-            border: none;
-            border-top: 1px solid #e5e7eb;
-            margin: 1.5rem 0;
-        }
-
-        .action-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 1rem;
-        }
-        .action-buttons button {
-            flex: 1;
-            padding: 12px 18px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-            color: white;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            min-width: 100px;
-        }
-        .action-buttons button:hover {
-            transform: translateY(-2px);
-        }
-        .btn-place {
-            background-color: #10b981;
-        }
-        .btn-export {
-            background-color: #3b82f6;
-        }
-        .btn-print {
-            background-color: #6366f1;
-        }
-        .btn-kot {
-            background-color: #f97316;
-        }
-
-        /* Scrollbar styling */
-        #orderItems::-webkit-scrollbar,
-        .items-list::-webkit-scrollbar,
-        .category-section::-webkit-scrollbar,
-        .sidebar::-webkit-scrollbar {
+        /* Custom scrollbar for better aesthetics */
+        .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
         }
-        #orderItems::-webkit-scrollbar-track,
-        .items-list::-webkit-scrollbar-track,
-        .category-section::-webkit-scrollbar-track,
-        .sidebar::-webkit-scrollbar-track {
-            background: #f1f5f9;
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #e2e8f0;
             border-radius: 10px;
         }
-        #orderItems::-webkit-scrollbar-thumb,
-        .items-list::-webkit-scrollbar-thumb,
-        .category-section::-webkit-scrollbar-thumb,
-        .sidebar::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #94a3b8;
             border-radius: 10px;
-            border: 2px solid #f1f5f9;
-        }
-
-        /* Modal for custom alerts */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 400px;
-        }
-        .modal-content h4 {
-            margin-top: 0;
-            font-size: 1.5rem;
-            color: #1f2937;
-        }
-        .modal-content p {
-            font-size: 1rem;
-            color: #4b5563;
-        }
-        .modal-content button {
-            margin-top: 1rem;
-            padding: 12px 24px;
-            background-color: #6366f1;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 700;
-            transition: transform 0.2s;
-        }
-        .modal-content button:hover {
-            transform: scale(1.05);
-        }
-
-        /* Responsive */
-        @media (max-width: 900px) {
-            .category-section {
-                display: none;
-            }
-            .sidebar:not(.collapsed) {
-                position: absolute;
-                left: 0;
-                top: 0;
-                z-index: 100;
-            }
-            .sidebar.collapsed {
-                display: none;
-            }
-            .toggle-btn {
-                left: 20px;
-                top: 20px;
-            }
-            .main-content {
-                padding: 1rem;
-            }
-            .content-wrapper {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            .order-summary, .menu-and-categories {
-                min-width: 100%;
-                flex: none;
-                height: auto;
-            }
+            border: 2px solid #f8fafc;
         }
     </style>
 </head>
-<body>
-    <button class="toggle-btn" title="Toggle Menu" aria-label="Toggle Menu"><i class="fas fa-bars"></i></button>
-
-    <nav class="sidebar">
-        <h2>POS System</h2>
-        <a href="dashboard.html" class="nav-link"><span class="icon"><i class="fas fa-chart-line"></i></span><span class="text">Dashboard</span></a>
-        <a href="#" class="nav-link"><span class="icon"><i class="fas fa-cash-register"></i></span><span class="text">POS Billing</span></a>
-        <a href="#" class="nav-link"><span class="icon"><i class="fas fa-receipt"></i></span><span class="text">Print Receipt</span></a>
-        <a href="#" class="nav-link"><span class="icon"><i class="fas fa-chart-bar"></i></span><span class="text">Reports</span></a>
-        <a href="admin.html" class="nav-link"><span class="icon"><i class="fas fa-cog"></i></span><span class="text">Admin</span></a>
-        <a href="#" class="nav-link"><span class="icon"><i class="fas fa-sign-out-alt"></i></span><span class="text">Logout</span></a>
-    </nav>
-
-    <main class="main-content">
-        <div class="content-wrapper">
-            <div class="menu-and-categories">
-                <section class="category-section" id="categoryButtons"></section>
-                <section class="menu-section panel">
-                    <h3>Menu</h3>
-                    <div class="items-list" id="itemsList"></div>
+<body class="bg-slate-100 flex h-screen overflow-hidden">
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col p-4 md:p-8 overflow-y-auto">
+        <div class="flex-1 flex flex-col lg:flex-row gap-4 h-full">
+            <!-- Menu and Categories Section -->
+            <div class="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
+                <!-- Categories Sidebar -->
+                <section id="categoryButtons" class="hidden lg:flex flex-col p-4 bg-indigo-100 rounded-2xl shadow-lg w-full lg:w-48 xl:w-64 custom-scrollbar overflow-y-auto">
+                    <!-- Category buttons will be rendered here -->
+                </section>
+                <!-- Menu Items Panel -->
+                <section class="flex-1 p-6 bg-white rounded-2xl shadow-lg flex flex-col min-h-0">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-4">Menu</h3>
+                    <!-- Loading state for menu -->
+                    <div id="menuLoading" class="flex items-center justify-center h-full text-slate-500 text-lg">
+                        <i class="fas fa-spinner fa-spin mr-2"></i> Loading menu items...
+                    </div>
+                    <div id="itemsList" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto custom-scrollbar flex-grow">
+                        <!-- Menu items will be rendered here -->
+                    </div>
                 </section>
             </div>
-
-            <aside class="order-summary panel">
-                <div class="table-select">
-                    <label for="tableSelect">Select Table:</label>
-                    <select id="tableSelect"></select>
+            <!-- Order Summary Panel -->
+            <aside class="flex-1 lg:w-96 xl:w-1/3 flex flex-col bg-white rounded-2xl shadow-lg p-6 min-w-80">
+                <!-- User ID display for multi-user environment -->
+                <p class="text-xs text-slate-500 mb-2">User ID: <span id="userIdDisplay" class="font-mono text-indigo-500"></span></p>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-2xl font-bold text-slate-800">Order Summary</h3>
                 </div>
-
-                <h3>Order Summary</h3>
-                <div id="orderItems">No items added yet.</div>
-
-                <div class="summary-line">
-                    Subtotal: <span>₹<span id="subtotal">0.00</span></span>
+                <div class="mb-4">
+                    <label for="tableSelect" class="block text-sm font-semibold text-slate-700 mb-1">Select Table:</label>
+                    <select id="tableSelect" class="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option>Loading tables...</option>
+                    </select>
                 </div>
-
-                <div class="summary-line">
-                    <span>Discount:</span>
-                    <div class="summary-input-group">
-                        <select id="discountTypeSelect">
-                            <option value="manual">(₹)</option>
-                            <option value="percentage">(%)</option>
-                        </select>
-                        <input type="number" id="discountInput" value="0" min="0" />
+                <!-- Order Items List -->
+                <div id="orderItems" class="flex-grow overflow-y-auto custom-scrollbar mb-4 border-y border-slate-200 py-4">
+                    <div class="text-slate-500 text-center">No items added yet.</div>
+                </div>
+                <!-- Order Totals -->
+                <div class="space-y-3 text-slate-700">
+                    <div class="flex justify-between items-center font-semibold text-lg">
+                        <span>Subtotal:</span>
+                        <span>₹<span id="subtotal">0.00</span></span>
+                    </div>
+                    <div class="flex justify-between items-center text-md">
+                        <span>Discount:</span>
+                        <div class="flex items-center gap-2">
+                            <select id="discountTypeSelect" class="p-1 border border-slate-300 rounded-lg text-sm">
+                                <option value="manual">(₹)</option>
+                                <option value="percentage">(%)</option>
+                            </select>
+                            <input type="number" id="discountInput" value="0" min="0" class="w-24 p-1 border border-slate-300 rounded-lg text-right text-sm">
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center text-md">
+                        <span>Service Charge:</span>
+                        <div class="flex items-center gap-2">
+                            <select id="serviceChargeTypeSelect" class="p-1 border border-slate-300 rounded-lg text-sm">
+                                <option value="manual">(₹)</option>
+                                <option value="percentage">(%)</option>
+                            </select>
+                            <input type="number" id="serviceChargeInput" value="0" min="0" class="w-24 p-1 border border-slate-300 rounded-lg text-right text-sm">
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center font-semibold text-lg">
+                        <span>Tax (5%):</span>
+                        <span>₹<span id="tax">0.00</span></span>
                     </div>
                 </div>
-
-                <div class="summary-line">
-                    <span>Service Charge:</span>
-                    <div class="summary-input-group">
-                        <select id="serviceChargeTypeSelect">
-                            <option value="manual">(₹)</option>
-                            <option value="percentage">(%)</option>
-                        </select>
-                        <input type="number" id="serviceChargeInput" value="0" min="0" />
+                <div class="border-t border-slate-200 mt-4 pt-4">
+                    <div class="flex justify-between items-center font-bold text-2xl text-slate-900">
+                        <span>Total:</span>
+                        <span class="text-green-600">₹<span id="total">0.00</span></span>
                     </div>
                 </div>
-
-                <div class="summary-line">
-                    Tax (5%): <span>₹<span id="tax">0.00</span></span>
-                </div>
-
-                <hr />
-                <div class="total-line">
-                    Total: <span>₹<span id="total">0.00</span></span>
-                </div>
-
-                <div class="action-buttons">
-                    <button class="btn-place" onclick="placeOrder()">Place Order</button>
-                    <button class="btn-export" onclick="exportCSV()">Export CSV</button>
-                    <button class="btn-print" onclick="printSummary()">Print Summary</button>
-                    <button class="btn-kot" onclick="printKOT()">Print KOT</button>
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-3 mt-4">
+                    <button id="placeOrderBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                        <i class="fas fa-check mr-2"></i> Place Order
+                    </button>
+                    <button id="exportCsvBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                        <i class="fas fa-file-csv mr-2"></i> Export CSV
+                    </button>
+                    <button id="printSummaryBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                        <i class="fas fa-print mr-2"></i> Print Summary
+                    </button>
+                    <button id="printKotBtn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                        <i class="fas fa-ticket-alt mr-2"></i> Print KOT
+                    </button>
                 </div>
             </aside>
         </div>
     </main>
 
-    <div id="modalOverlay" class="modal-overlay">
-        <div class="modal-content">
-            <h4 id="modalTitle"></h4>
-            <p id="modalMessage"></p>
-            <button id="modalCloseBtn">OK</button>
+    <!-- Modal for custom alerts -->
+    <div id="modalOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-[1000] hidden items-center justify-center">
+        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center">
+            <h4 id="modalTitle" class="text-xl font-bold text-slate-800 mb-2"></h4>
+            <p id="modalMessage" class="text-slate-600 mb-4"></p>
+            <button id="modalCloseBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+                OK
+            </button>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, getDocs, addDoc, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-            // --- DATA SETUP ---
-            // In a real application, this data would come from a server.
-            // For now, we'll use dummy data and localStorage.
-            function setupInitialData() {
-                const initialCategories = ['Starters', 'Main Course', 'Desserts', 'Beverages'];
-                const initialItems = [
-                    { id: 1, name: 'Samosa', price: '30.00', category: 'Starters', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Samosa' },
-                    { id: 2, name: 'Paneer Tikka', price: '250.00', category: 'Starters', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Paneer+Tikka' },
-                    { id: 3, name: 'Butter Chicken', price: '450.00', category: 'Main Course', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Butter+Chicken' },
-                    { id: 4, name: 'Dal Makhani', price: '350.00', category: 'Main Course', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Dal+Makhani' },
-                    { id: 5, name: 'Garlic Naan', price: '75.00', category: 'Main Course', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Naan' },
-                    { id: 6, name: 'Gulab Jamun', price: '120.00', category: 'Desserts', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Gulab+Jamun' },
-                    { id: 7, name: 'Ice Cream', price: '150.00', category: 'Desserts', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Ice+Cream' },
-                    { id: 8, name: 'Masala Chai', price: '50.00', category: 'Beverages', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Chai' },
-                    { id: 9, name: 'Lassi', price: '100.00', category: 'Beverages', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Lassi' },
-                ];
-                const initialTables = ['Table 1', 'Table 2', 'Table 3', 'Table 4', 'Table 5', 'Take Away'];
+        // --- GLOBAL VARIABLES & FIREBASE SETUP ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-                if (!localStorage.getItem('categories')) {
-                    localStorage.setItem('categories', JSON.stringify(initialCategories));
-                }
-                if (!localStorage.getItem('items')) {
-                    localStorage.setItem('items', JSON.stringify(initialItems));
-                }
-                if (!localStorage.getItem('tables')) {
-                    localStorage.setItem('tables', JSON.stringify(initialTables));
-                }
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let userId;
+
+        // --- STATE & DATA ---
+        let categories = [];
+        let items = [];
+        let tables = [];
+        let ordersData = []; // Store placed orders
+        let currentOrderItems = [];
+        let currentCategory = '';
+        const taxRate = 0.05; // 5% tax
+
+        // --- ELEMENTS ---
+        const categoryButtonsDiv = document.getElementById('categoryButtons');
+        const itemsListDiv = document.getElementById('itemsList');
+        const tableSelect = document.getElementById('tableSelect');
+        const orderItemsDiv = document.getElementById('orderItems');
+        const subtotalSpan = document.getElementById('subtotal');
+        const taxSpan = document.getElementById('tax');
+        const totalSpan = document.getElementById('total');
+        const discountTypeSelect = document.getElementById('discountTypeSelect');
+        const discountInput = document.getElementById('discountInput');
+        const serviceChargeTypeSelect = document.getElementById('serviceChargeTypeSelect');
+        const serviceChargeInput = document.getElementById('serviceChargeInput');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        const menuLoadingState = document.getElementById('menuLoading');
+        const userIdDisplay = document.getElementById('userIdDisplay');
+
+        // --- UTILITY FUNCTIONS ---
+
+        // Custom modal for alerts
+        function showAlert(message, title = 'Notification') {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modalOverlay.style.display = 'flex';
+        }
+        
+        modalCloseBtn.addEventListener('click', () => {
+            modalOverlay.style.display = 'none';
+        });
+
+        // Add a placeholder image if an image fails to load
+        function getImageUrl(url, name) {
+            return url || `https://placehold.co/150x150/fef3c7/854d0e?text=${encodeURIComponent(name.slice(0, 10))}`;
+        }
+
+        // --- RENDER FUNCTIONS ---
+
+        // Render category buttons
+        function renderCategories() {
+            categoryButtonsDiv.innerHTML = '';
+            if (categories.length === 0) {
+                categoryButtonsDiv.innerHTML = '<p class="text-center text-indigo-400">No categories found.</p>';
+                return;
             }
-            
-            // --- ELEMENTS & STATE ---
-            const sidebar = document.querySelector('.sidebar');
-            const toggleBtn = document.querySelector('.toggle-btn');
-            
-            const modalOverlay = document.getElementById('modalOverlay');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalMessage = document.getElementById('modalMessage');
-            const modalCloseBtn = document.getElementById('modalCloseBtn');
-            
-            const categoryButtonsDiv = document.getElementById('categoryButtons');
-            const itemsListDiv = document.getElementById('itemsList');
-            const tableSelect = document.getElementById('tableSelect');
-            const orderItemsDiv = document.getElementById('orderItems');
-            const subtotalSpan = document.getElementById('subtotal');
-            const taxSpan = document.getElementById('tax');
-            const totalSpan = document.getElementById('total');
-
-            const discountTypeSelect = document.getElementById('discountTypeSelect');
-            const discountInput = document.getElementById('discountInput');
-            const serviceChargeTypeSelect = document.getElementById('serviceChargeTypeSelect');
-            const serviceChargeInput = document.getElementById('serviceChargeInput');
-
-            let categories = JSON.parse(localStorage.getItem('categories') || '[]');
-            let items = JSON.parse(localStorage.getItem('items') || '[]');
-            let tables = JSON.parse(localStorage.getItem('tables') || '[]');
-            
-            let currentCategory = '';
-            let order = [];
-
-            // --- FUNCTIONS ---
-
-            // Sidebar toggle
-            toggleBtn.addEventListener('click', () => {
-                sidebar.classList.toggle('collapsed');
-            });
-
-            // Custom modal for alerts
-            function showAlert(message, title = 'Notification') {
-                modalTitle.textContent = title;
-                modalMessage.textContent = message;
-                modalOverlay.style.display = 'flex';
-            }
-            window.showAlert = showAlert; // Make it globally accessible for inline onclick attributes
-
-            modalCloseBtn.addEventListener('click', () => {
-                modalOverlay.style.display = 'none';
-            });
-
-            // Load tables into select dropdown
-            function loadTables() {
-                tableSelect.innerHTML = '';
-                if (tables.length === 0) {
-                    tableSelect.innerHTML = '<option>No Tables Added</option>';
-                    tableSelect.disabled = true;
-                } else {
-                    tables.forEach(t => {
-                        const option = document.createElement('option');
-                        option.value = t;
-                        option.textContent = t;
-                        tableSelect.appendChild(option);
-                    });
-                    tableSelect.disabled = false;
-                }
-            }
-
-            // Render category buttons
-            function renderCategories() {
-                categoryButtonsDiv.innerHTML = '';
-                if (categories.length === 0) {
-                    categoryButtonsDiv.textContent = 'No categories added';
-                    return;
-                }
-                categories.forEach((cat, idx) => {
-                    const btn = document.createElement('button');
-                    btn.textContent = cat;
-                    btn.className = 'category-btn';
-                    if (idx === 0) {
-                        btn.classList.add('active');
-                        currentCategory = cat;
-                    }
-                    btn.addEventListener('click', () => {
-                        currentCategory = cat;
-                        renderItems();
-                        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                        btn.classList.add('active');
-                    });
-                    categoryButtonsDiv.appendChild(btn);
+            categories.forEach((cat, idx) => {
+                const btn = document.createElement('button');
+                btn.textContent = cat.name;
+                btn.className = `category-btn w-full py-3 px-4 mb-2 bg-indigo-500 text-white font-bold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${cat.name === currentCategory ? 'bg-indigo-700 scale-105 shadow-lg' : ''}`;
+                btn.addEventListener('click', () => {
+                    currentCategory = cat.name;
+                    renderCategories(); // Re-render to update active state
+                    renderItems();
                 });
+                categoryButtonsDiv.appendChild(btn);
+            });
+        }
+        
+        // Render menu items for the active category
+        function renderItems() {
+            const filteredItems = items.filter(i => i.category === currentCategory);
+            itemsListDiv.innerHTML = '';
+            
+            if (currentCategory === '') {
+                itemsListDiv.innerHTML = '<p class="text-center text-slate-500 col-span-full mt-10">Please select a category.</p>';
+                return;
             }
-
-            // Render items of the current category
-            function renderItems() {
-                itemsListDiv.innerHTML = '';
-                if (!currentCategory) {
-                    itemsListDiv.textContent = 'Select a category to see items.';
-                    return;
-                }
-                const filteredItems = items.filter(i => i.category === currentCategory);
-                if (filteredItems.length === 0) {
-                    itemsListDiv.textContent = 'No items in this category.';
-                    return;
-                }
-                filteredItems.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'item-card';
-                    card.title = `${item.name}\nPrice: ₹${item.price}`;
-                    card.innerHTML = `
-                        <img src="${item.image || 'https://placehold.co/150x150?text=No+Image'}" alt="${item.name}" />
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-price">₹${parseFloat(item.price).toFixed(2)}</div>
-                    `;
-                    card.addEventListener('click', () => addItemToOrder(item));
-                    itemsListDiv.appendChild(card);
-                });
+            if (filteredItems.length === 0) {
+                itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">No items found in the "${currentCategory}" category.</p>`;
+                return;
             }
+            
+            menuLoadingState.classList.add('hidden');
+            itemsListDiv.classList.remove('hidden');
 
-            // Add item to the current order
-            function addItemToOrder(item) {
-                const existingItem = order.find(o => o.id === item.id);
-                if (existingItem) {
-                    existingItem.qty++;
-                } else {
-                    order.push({ ...item, qty: 1 });
-                }
-                renderOrder();
-            }
+            filteredItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 transform hover:scale-105 cursor-pointer flex flex-col items-center justify-between text-center aspect-square';
+                card.title = `${item.name}\nPrice: ₹${item.price}`;
+                card.innerHTML = `
+                    <img src="${getImageUrl(item.image, item.name)}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2">
+                    <div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div>
+                    <div class="font-semibold text-green-600 text-lg mt-auto">₹${parseFloat(item.price).toFixed(2)}</div>
+                `;
+                card.addEventListener('click', () => addItemToOrder(item));
+                itemsListDiv.appendChild(card);
+            });
+        }
 
-            // Render the entire order summary and calculate totals
-            function renderOrder() {
-                orderItemsDiv.innerHTML = '';
-                if (order.length === 0) {
-                    orderItemsDiv.textContent = 'No items added yet.';
-                    updateTotals(); // Ensure totals are zeroed out
-                    return;
-                }
-                
-                order.forEach(item => {
+        // Render the order summary and calculate totals
+        function renderOrder() {
+            orderItemsDiv.innerHTML = '';
+            if (currentOrderItems.length === 0) {
+                orderItemsDiv.innerHTML = '<div class="text-slate-500 text-center">No items added yet.</div>';
+            } else {
+                currentOrderItems.forEach(item => {
                     const itemTotal = parseFloat(item.price) * item.qty;
                     const div = document.createElement('div');
-                    div.className = 'order-item';
+                    div.className = 'flex items-center justify-between bg-slate-50 rounded-lg p-3 mb-2 shadow-sm';
                     div.innerHTML = `
-                        <span class="order-item-details">${item.name}</span>
-                        <div class="order-item-controls">
-                            <button class="qty-btn" data-id="${item.id}" data-action="decrement"><i class="fas fa-minus"></i></button>
-                            <span class="qty-display">${item.qty}</span>
-                            <button class="qty-btn" data-id="${item.id}" data-action="increment"><i class="fas fa-plus"></i></button>
-                            <span class="item-price">₹${itemTotal.toFixed(2)}</span>
-                            <button class="remove-btn" data-id="${item.id}" aria-label="Remove ${item.name}"></i></button>
+                        <div class="flex-1">
+                            <span class="font-semibold text-slate-800">${item.name}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button data-id="${item.id}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-transform hover:scale-110">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span>
+                            <button data-id="${item.id}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-transform hover:scale-110">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <span class="font-semibold text-green-600 w-20 text-right">₹${itemTotal.toFixed(2)}</span>
+                            <button data-id="${item.id}" class="remove-btn text-red-500 hover:text-red-700 transition-colors" aria-label="Remove ${item.name}">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
                     `;
                     orderItemsDiv.appendChild(div);
                 });
-                updateTotals();
+            }
+            updateTotals();
+        }
+
+        // Update tables dropdown
+        function renderTables() {
+            tableSelect.innerHTML = '';
+            if (tables.length === 0) {
+                tableSelect.innerHTML = '<option value="">No tables available</option>';
+                tableSelect.disabled = true;
+            } else {
+                tables.forEach(t => {
+                    const option = document.createElement('option');
+                    option.value = t.name;
+                    option.textContent = t.name;
+                    tableSelect.appendChild(option);
+                });
+                tableSelect.disabled = false;
+            }
+        }
+
+        // --- LOGIC FUNCTIONS ---
+
+        // Add item to the current order
+        function addItemToOrder(item) {
+            const existingItem = currentOrderItems.find(o => o.id === item.id);
+            if (existingItem) {
+                existingItem.qty++;
+            } else {
+                currentOrderItems.push({ ...item, qty: 1 });
+            }
+            renderOrder();
+        }
+
+        // Update all totals based on the order and inputs
+        function updateTotals() {
+            const subtotal = currentOrderItems.reduce((sum, item) => sum + parseFloat(item.price) * item.qty, 0);
+            
+            const discountValue = parseFloat(discountInput.value) || 0;
+            const serviceChargeValue = parseFloat(serviceChargeInput.value) || 0;
+            
+            const isDiscountPercent = discountTypeSelect.value === 'percentage';
+            const isServiceChargePercent = serviceChargeTypeSelect.value === 'percentage';
+
+            const discountAmount = isDiscountPercent ? subtotal * (discountValue / 100) : discountValue;
+            const serviceChargeAmount = isServiceChargePercent ? subtotal * (serviceChargeValue / 100) : serviceChargeValue;
+
+            const taxableAmount = subtotal - discountAmount + serviceChargeAmount;
+            const taxAmount = taxableAmount * taxRate;
+            const totalAmount = taxableAmount + taxAmount;
+
+            subtotalSpan.textContent = subtotal.toFixed(2);
+            taxSpan.textContent = taxAmount.toFixed(2);
+            totalSpan.textContent = Math.max(0, totalAmount).toFixed(2); // Prevent negative total
+        }
+
+        // Place an order and save it to Firestore
+        async function placeOrder() {
+            if (currentOrderItems.length === 0) {
+                return showAlert('Please add items to the order first.');
+            }
+            if (!tableSelect.value) {
+                return showAlert('Please select a table.');
             }
             
-            // Update all totals based on the order and inputs
-            function updateTotals() {
-                const subtotal = order.reduce((sum, item) => sum + parseFloat(item.price) * item.qty, 0);
-
-                const discountValue = parseFloat(discountInput.value) || 0;
-                const serviceChargeValue = parseFloat(serviceChargeInput.value) || 0;
-                
-                const isDiscountPercent = discountTypeSelect.value === 'percentage';
-                const isServiceChargePercent = serviceChargeTypeSelect.value === 'percentage';
-
-                const discountAmount = isDiscountPercent ? subtotal * (discountValue / 100) : discountValue;
-                const serviceChargeAmount = isServiceChargePercent ? subtotal * (serviceChargeValue / 100) : serviceChargeValue;
-
-                const taxableAmount = subtotal - discountAmount + serviceChargeAmount;
-                const taxAmount = taxableAmount * 0.05; // 5% tax rate
-                const totalAmount = taxableAmount + taxAmount;
-
-                subtotalSpan.textContent = subtotal.toFixed(2);
-                taxSpan.textContent = taxAmount.toFixed(2);
-                totalSpan.textContent = Math.max(0, totalAmount).toFixed(2); // Prevent negative total
-            }
-            
-            // Event Delegation for order item controls
-            orderItemsDiv.addEventListener('click', (event) => {
-                const target = event.target;
-                const qtyBtn = target.closest('.qty-btn');
-                const removeBtn = target.closest('.remove-btn');
-
-                if (qtyBtn) {
-                    const id = parseInt(qtyBtn.dataset.id);
-                    const action = qtyBtn.dataset.action;
-                    const item = order.find(o => o.id === id);
-                    if (item) {
-                        if (action === 'increment') item.qty++;
-                        else if (action === 'decrement' && item.qty > 1) item.qty--;
-                        else if (action === 'decrement' && item.qty === 1) {
-                             order = order.filter(i => i.id !== id);
-                        }
-                        renderOrder();
-                    }
-                } else if (removeBtn) {
-                    const id = parseInt(removeBtn.dataset.id);
-                    order = order.filter(i => i.id !== id);
-                    renderOrder();
-                }
-            });
-
-            // Listen for changes in discount/service charge inputs
-            [discountInput, discountTypeSelect, serviceChargeInput, serviceChargeTypeSelect].forEach(el => {
-                el.addEventListener('change', updateTotals);
-                el.addEventListener('input', updateTotals); // For number inputs
-            });
-            
-            // Action button functions
-            window.placeOrder = function() {
-                if (order.length === 0) {
-                    return showAlert('Please add items to the order first.');
-                }
-                if (tables.length === 0) {
-                    return showAlert('No tables available. Please add tables in an admin section.');
-                }
-                const table = tableSelect.value;
-
-                const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            try {
                 const newOrder = {
-                    id: Date.now(),
-                    table,
-                    items: order,
+                    table: tableSelect.value,
+                    items: currentOrderItems,
                     date: new Date().toISOString().split('T')[0],
                     time: new Date().toLocaleTimeString(),
                     subtotal: parseFloat(subtotalSpan.textContent),
                     tax: parseFloat(taxSpan.textContent),
                     discount: parseFloat(discountInput.value) || 0,
-                    serviceCharge: parseFloat(serviceChargeInput.value) || 0, // CORRECTED: was .textContent
+                    discountType: discountTypeSelect.value,
+                    serviceCharge: parseFloat(serviceChargeInput.textContent) || 0,
+                    serviceChargeType: serviceChargeTypeSelect.value,
                     total: parseFloat(totalSpan.textContent),
+                    status: 'placed',
+                    userId: userId // Add the user who placed the order
                 };
-                orders.push(newOrder);
-                localStorage.setItem('orders', JSON.stringify(orders));
-                showAlert(`Order for ${table} has been placed successfully!`);
+                
+                const ordersRef = collection(db, `/artifacts/${appId}/public/data/orders`);
+                await addDoc(ordersRef, newOrder);
+                
+                showAlert(`Order for ${newOrder.table} has been placed successfully!`, 'Order Placed');
                 
                 // Reset order
-                order = [];
+                currentOrderItems = [];
                 discountInput.value = 0;
                 serviceChargeInput.value = 0;
                 renderOrder();
+            } catch (error) {
+                console.error("Error placing order:", error);
+                showAlert('Failed to place order. Please try again.', 'Error');
             }
-
-            window.exportCSV = function() {
-                const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-                if (orders.length === 0) {
-                    return showAlert('No orders have been placed to export.');
-                }
-                let csvContent = 'OrderID,Table,ItemName,Qty,Price,Date,Time,Subtotal,Tax,Discount,ServiceCharge,Total\n';
-                orders.forEach(ord => {
-                    ord.items.forEach(item => {
-                        csvContent += `${ord.id},${ord.table},"${item.name}",${item.qty},${item.price},${ord.date},${ord.time},${ord.subtotal},${ord.tax},${ord.discount},${ord.serviceCharge},${ord.total}\n`;
-                    });
+        }
+        
+        // Export placed orders to a CSV file
+        function exportCSV() {
+            if (ordersData.length === 0) {
+                return showAlert('No orders have been placed to export.');
+            }
+            let csvContent = 'OrderID,Table,ItemName,Qty,Price,Date,Time,Subtotal,Tax,Discount,ServiceCharge,Total\n';
+            ordersData.forEach(ord => {
+                ord.items.forEach(item => {
+                    csvContent += `${ord.id},${ord.table},"${item.name}",${item.qty},${item.price},${ord.date},${ord.time},${ord.subtotal},${ord.tax},${ord.discount},${ord.serviceCharge},${ord.total}\n`;
                 });
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.setAttribute('download', `pos_orders_${Date.now()}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                showAlert('All placed orders exported successfully!');
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', `pos_orders_${Date.now()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showAlert('All placed orders exported successfully!');
+        }
+
+        // Placeholder for printing
+        function printSummary() {
+            showAlert('Print summary feature is a work in progress!', 'Feature Under Development');
+        }
+        
+        // Placeholder for KOT
+        function printKOT() {
+            showAlert('Print Kitchen Order Ticket (KOT) feature is a work in progress!', 'Feature Under Development');
+        }
+
+        // --- EVENT LISTENERS ---
+        
+        document.getElementById('placeOrderBtn').addEventListener('click', placeOrder);
+        document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
+        document.getElementById('printSummaryBtn').addEventListener('click', printSummary);
+        document.getElementById('printKotBtn').addEventListener('click', printKOT);
+
+        // Event delegation for order item controls
+        orderItemsDiv.addEventListener('click', (event) => {
+            const target = event.target;
+            const qtyBtn = target.closest('.qty-btn');
+            const removeBtn = target.closest('.remove-btn');
+
+            if (qtyBtn) {
+                const id = parseInt(qtyBtn.dataset.id);
+                const action = qtyBtn.dataset.action;
+                const item = currentOrderItems.find(o => o.id === id);
+                if (item) {
+                    if (action === 'increment') item.qty++;
+                    else if (action === 'decrement' && item.qty > 1) item.qty--;
+                    else if (action === 'decrement' && item.qty === 1) {
+                         currentOrderItems = currentOrderItems.filter(i => i.id !== id);
+                    }
+                    renderOrder();
+                }
+            } else if (removeBtn) {
+                const id = parseInt(removeBtn.dataset.id);
+                currentOrderItems = currentOrderItems.filter(i => i.id !== id);
+                renderOrder();
             }
-            
-            window.printSummary = function() {
-                showAlert('Print summary feature is a work in progress!');
+        });
+
+        // Listen for changes in discount/service charge inputs
+        [discountInput, discountTypeSelect, serviceChargeInput, serviceChargeTypeSelect].forEach(el => {
+            el.addEventListener('change', updateTotals);
+            el.addEventListener('input', updateTotals);
+        });
+
+        // --- INITIALIZATION ---
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Signed in with custom token.");
+                } else {
+                    await signInAnonymously(auth);
+                    console.log("Signed in anonymously.");
+                }
+
+                // Listen for auth state changes and set up listeners only after a user is authenticated
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        userIdDisplay.textContent = userId;
+
+                        // --- Real-time data listeners for Firestore ---
+                        
+                        // Categories
+                        onSnapshot(collection(db, `/artifacts/${appId}/public/data/categories`), (snapshot) => {
+                            categories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                            // Set default category if none is selected
+                            if (!currentCategory && categories.length > 0) {
+                                currentCategory = categories[0].name;
+                            }
+                            renderCategories();
+                            renderItems();
+                        });
+
+                        // Menu Items
+                        onSnapshot(collection(db, `/artifacts/${appId}/public/data/items`), (snapshot) => {
+                            items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                            renderItems();
+                        });
+
+                        // Tables
+                        onSnapshot(collection(db, `/artifacts/${appId}/public/data/tables`), (snapshot) => {
+                            tables = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                            renderTables();
+                        });
+
+                        // Placed Orders (for CSV export)
+                        onSnapshot(collection(db, `/artifacts/${appId}/public/data/orders`), (snapshot) => {
+                            ordersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        });
+
+                    } else {
+                        // This block will be executed if authentication fails or user logs out.
+                        // For this app, we'll assume a user is always logged in.
+                        console.log("No user is signed in.");
+                    }
+                });
+
+            } catch (error) {
+                console.error("Firebase initialization or authentication error:", error);
+                showAlert(`Authentication failed: ${error.message}`, 'Auth Error');
             }
-            
-            window.printKOT = function() {
-                 showAlert('Print Kitchen Order Ticket (KOT) feature is a work in progress!');
-            }
-            
-            // --- INITIALIZATION ---
-            setupInitialData();
-            loadTables();
-            renderCategories();
-            renderItems();
-            renderOrder();
         });
     </script>
 </body>
