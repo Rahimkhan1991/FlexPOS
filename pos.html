@@ -585,7 +585,6 @@
         </div>
     </main>
 
-    <!-- Modal for custom alerts -->
     <div id="modalOverlay" class="modal-overlay">
         <div class="modal-content">
             <h4 id="modalTitle"></h4>
@@ -726,85 +725,77 @@
             renderOrder();
         }
 
+        // Event delegation for order item controls
+        orderItemsDiv.addEventListener('click', function(e) {
+            const target = e.target.closest('.qty-btn, .remove-btn');
+            if (!target) return;
+
+            const id = target.getAttribute('data-id');
+            const action = target.getAttribute('data-action');
+            const item = order.find(o => o.id === id);
+
+            if (!item) return;
+
+            if (target.classList.contains('qty-btn')) {
+                if (action === 'increment') {
+                    item.qty++;
+                } else if (action === 'decrement' && item.qty > 1) {
+                    item.qty--;
+                }
+            } else if (target.classList.contains('remove-btn')) {
+                order = order.filter(i => i.id !== id);
+            }
+
+            renderOrder(); // Update the UI
+        });
+
         // Render order and recalculate totals
-      // Inside your renderOrder() function, replace the button event listener code with this:
+        function renderOrder() {
+            orderItemsDiv.innerHTML = '';
+            if (order.length === 0) {
+                orderItemsDiv.textContent = 'No items added yet.';
+                subtotalSpan.textContent = '0.00';
+                taxSpan.textContent = '0.00';
+                totalSpan.textContent = '0.00';
+                return;
+            }
+            
+            let subtotal = 0;
+            order.forEach(item => {
+                subtotal += parseFloat(item.price) * item.qty;
+                const div = document.createElement('div');
+                div.className = 'order-item';
+                div.innerHTML = `
+                    <span class="order-item-details">${item.name}</span>
+                    <div class="order-item-controls">
+                        <button class="qty-btn" data-id="${item.id}" data-action="decrement"><i class="fas fa-minus"></i></button>
+                        <span class="qty-display">${item.qty}</span>
+                        <button class="qty-btn" data-id="${item.id}" data-action="increment"><i class="fas fa-plus"></i></button>
+                        <span class="item-price">₹${(item.price * item.qty).toFixed(2)}</span>
+                        <button class="remove-btn" data-id="${item.id}" aria-label="Remove ${item.name}"><i class="fas fa-times"></i></button>
+                    </div>
+                `;
+                orderItemsDiv.appendChild(div);
+            });
 
-// Render order and recalculate totals
-function renderOrder() {
-    orderItemsDiv.innerHTML = '';
-    if (order.length === 0) {
-        orderItemsDiv.textContent = 'No items added yet.';
-        subtotalSpan.textContent = '0.00';
-        taxSpan.textContent = '0.00';
-        totalSpan.textContent = '0.00';
-        return;
-    }
-    
-    let subtotal = 0;
-    order.forEach(item => {
-        subtotal += parseFloat(item.price) * item.qty;
-        const div = document.createElement('div');
-        div.className = 'order-item';
-        div.innerHTML = `
-            <span class="order-item-details">${item.name}</span>
-            <div class="order-item-controls">
-                <button class="qty-btn" data-id="${item.id}" data-action="decrement"><i class="fas fa-minus"></i></button>
-                <span class="qty-display">${item.qty}</span>
-                <button class="qty-btn" data-id="${item.id}" data-action="increment"><i class="fas fa-plus"></i></button>
-                <span class="item-price">₹${(item.price * item.qty).toFixed(2)}</span>
-                <button class="remove-btn" data-id="${item.id}" aria-label="Remove ${item.name}"><i class="fas fa-times"></i></button>
-            </div>
-        `;
-        orderItemsDiv.appendChild(div);
-    });
+            // Recalculate totals
+            const taxRate = 0.05;
+            const discountValue = parseFloat(discountInput.value) || 0;
+            const serviceChargeValue = parseFloat(serviceChargeInput.value) || 0;
 
-    // Recalculate totals
-    updateOrderTotals();
-}
+            const discountIsPercentage = discountTypeSelect.value === 'percentage';
+            const serviceChargeIsPercentage = serviceChargeTypeSelect.value === 'percentage';
+            
+            const effectiveDiscount = discountIsPercentage ? subtotal * (discountValue / 100) : discountValue;
+            const effectiveServiceCharge = serviceChargeIsPercentage ? subtotal * (serviceChargeValue / 100) : serviceChargeValue;
 
-// Add event delegation for all buttons (quantity +/- and remove)
-orderItemsDiv.addEventListener('click', function(e) {
-    const target = e.target.closest('.qty-btn, .remove-btn');
-    if (!target) return;
+            const tax = (subtotal - effectiveDiscount + effectiveServiceCharge) * taxRate;
+            const total = subtotal - effectiveDiscount + effectiveServiceCharge + tax;
 
-    const id = target.getAttribute('data-id');
-    const action = target.getAttribute('data-action');
-    const item = order.find(o => o.id === id);
-
-    if (!item) return;
-
-    if (target.classList.contains('qty-btn')) {
-        if (action === 'increment') {
-            item.qty++;
-        } else if (action === 'decrement' && item.qty > 1) {
-            item.qty--;
+            subtotalSpan.textContent = subtotal.toFixed(2);
+            taxSpan.textContent = tax.toFixed(2);
+            totalSpan.textContent = Math.max(0, total).toFixed(2); // Prevent negative total
         }
-    } else if (target.classList.contains('remove-btn')) {
-        order = order.filter(i => i.id !== id);
-    }
-
-    renderOrder(); // Re-render the order
-});
-
-// Function to update totals (separated for reusability)
-function updateOrderTotals() {
-    const taxRate = 0.05;
-    const discountValue = parseFloat(discountInput.value) || 0;
-    const serviceChargeValue = parseFloat(serviceChargeInput.value) || 0;
-
-    const discountIsPercentage = discountTypeSelect.value === 'percentage';
-    const serviceChargeIsPercentage = serviceChargeTypeSelect.value === 'percentage';
-    
-    const effectiveDiscount = discountIsPercentage ? subtotal * (discountValue / 100) : discountValue;
-    const effectiveServiceCharge = serviceChargeIsPercentage ? subtotal * (serviceChargeValue / 100) : serviceChargeValue;
-
-    const tax = (subtotal - effectiveDiscount + effectiveServiceCharge) * taxRate;
-    const total = subtotal - effectiveDiscount + effectiveServiceCharge + tax;
-
-    subtotalSpan.textContent = subtotal.toFixed(2);
-    taxSpan.textContent = tax.toFixed(2);
-    totalSpan.textContent = Math.max(0, total).toFixed(2); // Prevent negative total
-}
 
         // Add event listeners for the new discount and service charge inputs
         discountInput.addEventListener('input', renderOrder);
@@ -838,7 +829,7 @@ function updateOrderTotals() {
                 subtotal: parseFloat(subtotalSpan.textContent),
                 tax: parseFloat(taxSpan.textContent),
                 discount: parseFloat(discountInput.value) || 0,
-                serviceCharge: parseFloat(serviceChargeInput.textContent) || 0,
+                serviceCharge: parseFloat(serviceChargeInput.value) || 0,
                 total: parseFloat(totalSpan.textContent),
             };
             orders.push(newOrder);
