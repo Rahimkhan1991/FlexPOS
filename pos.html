@@ -726,51 +726,60 @@
             renderOrder();
         }
 
-          // Event delegation for +, -, and x buttons
-    orderList.addEventListener('click', (e) => {
-        const index = e.target.closest('.order-item')?.dataset.index;
-        if (index === undefined) return;
-
-        if (e.target.classList.contains('plus')) {
-            order[index].qty++;
-        }
-        if (e.target.classList.contains('minus')) {
-            order[index].qty--;
-            if (order[index].qty <= 0) {
-                order.splice(index, 1);
+        // Render order and recalculate totals
+        function renderOrder() {
+            orderItemsDiv.innerHTML = '';
+            if (order.length === 0) {
+                orderItemsDiv.textContent = 'No items added yet.';
+                subtotalSpan.textContent = '0.00';
+                taxSpan.textContent = '0.00';
+                totalSpan.textContent = '0.00';
+                return;
             }
-        }
-        if (e.target.classList.contains('delete')) {
-            order.splice(index, 1);
-        }
-        renderOrder();
-    });
+            
+            let subtotal = 0;
+            order.forEach(item => {
+                subtotal += parseFloat(item.price) * item.qty;
+                const div = document.createElement('div');
+                div.className = 'order-item';
+                div.innerHTML = `
+                    <span class="order-item-details">${item.name}</span>
+                    <div class="order-item-controls">
+                        <button class="qty-btn" data-id="${item.id}" data-action="decrement"><i class="fas fa-minus"></i></button>
+                        <span class="qty-display">${item.qty}</span>
+                        <button class="qty-btn" data-id="${item.id}" data-action="increment"><i class="fas fa-plus"></i></button>
+                        <span class="item-price">₹${(item.price * item.qty).toFixed(2)}</span>
+                        <button class="remove-btn" data-id="${item.id}" aria-label="Remove ${item.name}"><i class="fas fa-times"></i></button>
+                    </div>
+                `;
+                orderItemsDiv.appendChild(div);
+            });
 
-    // Render order items
-    function renderOrder() {
-        orderList.innerHTML = '';
-        let total = 0;
+            // Re-attach event listeners for the new buttons
+            orderItemsDiv.querySelectorAll('.qty-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-id');
+                    const action = btn.getAttribute('data-action');
+                    const item = order.find(o => o.id === id);
+                    if (item) {
+                        if (action === 'increment') {
+                            item.qty++;
+                        } else if (action === 'decrement' && item.qty > 1) {
+                            item.qty--;
+                        }
+                        renderOrder();
+                    }
+                });
+            });
 
-        order.forEach((item, index) => {
-            const itemTotal = item.price * item.qty;
-            total += itemTotal;
-            const orderItem = document.createElement('div');
-            orderItem.className = 'order-item';
-            orderItem.dataset.index = index;
-            orderItem.innerHTML = `
-                <span>${item.name} - $${item.price}</span>
-                <div class="order-controls">
-                    <button class="minus">-</button>
-                    <span>${item.qty}</span>
-                    <button class="plus">+</button>
-                    <button class="delete">x</button>
-                </div>
-            `;
-            orderList.appendChild(orderItem);
-        });
+            orderItemsDiv.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-id');
+                    order = order.filter(i => i.id !== id);
+                    renderOrder();
+                });
+            });
 
-        totalAmount.textContent = total.toFixed(2);
-    }
             // Recalculate totals
             const taxRate = 0.05;
             const discountValue = parseFloat(discountInput.value) || 0;
