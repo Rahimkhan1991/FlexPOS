@@ -592,6 +592,15 @@
             <button id="modalCloseBtn">OK</button>
         </div>
     </div>
+    <div class="order-item" data-item-id="ITEM_ID_HERE">
+    <div class="order-item-controls">
+        <button class="qty-btn" data-id="ITEM_ID_HERE" data-action="decrement"><i class="fas fa-minus"></i></button>
+        <span class="qty-display">1</span>
+        <button class="qty-btn" data-id="ITEM_ID_HERE" data-action="increment"><i class="fas fa-plus"></i></button>
+        <span class="item-price">₹250.00</span>
+        <button class="remove-btn" data-id="ITEM_ID_HERE" aria-label="Remove item"><i class="fas fa-times"></i></button>
+    </div>
+</div>
 
     <script>
         // Sidebar toggle
@@ -748,7 +757,29 @@
 
             renderOrder(); // Update the UI
         });
+// Event delegation for order item controls
+orderItemsDiv.addEventListener('click', function(e) {
+    const target = e.target.closest('.qty-btn, .remove-btn');
+    if (!target) return; // If the click wasn't on a button, do nothing
 
+    const id = target.getAttribute('data-id'); // Get the item ID from the button
+    const action = target.getAttribute('data-action');
+    const item = order.find(o => o.id === id); // Find the item in the order array
+
+    if (!item) return;
+
+    if (target.classList.contains('qty-btn')) {
+        if (action === 'increment') {
+            item.qty++;
+        } else if (action === 'decrement' && item.qty > 1) {
+            item.qty--;
+        }
+    } else if (target.classList.contains('remove-btn')) {
+        order = order.filter(i => i.id !== id);
+    }
+
+    renderOrder(); // Re-render the order list to reflect changes
+});
         // Render order and recalculate totals
         function renderOrder() {
             orderItemsDiv.innerHTML = '';
