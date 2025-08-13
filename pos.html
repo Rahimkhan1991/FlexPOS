@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>POS Billing</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2s+lHh1p7n5K24Jq4i+c6A5aJ6K6O4f3T2X6Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2s+lHh1p7n5K24Jq4i+c6A5aJ6K6O4f3T2X6Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* General Styling and Fonts */
         * {
@@ -585,6 +585,7 @@
         </div>
     </main>
 
+    <!-- Modal for custom alerts -->
     <div id="modalOverlay" class="modal-overlay">
         <div class="modal-content">
             <h4 id="modalTitle"></h4>
@@ -592,15 +593,6 @@
             <button id="modalCloseBtn">OK</button>
         </div>
     </div>
-    <div class="order-item" data-item-id="ITEM_ID_HERE">
-    <div class="order-item-controls">
-        <button class="qty-btn" data-id="ITEM_ID_HERE" data-action="decrement"><i class="fas fa-minus"></i></button>
-        <span class="qty-display">1</span>
-        <button class="qty-btn" data-id="ITEM_ID_HERE" data-action="increment"><i class="fas fa-plus"></i></button>
-        <span class="item-price">₹250.00</span>
-        <button class="remove-btn" data-id="ITEM_ID_HERE" aria-label="Remove item"><i class="fas fa-times"></i></button>
-    </div>
-</div>
 
     <script>
         // Sidebar toggle
@@ -734,52 +726,6 @@
             renderOrder();
         }
 
-        // Event delegation for order item controls
-        orderItemsDiv.addEventListener('click', function(e) {
-            const target = e.target.closest('.qty-btn, .remove-btn');
-            if (!target) return;
-
-            const id = target.getAttribute('data-id');
-            const action = target.getAttribute('data-action');
-            const item = order.find(o => o.id === id);
-
-            if (!item) return;
-
-            if (target.classList.contains('qty-btn')) {
-                if (action === 'increment') {
-                    item.qty++;
-                } else if (action === 'decrement' && item.qty > 1) {
-                    item.qty--;
-                }
-            } else if (target.classList.contains('remove-btn')) {
-                order = order.filter(i => i.id !== id);
-            }
-
-            renderOrder(); // Update the UI
-        });
-// Event delegation for order item controls
-orderItemsDiv.addEventListener('click', function(e) {
-    const target = e.target.closest('.qty-btn, .remove-btn');
-    if (!target) return; // If the click wasn't on a button, do nothing
-
-    const id = target.getAttribute('data-id'); // Get the item ID from the button
-    const action = target.getAttribute('data-action');
-    const item = order.find(o => o.id === id); // Find the item in the order array
-
-    if (!item) return;
-
-    if (target.classList.contains('qty-btn')) {
-        if (action === 'increment') {
-            item.qty++;
-        } else if (action === 'decrement' && item.qty > 1) {
-            item.qty--;
-        }
-    } else if (target.classList.contains('remove-btn')) {
-        order = order.filter(i => i.id !== id);
-    }
-
-    renderOrder(); // Re-render the order list to reflect changes
-});
         // Render order and recalculate totals
         function renderOrder() {
             orderItemsDiv.innerHTML = '';
@@ -807,6 +753,31 @@ orderItemsDiv.addEventListener('click', function(e) {
                     </div>
                 `;
                 orderItemsDiv.appendChild(div);
+            });
+
+            // Re-attach event listeners for the new buttons
+            orderItemsDiv.querySelectorAll('.qty-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-id');
+                    const action = btn.getAttribute('data-action');
+                    const item = order.find(o => o.id === id);
+                    if (item) {
+                        if (action === 'increment') {
+                            item.qty++;
+                        } else if (action === 'decrement' && item.qty > 1) {
+                            item.qty--;
+                        }
+                        renderOrder();
+                    }
+                });
+            });
+
+            orderItemsDiv.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-id');
+                    order = order.filter(i => i.id !== id);
+                    renderOrder();
+                });
             });
 
             // Recalculate totals
@@ -860,7 +831,7 @@ orderItemsDiv.addEventListener('click', function(e) {
                 subtotal: parseFloat(subtotalSpan.textContent),
                 tax: parseFloat(taxSpan.textContent),
                 discount: parseFloat(discountInput.value) || 0,
-                serviceCharge: parseFloat(serviceChargeInput.value) || 0,
+                serviceCharge: parseFloat(serviceChargeInput.textContent) || 0,
                 total: parseFloat(totalSpan.textContent),
             };
             orders.push(newOrder);
