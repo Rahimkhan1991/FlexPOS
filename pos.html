@@ -754,31 +754,29 @@
                 `;
                 orderItemsDiv.appendChild(div);
             });
+// Add this OUTSIDE renderOrder() (e.g., near your other event listeners):
+orderItemsDiv.addEventListener('click', function(e) {
+    const target = e.target.closest('.qty-btn, .remove-btn');
+    if (!target) return;
 
-            // Re-attach event listeners for the new buttons
-            orderItemsDiv.querySelectorAll('.qty-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const id = btn.getAttribute('data-id');
-                    const action = btn.getAttribute('data-action');
-                    const item = order.find(o => o.id === id);
-                    if (item) {
-                        if (action === 'increment') {
-                            item.qty++;
-                        } else if (action === 'decrement' && item.qty > 1) {
-                            item.qty--;
-                        }
-                        renderOrder();
-                    }
-                });
-            });
+    const id = target.getAttribute('data-id');
+    const action = target.getAttribute('data-action');
+    const item = order.find(o => o.id === id);
 
-            orderItemsDiv.querySelectorAll('.remove-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const id = btn.getAttribute('data-id');
-                    order = order.filter(i => i.id !== id);
-                    renderOrder();
-                });
-            });
+    if (!item) return;
+
+    if (target.classList.contains('qty-btn')) {
+        if (action === 'increment') {
+            item.qty++;
+        } else if (action === 'decrement' && item.qty > 1) {
+            item.qty--;
+        }
+    } else if (target.classList.contains('remove-btn')) {
+        order = order.filter(i => i.id !== id);
+    }
+
+    renderOrder(); // Update the UI
+});
 
             // Recalculate totals
             const taxRate = 0.05;
