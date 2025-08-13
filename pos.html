@@ -727,34 +727,42 @@
         }
 
         // Render order and recalculate totals
-        function renderOrder() {
-            orderItemsDiv.innerHTML = '';
-            if (order.length === 0) {
-                orderItemsDiv.textContent = 'No items added yet.';
-                subtotalSpan.textContent = '0.00';
-                taxSpan.textContent = '0.00';
-                totalSpan.textContent = '0.00';
-                return;
-            }
-            
-            let subtotal = 0;
-            order.forEach(item => {
-                subtotal += parseFloat(item.price) * item.qty;
-                const div = document.createElement('div');
-                div.className = 'order-item';
-                div.innerHTML = `
-                    <span class="order-item-details">${item.name}</span>
-                    <div class="order-item-controls">
-                        <button class="qty-btn" data-id="${item.id}" data-action="decrement"><i class="fas fa-minus"></i></button>
-                        <span class="qty-display">${item.qty}</span>
-                        <button class="qty-btn" data-id="${item.id}" data-action="increment"><i class="fas fa-plus"></i></button>
-                        <span class="item-price">₹${(item.price * item.qty).toFixed(2)}</span>
-                        <button class="remove-btn" data-id="${item.id}" aria-label="Remove ${item.name}"><i class="fas fa-times"></i></button>
-                    </div>
-                `;
-                orderItemsDiv.appendChild(div);
-            });
-// Add this OUTSIDE renderOrder() (e.g., near your other event listeners):
+      // Inside your renderOrder() function, replace the button event listener code with this:
+
+// Render order and recalculate totals
+function renderOrder() {
+    orderItemsDiv.innerHTML = '';
+    if (order.length === 0) {
+        orderItemsDiv.textContent = 'No items added yet.';
+        subtotalSpan.textContent = '0.00';
+        taxSpan.textContent = '0.00';
+        totalSpan.textContent = '0.00';
+        return;
+    }
+    
+    let subtotal = 0;
+    order.forEach(item => {
+        subtotal += parseFloat(item.price) * item.qty;
+        const div = document.createElement('div');
+        div.className = 'order-item';
+        div.innerHTML = `
+            <span class="order-item-details">${item.name}</span>
+            <div class="order-item-controls">
+                <button class="qty-btn" data-id="${item.id}" data-action="decrement"><i class="fas fa-minus"></i></button>
+                <span class="qty-display">${item.qty}</span>
+                <button class="qty-btn" data-id="${item.id}" data-action="increment"><i class="fas fa-plus"></i></button>
+                <span class="item-price">₹${(item.price * item.qty).toFixed(2)}</span>
+                <button class="remove-btn" data-id="${item.id}" aria-label="Remove ${item.name}"><i class="fas fa-times"></i></button>
+            </div>
+        `;
+        orderItemsDiv.appendChild(div);
+    });
+
+    // Recalculate totals
+    updateOrderTotals();
+}
+
+// Add event delegation for all buttons (quantity +/- and remove)
 orderItemsDiv.addEventListener('click', function(e) {
     const target = e.target.closest('.qty-btn, .remove-btn');
     if (!target) return;
@@ -775,27 +783,28 @@ orderItemsDiv.addEventListener('click', function(e) {
         order = order.filter(i => i.id !== id);
     }
 
-    renderOrder(); // Update the UI
+    renderOrder(); // Re-render the order
 });
 
-            // Recalculate totals
-            const taxRate = 0.05;
-            const discountValue = parseFloat(discountInput.value) || 0;
-            const serviceChargeValue = parseFloat(serviceChargeInput.value) || 0;
+// Function to update totals (separated for reusability)
+function updateOrderTotals() {
+    const taxRate = 0.05;
+    const discountValue = parseFloat(discountInput.value) || 0;
+    const serviceChargeValue = parseFloat(serviceChargeInput.value) || 0;
 
-            const discountIsPercentage = discountTypeSelect.value === 'percentage';
-            const serviceChargeIsPercentage = serviceChargeTypeSelect.value === 'percentage';
-            
-            const effectiveDiscount = discountIsPercentage ? subtotal * (discountValue / 100) : discountValue;
-            const effectiveServiceCharge = serviceChargeIsPercentage ? subtotal * (serviceChargeValue / 100) : serviceChargeValue;
+    const discountIsPercentage = discountTypeSelect.value === 'percentage';
+    const serviceChargeIsPercentage = serviceChargeTypeSelect.value === 'percentage';
+    
+    const effectiveDiscount = discountIsPercentage ? subtotal * (discountValue / 100) : discountValue;
+    const effectiveServiceCharge = serviceChargeIsPercentage ? subtotal * (serviceChargeValue / 100) : serviceChargeValue;
 
-            const tax = (subtotal - effectiveDiscount + effectiveServiceCharge) * taxRate;
-            const total = subtotal - effectiveDiscount + effectiveServiceCharge + tax;
+    const tax = (subtotal - effectiveDiscount + effectiveServiceCharge) * taxRate;
+    const total = subtotal - effectiveDiscount + effectiveServiceCharge + tax;
 
-            subtotalSpan.textContent = subtotal.toFixed(2);
-            taxSpan.textContent = tax.toFixed(2);
-            totalSpan.textContent = Math.max(0, total).toFixed(2); // Prevent negative total
-        }
+    subtotalSpan.textContent = subtotal.toFixed(2);
+    taxSpan.textContent = tax.toFixed(2);
+    totalSpan.textContent = Math.max(0, total).toFixed(2); // Prevent negative total
+}
 
         // Add event listeners for the new discount and service charge inputs
         discountInput.addEventListener('input', renderOrder);
