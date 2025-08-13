@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>POS Billing System</title>
+    <title>POS Billing</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2s+lHh1p7n5K24Jq4i+c6A5aJ6K6O4f3T2X6Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* General Styling and Fonts */
@@ -14,7 +14,7 @@
         body {
             margin: 0;
             font-family: 'Inter', sans-serif;
-            background: #f1f5f9;
+            background: #f1f5f9; /* Lighter background */
             display: flex;
             height: 100vh;
             overflow: hidden;
@@ -70,9 +70,6 @@
         }
         .nav-link:hover {
             background-color: #4338ca;
-        }
-        .nav-link.active {
-            background-color: #3730a3;
         }
         .nav-link .icon {
             margin-right: 12px;
@@ -141,7 +138,7 @@
             flex: 2;
             display: flex;
             gap: 1.5rem;
-            min-height: 0;
+            min-height: 0; /* Fix for flexbox overflow */
         }
 
         /* Categories panel */
@@ -180,7 +177,7 @@
         /* Menu items */
         .menu-section {
             flex: 1;
-            min-height: 0;
+            min-height: 0; /* Fix for flexbox overflow */
         }
         .items-list {
             display: grid;
@@ -412,192 +409,6 @@
             background-color: #f97316;
         }
 
-        /* Page switcher for demo purposes */
-        .page-container {
-            display: none;
-        }
-        .page-container.active {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* Dashboard Styles */
-        .dashboard-main {
-            flex: 1;
-            padding: 2rem;
-            overflow-y: auto;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-        .header h1 {
-            margin: 0;
-            color: #1e293b;
-            font-size: 2rem;
-        }
-        .welcome {
-            font-size: 1.1rem;
-            color: #64748b;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            padding: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            border: 1px solid #e2e8f0;
-        }
-        .card .icon-wrapper {
-            font-size: 1.8rem;
-            padding: 1rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .card .details h3 {
-            margin: 0;
-            font-size: 1.8rem;
-            color: #1e293b;
-        }
-        .card .details p {
-            margin: 0;
-            color: #64748b;
-            font-size: 0.9rem;
-        }
-        .card.sales .icon-wrapper { background-color: #e0f2f1; color: #00796b; }
-        .card.orders .icon-wrapper { background-color: #e3f2fd; color: #1e88e5; }
-        .card.items-sold .icon-wrapper { background-color: #fff3e0; color: #fb8c00; }
-        .card.top-item .icon-wrapper { background-color: #f3e5f5; color: #8e24aa; }
-
-        /* Admin Panel Styles */
-        .admin-main {
-            flex: 1;
-            padding: 25px;
-            overflow-y: auto;
-        }
-        .form-section {
-            margin-bottom: 25px;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        .form-section h3 {
-            margin-top: 0;
-            font-size: 1.5rem;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-        .form-section input,
-        .form-section select,
-        .form-section textarea {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            font-family: inherit;
-            font-size: 1rem;
-        }
-        .form-section .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        .form-section button.add-btn {
-            background: #4f46e5;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: background-color 0.2s;
-        }
-        .form-section button.add-btn:hover {
-            background: #4338ca;
-        }
-        .data-preview {
-            margin-top: 25px;
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        }
-        .data-preview h4 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-        }
-        .data-preview ul {
-            list-style-type: none;
-            padding-left: 0;
-            margin: 0;
-            max-height: 350px;
-            overflow-y: auto;
-        }
-        .data-preview li {
-            border-bottom: 1px solid #e2e8f0;
-            padding: 10px 5px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-        }
-        .data-preview li:last-child {
-            border-bottom: none;
-        }
-        .data-preview .item-details {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .data-preview img {
-            width: 45px;
-            height: 45px;
-            object-fit: cover;
-            border-radius: 6px;
-            background: #e2e8f0;
-        }
-        .no-data {
-            color: #64748b;
-            font-style: italic;
-            padding: 10px 0;
-        }
-        .delete-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1rem;
-            line-height: 28px;
-            text-align: center;
-            transition: background-color 0.2s;
-            flex-shrink: 0;
-        }
-        .delete-btn:hover {
-            background: #dc2626;
-        }
-
         /* Scrollbar styling */
         #orderItems::-webkit-scrollbar,
         .items-list::-webkit-scrollbar,
@@ -705,160 +516,396 @@
 
     <nav class="sidebar">
         <h2>POS System</h2>
-        <a href="#" class="nav-link" onclick="showPage('dashboard')"><span class="icon"><i class="fas fa-chart-line"></i></span><span class="text">Dashboard</span></a>
-        <a href="#" class="nav-link active" onclick="showPage('pos')"><span class="icon"><i class="fas fa-cash-register"></i></span><span class="text">POS Billing</span></a>
-        <a href="#" class="nav-link" onclick="showPage('admin')"><span class="icon"><i class="fas fa-cog"></i></span><span class="text">Admin</span></a>
+        <a href="#" class="nav-link"><span class="icon"><i class="fas fa-chart-line"></i></span><span class="text">Dashboard</span></a>
+        <a href="#" class="nav-link"><span class="icon"><i class="fas fa-cash-register"></i></span><span class="text">POS Billing</span></a>
         <a href="#" class="nav-link"><span class="icon"><i class="fas fa-receipt"></i></span><span class="text">Print Receipt</span></a>
         <a href="#" class="nav-link"><span class="icon"><i class="fas fa-chart-bar"></i></span><span class="text">Reports</span></a>
+        <a href="#" class="nav-link"><span class="icon"><i class="fas fa-cog"></i></span><span class="text">Admin</span></a>
         <a href="#" class="nav-link"><span class="icon"><i class="fas fa-sign-out-alt"></i></span><span class="text">Logout</span></a>
     </nav>
 
-    <!-- POS Page -->
-    <div id="pos-page" class="page-container active">
-        <main class="main-content">
-            <div class="content-wrapper">
-                <div class="menu-and-categories">
-                    <section class="category-section" id="categoryButtons"></section>
-                    <section class="menu-section panel">
-                        <h3>Menu</h3>
-                        <div class="items-list" id="itemsList"></div>
-                    </section>
+    <main class="main-content">
+        <div class="content-wrapper">
+            <div class="menu-and-categories">
+                <section class="category-section" id="categoryButtons"></section>
+                <section class="menu-section panel">
+                    <h3>Menu</h3>
+                    <div class="items-list" id="itemsList"></div>
+                </section>
+            </div>
+
+            <aside class="order-summary panel">
+                <div class="table-select">
+                    <label for="tableSelect">Select Table:</label>
+                    <select id="tableSelect"></select>
                 </div>
 
-                <aside class="order-summary panel">
-                    <div class="table-select">
-                        <label for="tableSelect">Select Table:</label>
-                        <select id="tableSelect"></select>
-                    </div>
+                <h3>Order Summary</h3>
+                <div id="orderItems">No items added yet.</div>
 
-                    <h3>Order Summary</h3>
-                    <div id="orderItems">No items added yet.</div>
+                <div class="summary-line">
+                    Subtotal: <span>₹<span id="subtotal">0.00</span></span>
+                </div>
 
-                    <div class="summary-line">
-                        Subtotal: <span>₹<span id="subtotal">0.00</span></span>
+                <div class="summary-line">
+                    <span>Discount:</span>
+                    <div class="summary-input-group">
+                        <select id="discountTypeSelect">
+                            <option value="manual">(₹)</option>
+                            <option value="percentage">(%)</option>
+                        </select>
+                        <input type="number" id="discountInput" value="0" min="0" />
                     </div>
+                </div>
 
-                    <div class="summary-line">
-                        <span>Discount:</span>
-                        <div class="summary-input-group">
-                            <select id="discountTypeSelect">
-                                <option value="manual">(₹)</option>
-                                <option value="percentage">(%)</option>
-                            </select>
-                            <input type="number" id="discountInput" value="0" min="0" />
-                        </div>
+                <div class="summary-line">
+                    <span>Service Charge:</span>
+                    <div class="summary-input-group">
+                        <select id="serviceChargeTypeSelect">
+                            <option value="manual">(₹)</option>
+                            <option value="percentage">(%)</option>
+                        </select>
+                        <input type="number" id="serviceChargeInput" value="0" min="0" />
                     </div>
+                </div>
 
-                    <div class="summary-line">
-                        <span>Service Charge:</span>
-                        <div class="summary-input-group">
-                            <select id="serviceChargeTypeSelect">
-                                <option value="manual">(₹)</option>
-                                <option value="percentage">(%)</option>
-                            </select>
-                            <input type="number" id="serviceChargeInput" value="0" min="0" />
-                        </div>
-                    </div>
+                <div class="summary-line">
+                    Tax (5%): <span>₹<span id="tax">0.00</span></span>
+                </div>
 
-                    <div class="summary-line">
-                        Tax (5%): <span>₹<span id="tax">0.00</span></span>
-                    </div>
+                <hr />
+                <div class="total-line">
+                    Total: <span>₹<span id="total">0.00</span></span>
+                </div>
 
-                    <hr />
-                    <div class="total-line">
-                        Total: <span>₹<span id="total">0.00</span></span>
-                    </div>
+                <div class="action-buttons">
+                    <button class="btn-place" onclick="placeOrder()">Place Order</button>
+                    <button class="btn-export" onclick="exportCSV()">Export CSV</button>
+                    <button class="btn-print" onclick="printSummary()">Print Summary</button>
+                    <button class="btn-kot" onclick="printKOT()">Print KOT</button>
+                </div>
+            </aside>
+        </div>
+    </main>
 
-                    <div class="action-buttons">
-                        <button class="btn-place" onclick="placeOrder()">Place Order</button>
-                        <button class="btn-export" onclick="exportCSV()">Export CSV</button>
-                        <button class="btn-print" onclick="printSummary()">Print Summary</button>
-                        <button class="btn-kot" onclick="printKOT()">Print KOT</button>
-                    </div>
-                </aside>
-            </div>
-        </main>
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal-content">
+            <h4 id="modalTitle"></h4>
+            <p id="modalMessage"></p>
+            <button id="modalCloseBtn">OK</button>
+        </div>
     </div>
 
-    <!-- Dashboard Page -->
-    <div id="dashboard-page" class="page-container">
-        <main class="dashboard-main">
-            <header class="header">
-                <h1>Dashboard</h1>
-                <div class="welcome">
-                    Welcome, <strong id="user-role">Admin</strong>!
-                </div>
-            </header>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
 
-            <div class="stats-grid">
-                <div class="card sales">
-                    <div class="icon-wrapper"><i class="fas fa-rupee-sign"></i></div>
-                    <div class="details">
-                        <h3 id="sales-today">₹0.00</h3>
-                        <p>Total Sales Today</p>
-                    </div>
-                </div>
-                <div class="card orders">
-                    <div class="icon-wrapper"><i class="fas fa-receipt"></i></div>
-                    <div class="details">
-                        <h3 id="order-count">0</h3>
-                        <p>Orders Today</p>
-                    </div>
-                </div>
-                <div class="card items-sold">
-                    <div class="icon-wrapper"><i class="fas fa-box"></i></div>
-                    <div class="details">
-                        <h3 id="items-sold-count">0</h3>
-                        <p>Items Sold Today</p>
-                    </div>
-                </div>
-                <div class="card top-item">
-                    <div class="icon-wrapper"><i class="fas fa-star"></i></div>
-                    <div class="details">
-                        <h3 id="top-item">-</h3>
-                        <p>Top Selling Item</p>
-                    </div>
-                </div>
-            </div>
+            // --- DATA SETUP ---
+            // In a real application, this data would come from a server.
+            // For now, we'll use dummy data and localStorage.
+            function setupInitialData() {
+                const initialCategories = ['Starters', 'Main Course', 'Desserts', 'Beverages'];
+                const initialItems = [
+                    { id: 1, name: 'Samosa', price: '30.00', category: 'Starters', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Samosa' },
+                    { id: 2, name: 'Paneer Tikka', price: '250.00', category: 'Starters', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Paneer+Tikka' },
+                    { id: 3, name: 'Butter Chicken', price: '450.00', category: 'Main Course', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Butter+Chicken' },
+                    { id: 4, name: 'Dal Makhani', price: '350.00', category: 'Main Course', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Dal+Makhani' },
+                    { id: 5, name: 'Garlic Naan', price: '75.00', category: 'Main Course', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Naan' },
+                    { id: 6, name: 'Gulab Jamun', price: '120.00', category: 'Desserts', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Gulab+Jamun' },
+                    { id: 7, name: 'Ice Cream', price: '150.00', category: 'Desserts', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Ice+Cream' },
+                    { id: 8, name: 'Masala Chai', price: '50.00', category: 'Beverages', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Chai' },
+                    { id: 9, name: 'Lassi', price: '100.00', category: 'Beverages', image: 'https://placehold.co/150x150/fef3c7/854d0e?text=Lassi' },
+                ];
+                const initialTables = ['Table 1', 'Table 2', 'Table 3', 'Table 4', 'Table 5', 'Take Away'];
 
-            <div class="panel">
-                <h2>Sales Overview</h2>
-                <p>Sales analytics and charts would be displayed here in a full implementation with Chart.js integration.</p>
-            </div>
-        </main>
-    </div>
+                if (!localStorage.getItem('categories')) {
+                    localStorage.setItem('categories', JSON.stringify(initialCategories));
+                }
+                if (!localStorage.getItem('items')) {
+                    localStorage.setItem('items', JSON.stringify(initialItems));
+                }
+                if (!localStorage.getItem('tables')) {
+                    localStorage.setItem('tables', JSON.stringify(initialTables));
+                }
+            }
+            
+            // --- ELEMENTS & STATE ---
+            const sidebar = document.querySelector('.sidebar');
+            const toggleBtn = document.querySelector('.toggle-btn');
+            
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            const modalCloseBtn = document.getElementById('modalCloseBtn');
+            
+            const categoryButtonsDiv = document.getElementById('categoryButtons');
+            const itemsListDiv = document.getElementById('itemsList');
+            const tableSelect = document.getElementById('tableSelect');
+            const orderItemsDiv = document.getElementById('orderItems');
+            const subtotalSpan = document.getElementById('subtotal');
+            const taxSpan = document.getElementById('tax');
+            const totalSpan = document.getElementById('total');
 
-    <!-- Admin Page -->
-    <div id="admin-page" class="page-container">
-        <main class="admin-main">
-            <div id="items" class="form-section">
-                <h3>Manage Items</h3>
-                <div class="form-grid">
-                    <input type="text" id="itemName" placeholder="Item Name" />
-                    <input type="number" step="0.01" id="itemPrice" placeholder="Item Price" />
-                    <select id="itemCategory"></select>
-                    <select id="itemKitchen"></select>
-                </div>
-                <textarea id="itemDescription" placeholder="Item Description" rows="3"></textarea>
-                <label for="itemImage">Item Image:</label>
-                <input type="file" id="itemImage" accept="image/*" />
-                <button class="add-btn" onclick="addItem()">Add Item</button>
+            const discountTypeSelect = document.getElementById('discountTypeSelect');
+            const discountInput = document.getElementById('discountInput');
+            const serviceChargeTypeSelect = document.getElementById('serviceChargeTypeSelect');
+            const serviceChargeInput = document.getElementById('serviceChargeInput');
 
-                <div class="data-preview">
-                    <h4>Current Items</h4>
-                    <ul id="itemList"></ul>
-                </div>
-            </div>
+            let categories = JSON.parse(localStorage.getItem('categories') || '[]');
+            let items = JSON.parse(localStorage.getItem('items') || '[]');
+            let tables = JSON.parse(localStorage.getItem('tables') || '[]');
+            
+            let currentCategory = '';
+            let order = [];
 
-            <div id="categories" class="form-section">
-                <h3>Manage Categories</h3>
-                <input type="text" id="categoryName" placeholder="New Category Name" />
-                <button class="add-btn" onclick="addCategory()">Add Category</button>
-                <div class="data-preview"><h4>Current Categories</h4><ul id="categoryList"></ul></div>
-            </div>
+            // --- FUNCTIONS ---
 
-            <div id="tables" class="form-section">
-                <h3>Manage Tables</h3>
-                <input type="text" id="tableName" placeholder="New Table Name (e.g., Table 6, VIP Lounge)" />
-                <button class="add-btn" onclick="addTable()">Add Table</button>
-                <div class="data-preview"><h4
+            // Sidebar toggle
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+            });
+
+            // Custom modal for alerts
+            function showAlert(message, title = 'Notification') {
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                modalOverlay.style.display = 'flex';
+            }
+            window.showAlert = showAlert; // Make it globally accessible for inline onclick attributes
+
+            modalCloseBtn.addEventListener('click', () => {
+                modalOverlay.style.display = 'none';
+            });
+
+            // Load tables into select dropdown
+            function loadTables() {
+                tableSelect.innerHTML = '';
+                if (tables.length === 0) {
+                    tableSelect.innerHTML = '<option>No Tables Added</option>';
+                    tableSelect.disabled = true;
+                } else {
+                    tables.forEach(t => {
+                        const option = document.createElement('option');
+                        option.value = t;
+                        option.textContent = t;
+                        tableSelect.appendChild(option);
+                    });
+                    tableSelect.disabled = false;
+                }
+            }
+
+            // Render category buttons
+            function renderCategories() {
+                categoryButtonsDiv.innerHTML = '';
+                if (categories.length === 0) {
+                    categoryButtonsDiv.textContent = 'No categories added';
+                    return;
+                }
+                categories.forEach((cat, idx) => {
+                    const btn = document.createElement('button');
+                    btn.textContent = cat;
+                    btn.className = 'category-btn';
+                    if (idx === 0) {
+                        btn.classList.add('active');
+                        currentCategory = cat;
+                    }
+                    btn.addEventListener('click', () => {
+                        currentCategory = cat;
+                        renderItems();
+                        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    });
+                    categoryButtonsDiv.appendChild(btn);
+                });
+            }
+
+            // Render items of the current category
+            function renderItems() {
+                itemsListDiv.innerHTML = '';
+                if (!currentCategory) {
+                    itemsListDiv.textContent = 'Select a category to see items.';
+                    return;
+                }
+                const filteredItems = items.filter(i => i.category === currentCategory);
+                if (filteredItems.length === 0) {
+                    itemsListDiv.textContent = 'No items in this category.';
+                    return;
+                }
+                filteredItems.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'item-card';
+                    card.title = `${item.name}\nPrice: ₹${item.price}`;
+                    card.innerHTML = `
+                        <img src="${item.image || 'https://placehold.co/150x150?text=No+Image'}" alt="${item.name}" />
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-price">₹${parseFloat(item.price).toFixed(2)}</div>
+                    `;
+                    card.addEventListener('click', () => addItemToOrder(item));
+                    itemsListDiv.appendChild(card);
+                });
+            }
+
+            // Add item to the current order
+            function addItemToOrder(item) {
+                const existingItem = order.find(o => o.id === item.id);
+                if (existingItem) {
+                    existingItem.qty++;
+                } else {
+                    order.push({ ...item, qty: 1 });
+                }
+                renderOrder();
+            }
+
+            // Render the entire order summary and calculate totals
+            function renderOrder() {
+                orderItemsDiv.innerHTML = '';
+                if (order.length === 0) {
+                    orderItemsDiv.textContent = 'No items added yet.';
+                    updateTotals(); // Ensure totals are zeroed out
+                    return;
+                }
+                
+                order.forEach(item => {
+                    const itemTotal = parseFloat(item.price) * item.qty;
+                    const div = document.createElement('div');
+                    div.className = 'order-item';
+                    div.innerHTML = `
+                        <span class="order-item-details">${item.name}</span>
+                        <div class="order-item-controls">
+                            <button class="qty-btn" data-id="${item.id}" data-action="decrement"><i class="fas fa-minus">-</button>
+                            <span class="qty-display">${item.qty}</span>
+                            <button class="qty-btn" data-id="${item.id}" data-action="increment"><i class="fas fa-plus">+</button>
+                            <span class="item-price">₹${itemTotal.toFixed(2)}</span>
+                            <button class="remove-btn" data-id="${item.id}" aria-label="Remove ${item.name}"><i class="fas fa-times"> X </button>
+                        </div>
+                    `;
+                    orderItemsDiv.appendChild(div);
+                });
+                updateTotals();
+            }
+            
+            // Update all totals based on the order and inputs
+            function updateTotals() {
+                const subtotal = order.reduce((sum, item) => sum + parseFloat(item.price) * item.qty, 0);
+
+                const discountValue = parseFloat(discountInput.value) || 0;
+                const serviceChargeValue = parseFloat(serviceChargeInput.value) || 0;
+                
+                const isDiscountPercent = discountTypeSelect.value === 'percentage';
+                const isServiceChargePercent = serviceChargeTypeSelect.value === 'percentage';
+
+                const discountAmount = isDiscountPercent ? subtotal * (discountValue / 100) : discountValue;
+                const serviceChargeAmount = isServiceChargePercent ? subtotal * (serviceChargeValue / 100) : serviceChargeValue;
+
+                const taxableAmount = subtotal - discountAmount + serviceChargeAmount;
+                const taxAmount = taxableAmount * 0.05; // 5% tax rate
+                const totalAmount = taxableAmount + taxAmount;
+
+                subtotalSpan.textContent = subtotal.toFixed(2);
+                taxSpan.textContent = taxAmount.toFixed(2);
+                totalSpan.textContent = Math.max(0, totalAmount).toFixed(2); // Prevent negative total
+            }
+            
+            // Event Delegation for order item controls
+            orderItemsDiv.addEventListener('click', (event) => {
+                const target = event.target;
+                const qtyBtn = target.closest('.qty-btn');
+                const removeBtn = target.closest('.remove-btn');
+
+                if (qtyBtn) {
+                    const id = parseInt(qtyBtn.dataset.id);
+                    const action = qtyBtn.dataset.action;
+                    const item = order.find(o => o.id === id);
+                    if (item) {
+                        if (action === 'increment') item.qty++;
+                        else if (action === 'decrement' && item.qty > 1) item.qty--;
+                        else if (action === 'decrement' && item.qty === 1) {
+                             order = order.filter(i => i.id !== id);
+                        }
+                        renderOrder();
+                    }
+                } else if (removeBtn) {
+                    const id = parseInt(removeBtn.dataset.id);
+                    order = order.filter(i => i.id !== id);
+                    renderOrder();
+                }
+            });
+
+            // Listen for changes in discount/service charge inputs
+            [discountInput, discountTypeSelect, serviceChargeInput, serviceChargeTypeSelect].forEach(el => {
+                el.addEventListener('change', updateTotals);
+                el.addEventListener('input', updateTotals); // For number inputs
+            });
+            
+            // Action button functions
+            window.placeOrder = function() {
+                if (order.length === 0) {
+                    return showAlert('Please add items to the order first.');
+                }
+                if (tables.length === 0) {
+                    return showAlert('No tables available. Please add tables in an admin section.');
+                }
+                const table = tableSelect.value;
+
+                const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+                const newOrder = {
+                    id: Date.now(),
+                    table,
+                    items: order,
+                    date: new Date().toISOString().split('T')[0],
+                    time: new Date().toLocaleTimeString(),
+                    subtotal: parseFloat(subtotalSpan.textContent),
+                    tax: parseFloat(taxSpan.textContent),
+                    discount: parseFloat(discountInput.value) || 0,
+                    serviceCharge: parseFloat(serviceChargeInput.value) || 0, // CORRECTED: was .textContent
+                    total: parseFloat(totalSpan.textContent),
+                };
+                orders.push(newOrder);
+                localStorage.setItem('orders', JSON.stringify(orders));
+                showAlert(`Order for ${table} has been placed successfully!`);
+                
+                // Reset order
+                order = [];
+                discountInput.value = 0;
+                serviceChargeInput.value = 0;
+                renderOrder();
+            }
+
+            window.exportCSV = function() {
+                const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+                if (orders.length === 0) {
+                    return showAlert('No orders have been placed to export.');
+                }
+                let csvContent = 'OrderID,Table,ItemName,Qty,Price,Date,Time,Subtotal,Tax,Discount,ServiceCharge,Total\n';
+                orders.forEach(ord => {
+                    ord.items.forEach(item => {
+                        csvContent += `${ord.id},${ord.table},"${item.name}",${item.qty},${item.price},${ord.date},${ord.time},${ord.subtotal},${ord.tax},${ord.discount},${ord.serviceCharge},${ord.total}\n`;
+                    });
+                });
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute('download', `pos_orders_${Date.now()}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showAlert('All placed orders exported successfully!');
+            }
+            
+            window.printSummary = function() {
+                showAlert('Print summary feature is a work in progress!');
+            }
+            
+            window.printKOT = function() {
+                 showAlert('Print Kitchen Order Ticket (KOT) feature is a work in progress!');
+            }
+            
+            // --- INITIALIZATION ---
+            setupInitialData();
+            loadTables();
+            renderCategories();
+            renderItems();
+            renderOrder();
+        });
+    </script>
+</body>
+</html>
