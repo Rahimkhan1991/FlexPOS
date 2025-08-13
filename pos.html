@@ -771,9 +771,9 @@
                     div.innerHTML = `
                         <span class="order-item-details">${item.name}</span>
                         <div class="order-item-controls">
-                            <button class="qty-btn" data-id="${item.id}" data-action="decrement"><i class="fas fa-minus">-</button>
+                            <button class="qty-btn" data-id="${item.id}" data-action="decrement"><i class="fas fa-minus"> - </button>
                             <span class="qty-display">${item.qty}</span>
-                            <button class="qty-btn" data-id="${item.id}" data-action="increment"><i class="fas fa-plus">+</button>
+                            <button class="qty-btn" data-id="${item.id}" data-action="increment"><i class="fas fa-plus"> + </button>
                             <span class="item-price">₹${itemTotal.toFixed(2)}</span>
                             <button class="remove-btn" data-id="${item.id}" aria-label="Remove ${item.name}"><i class="fas fa-times"> X </button>
                         </div>
