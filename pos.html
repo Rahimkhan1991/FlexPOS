@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Basic POS</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>POS Billing</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2s+lHh1p7n5K24Jq4i+c6A5aJ6K6O4f3T2X6Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            overflow: hidden;
         }
+        /* Custom scrollbar for better aesthetics */
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
         }
@@ -25,87 +27,168 @@
             border-radius: 10px;
             border: 2px solid #f8fafc;
         }
+        /* New custom layout classes for flexibility */
+        .grid-container {
+            display: grid;
+            grid-template-columns: minmax(100px, 1fr) minmax(500px, 4fr) minmax(250px, 1.5fr);
+            height: calc(100vh - 6rem);
+            gap: 1.5rem;
+            padding: 1rem;
+        }
+        .section-panel {
+            background-color: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .sidebar {
+            background-color: #eef2ff;
+        }
+        .order-summary {
+            padding: 1rem;
+        }
+        /* Media query for smaller screens */
+        @media (max-width: 1024px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                height: auto;
+            }
+            .order-summary {
+                grid-row: 3;
+            }
+        }
+       /* Payment buttons styling */
+.payment-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.payment-btn.active {
+    background-color: #22c55e; /* Tailwind green-500 */
+    color: white;
+}
+
+.payment-btn:not(.active) {
+    background-color: #e5e7eb; /* Tailwind gray-200 */
+    color: #374151; /* Tailwind gray-700 */
+}
+
+.payment-btn:not(.active):hover {
+    background-color: #d1d5db; /* Tailwind gray-300 */
+}
+
     </style>
 </head>
-<body class="bg-slate-100 flex h-screen overflow-hidden">
-    <main class="flex-1 flex flex-col p-4 md:p-8 overflow-y-auto">
-        <div class="flex-1 flex flex-col lg:flex-row gap-4 h-full">
-            <div class="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
-                <section id="categoryButtons" class="flex flex-col p-4 bg-indigo-100 rounded-2xl shadow-lg w-full lg:w-48 xl:w-64 custom-scrollbar overflow-y-auto hidden lg:flex">
-                </section>
-                <section class="flex-1 p-6 bg-white rounded-2xl shadow-lg flex flex-col min-h-0">
-                    <div class="flex items-center justify-between mb-4 lg:hidden">
-                        <button id="toggleCategoriesBtn" class="bg-indigo-500 text-white p-3 rounded-lg flex items-center shadow-md transition-transform transform hover:scale-105">
-                            <i class="fas fa-bars mr-2"></i> Categories
-                        </button>
-                    </div>
-                    <h3 class="text-2xl font-bold text-slate-800 mb-4">Menu</h3>
-                    <div id="itemsList" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto custom-scrollbar flex-grow">
-                    </div>
-                </section>
+<body class="bg-slate-100">
+    <header class="flex items-center justify-between p-4 md:p-8 bg-white shadow-sm">
+        <h1 class="text-3xl font-bold text-slate-800">POS Billing</h1>
+        <button id="toggleCategoriesBtn" class="bg-indigo-500 text-white p-3 rounded-lg flex items-center shadow-md transition-transform transform hover:scale-105 lg:hidden">
+            <i class="fas fa-bars mr-2"></i> Categories
+        </button>
+    </header>
+
+    <div class="grid-container">
+        <section id="categoryButtons" class="sidebar section-panel hidden lg:flex">
+            <button onclick="window.location.href='dashboard.html'" class="mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                <i class="fas fa-chart-line mr-2"></i> Dashboard
+            </button>
+        </section>
+
+        <main class="section-panel">
+            <div class="relative mb-4">
+                <i class="fas fa-search absolute top-1/2 left-4 transform -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="itemSearch" placeholder="Search items..." class="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
-            <aside class="flex-1 lg:w-96 xl:w-1/3 flex flex-col bg-white rounded-2xl shadow-lg p-6 min-w-80">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-2xl font-bold text-slate-800">Order Summary</h3>
+            
+            <h3 class="text-2xl font-bold text-slate-800 mb-4">Menu</h3>
+            <div id="itemsList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto custom-scrollbar flex-grow">
+            </div>
+        </main>
+
+        <aside class="order-summary section-panel">
+            <h3 class="text-2xl font-bold text-slate-800 mb-4">Order Summary</h3>
+            <div class="mb-4">
+                <label for="tableSelect" class="block text-sm font-semibold text-slate-700 mb-1">Select Table:</label>
+                <select id="tableSelect" class="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="1">Table 1</option>
+                    <option value="2">Table 2</option>
+                    <option value="3">Table 3</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Payment Method:</label>
+                <div class="flex gap-2">
+                    <button id="cashBtn" data-method="Cash" class="payment-btn active">Cash</button>
+                    <button id="cardBtn" data-method="Card" class="payment-btn">Card</button>
                 </div>
-                <div class="mb-4">
-                    <label for="tableSelect" class="block text-sm font-semibold text-slate-700 mb-1">Select Table:</label>
-                    <select id="tableSelect" class="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="1">Table 1</option>
-                        <option value="2">Table 2</option>
-                        <option value="3">Table 3</option>
-                    </select>
+            </div>
+
+            <div id="orderItems" class="flex-grow overflow-y-auto custom-scrollbar mb-4 border-y border-slate-200 py-4">
+                <div class="text-slate-500 text-center">No items added yet.</div>
+            </div>
+            <div class="space-y-3 text-slate-700">
+                <div class="flex justify-between items-center font-semibold text-lg">
+                    <span>Subtotal:</span>
+                    <span>₹<span id="subtotal">0.00</span></span>
                 </div>
-                <div id="orderItems" class="flex-grow overflow-y-auto custom-scrollbar mb-4 border-y border-slate-200 py-4">
-                    <div class="text-slate-500 text-center">No items added yet.</div>
-                </div>
-                <div class="space-y-3 text-slate-700">
-                    <div class="flex justify-between items-center font-semibold text-lg">
-                        <span>Subtotal:</span>
-                        <span>₹<span id="subtotal">0.00</span></span>
-                    </div>
-                    <div class="flex justify-between items-center text-md">
-                        <span>Discount:</span>
-                        <div class="flex items-center gap-2">
-                            <select id="discountTypeSelect" class="p-1 border border-slate-300 rounded-lg text-sm">
-                                <option value="manual">(₹)</option>
-                                <option value="percentage">(%)</option>
-                            </select>
-                            <input type="number" id="discountInput" value="0" min="0" class="w-24 p-1 border border-slate-300 rounded-lg text-right text-sm">
-                        </div>
-                    </div>
-                    <div class="flex justify-between items-center text-md">
-                        <span>Service Charge:</span>
-                        <div class="flex items-center gap-2">
-                            <select id="serviceChargeTypeSelect" class="p-1 border border-slate-300 rounded-lg text-sm">
-                                <option value="manual">(₹)</option>
-                                <option value="percentage">(%)</option>
-                            </select>
-                            <input type="number" id="serviceChargeInput" value="0" min="0" class="w-24 p-1 border border-slate-300 rounded-lg text-right text-sm">
-                        </div>
-                    </div>
-                    <div class="flex justify-between items-center text-md">
-                        <span>Tax (5%):</span>
-                        <span>₹<span id="tax">0.00</span></span>
+                <div class="flex justify-between items-center text-md">
+                    <span>Discount:</span>
+                    <div class="flex items-center gap-2">
+                        <select id="discountTypeSelect" class="p-1 border border-slate-300 rounded-lg text-sm">
+                            <option value="manual">(₹)</option>
+                            <option value="percentage">(%)</option>
+                        </select>
+                        <input type="number" id="discountInput" value="0" min="0" class="w-24 p-1 border border-slate-300 rounded-lg text-right text-sm">
                     </div>
                 </div>
-                <div class="border-t border-slate-200 mt-4 pt-4">
-                    <div class="flex justify-between items-center font-bold text-2xl text-slate-900">
-                        <span>Total:</span>
-                        <span class="text-green-600">₹<span id="total">0.00</span></span>
+                <div class="flex justify-between items-center text-md">
+                    <span>Service Charge:</span>
+                    <div class="flex items-center gap-2">
+                        <select id="serviceChargeTypeSelect" class="p-1 border border-slate-300 rounded-lg text-sm">
+                            <option value="manual">(₹)</option>
+                            <option value="percentage">(%)</option>
+                        </select>
+                        <input type="number" id="serviceChargeInput" value="0" min="0" class="w-24 p-1 border border-slate-300 rounded-lg text-right text-sm">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-3 mt-4">
-                    <button id="placeOrderBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                        <i class="fas fa-check mr-2"></i> Place Order
-                    </button>
-                    <button id="resetOrderBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                        <i class="fas fa-trash-alt mr-2"></i> Clear Order
-                    </button>
+                <div class="flex justify-between items-center text-md">
+                    <span>Tax (5%):</span>
+                    <span>₹<span id="tax">0.00</span></span>
                 </div>
-            </aside>
-        </div>
-    </main>
+            </div>
+            <div class="border-t border-slate-200 mt-4 pt-4">
+                <div class="flex justify-between items-center font-bold text-2xl text-slate-900">
+                    <span>Total:</span>
+                    <span class="text-green-600">₹<span id="total">0.00</span></span>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-3 mt-4">
+                <button id="placeOrderBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                    <i class="fas fa-check mr-2"></i> Place Order
+                </button>
+                <button id="saveOrderBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                    <i class="fas fa-save mr-2"></i> Save
+                </button>
+                <button id="printBillBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                    <i class="fas fa-print mr-2"></i> Print Bill
+                </button>
+                <button id="printKotBtn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                    <i class="fas fa-ticket-alt mr-2"></i> Print KOT
+                </button>
+                <button id="resetOrderBtn" class="col-span-2 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                    <i class="fas fa-trash-alt mr-2"></i> Clear Order
+                </button>
+            </div>
+        </aside>
+    </div>
     <div id="modalOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-[1000] hidden items-center justify-center">
         <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center">
             <h4 id="modalTitle" class="text-xl font-bold text-slate-800 mb-2"></h4>
@@ -124,8 +207,7 @@
             { id: 4, name: 'Sandwiches' },
             { id: 5, name: 'Desserts' },
         ];
-
-        const items = [
+        const allItems = [
             { id: 101, name: 'Latte', price: 150, category: 'Coffee', image: 'https://images.unsplash.com/photo-1627915599026-c21d00c35478?w=500&auto=format&fit=crop' },
             { id: 102, name: 'Cappuccino', price: 150, category: 'Coffee', image: 'https://images.unsplash.com/photo-1579998632616-56f4d2208a09?w=500&auto=format&fit=crop' },
             { id: 103, name: 'Espresso', price: 100, category: 'Coffee', image: 'https://images.unsplash.com/photo-1558273615-d4191d902340?w=500&auto=format&fit=crop' },
@@ -139,12 +221,14 @@
             { id: 501, name: 'Chocolate Cake', price: 180, category: 'Desserts', image: 'https://images.unsplash.com/photo-1588195538326-c2b1e1cd7e12?w=500&auto=format&fit=crop' },
             { id: 502, name: 'Cheesecake', price: 200, category: 'Desserts', image: 'https://images.unsplash.com/photo-1520105088218-4752c9215904?w=500&auto=format&fit=crop' },
         ];
-
+        let items = [...allItems]; // A mutable copy for searching
+        
         // --- STATE & DATA ---
         let currentOrderItems = [];
         let currentCategory = 'Coffee'; // Default category
         const taxRate = 0.05; // 5% tax
-
+        let paymentMethod = 'Cash'; // Default payment method
+        
         // --- ELEMENTS ---
         const categoryButtonsDiv = document.getElementById('categoryButtons');
         const itemsListDiv = document.getElementById('itemsList');
@@ -163,19 +247,24 @@
         const modalCloseBtn = document.getElementById('modalCloseBtn');
         const toggleCategoriesBtn = document.getElementById('toggleCategoriesBtn');
         const placeOrderBtn = document.getElementById('placeOrderBtn');
+        const saveOrderBtn = document.getElementById('saveOrderBtn');
+        const printBillBtn = document.getElementById('printBillBtn');
+        const printKotBtn = document.getElementById('printKotBtn');
         const resetOrderBtn = document.getElementById('resetOrderBtn');
-
+        const itemSearchInput = document.getElementById('itemSearch');
+        const cashBtn = document.getElementById('cashBtn');
+        const cardBtn = document.getElementById('cardBtn');
+        
         // --- UTILITY FUNCTIONS ---
         function showAlert(message, title = 'Notification') {
             modalTitle.textContent = title;
             modalMessage.textContent = message;
             modalOverlay.style.display = 'flex';
         }
-
         modalCloseBtn.addEventListener('click', () => {
             modalOverlay.style.display = 'none';
         });
-
+        
         // --- RENDER FUNCTIONS ---
         function renderCategories() {
             categoryButtonsDiv.innerHTML = '';
@@ -190,17 +279,20 @@
                 });
                 categoryButtonsDiv.appendChild(btn);
             });
+            const dashboardBtn = document.createElement('button');
+            dashboardBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i> Dashboard';
+            dashboardBtn.onclick = () => window.location.href = 'dashboard.html';
+            dashboardBtn.className = 'mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105';
+            categoryButtonsDiv.appendChild(dashboardBtn);
         }
         
         function renderItems() {
             const filteredItems = items.filter(i => i.category === currentCategory);
             itemsListDiv.innerHTML = '';
-            
             if (filteredItems.length === 0) {
                 itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">No items found in the "${currentCategory}" category.</p>`;
                 return;
             }
-            
             filteredItems.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 transform hover:scale-105 cursor-pointer flex flex-col items-center justify-between text-center aspect-square';
@@ -214,7 +306,7 @@
                 itemsListDiv.appendChild(card);
             });
         }
-
+        
         function renderOrder() {
             orderItemsDiv.innerHTML = '';
             if (currentOrderItems.length === 0) {
@@ -247,7 +339,7 @@
             }
             updateTotals();
         }
-
+        
         // --- LOGIC FUNCTIONS ---
         function addItemToOrder(item) {
             const existingItem = currentOrderItems.find(o => o.id === item.id);
@@ -258,7 +350,18 @@
             }
             renderOrder();
         }
-
+        
+        function filterItems(query) {
+            const filtered = allItems.filter(item => 
+                item.name.toLowerCase().includes(query.toLowerCase()) ||
+                item.category.toLowerCase().includes(query.toLowerCase())
+            );
+            items = filtered;
+            currentCategory = '';
+            renderCategories();
+            renderItems();
+        }
+        
         function updateTotals() {
             const subtotal = currentOrderItems.reduce((sum, item) => sum + parseFloat(item.price) * item.qty, 0);
             const discountValue = parseFloat(discountInput.value) || 0;
@@ -274,38 +377,78 @@
             taxSpan.textContent = taxAmount.toFixed(2);
             totalSpan.textContent = Math.max(0, totalAmount).toFixed(2);
         }
-
+        
         function toggleCategories() {
             categoryButtonsDiv.classList.toggle('hidden');
             categoryButtonsDiv.classList.toggle('flex');
         }
-
+        
         function placeOrder() {
             if (currentOrderItems.length === 0) {
                 return showAlert('Please add items to the order first.');
             }
+            const order = {
+                table: tableSelect.value,
+                items: currentOrderItems,
+                paymentMethod: paymentMethod,
+                date: new Date().toISOString().split('T')[0],
+                time: new Date().toLocaleTimeString(),
+                total: parseFloat(totalSpan.textContent)
+            };
+            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            orders.push(order);
+            localStorage.setItem('orders', JSON.stringify(orders));
             showAlert(`Order for Table ${tableSelect.value} has been placed.`, 'Order Placed');
-            // This is where you would normally send the order to a server
             resetOrder();
         }
-
+        
         function resetOrder() {
             currentOrderItems = [];
             discountInput.value = 0;
             serviceChargeInput.value = 0;
             renderOrder();
         }
-
+        
+        // --- PLACEHOLDERS FOR NEW BUTTONS ---
+        function saveOrder() {
+            showAlert('Order saved successfully!', 'Saved');
+        }
+        function printBill() {
+            showAlert('Printing bill...', 'Printing');
+        }
+        function printKot() {
+            showAlert('Printing Kitchen Order Ticket...', 'Printing');
+        }
+        
         // --- EVENT LISTENERS ---
         toggleCategoriesBtn.addEventListener('click', toggleCategories);
         placeOrderBtn.addEventListener('click', placeOrder);
         resetOrderBtn.addEventListener('click', resetOrder);
+        saveOrderBtn.addEventListener('click', saveOrder);
+        printBillBtn.addEventListener('click', printBill);
+        printKotBtn.addEventListener('click', printKot);
+        
+        itemSearchInput.addEventListener('input', (event) => {
+            filterItems(event.target.value);
+        });
+        
+        // NEW: Payment button listeners
+        cashBtn.addEventListener('click', () => {
+            paymentMethod = 'Cash';
+            cashBtn.classList.add('active');
+            cardBtn.classList.remove('active');
+        });
+        cardBtn.addEventListener('click', () => {
+            paymentMethod = 'Card';
+            cardBtn.classList.add('active');
+            cashBtn.classList.remove('active');
+        });
 
         orderItemsDiv.addEventListener('click', (event) => {
             const target = event.target;
             const qtyBtn = target.closest('.qty-btn');
             const removeBtn = target.closest('.remove-btn');
-
+            
             if (qtyBtn) {
                 const id = parseInt(qtyBtn.dataset.id);
                 const action = qtyBtn.dataset.action;
@@ -324,16 +467,16 @@
                 renderOrder();
             }
         });
-
+        
         [discountInput, discountTypeSelect, serviceChargeInput, serviceChargeTypeSelect].forEach(el => {
             el.addEventListener('change', updateTotals);
             el.addEventListener('input', updateTotals);
         });
-
+        
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
             renderCategories();
-            renderItems(); // Render initial category items
+            renderItems();
             renderOrder();
         });
     </script>
