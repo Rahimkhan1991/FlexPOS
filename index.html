@@ -1,40 +1,182 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login - Restaurant POS</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Cafe POS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --form-bg: rgba(255, 255, 255, 0.2);
+            --border-color: rgba(255, 255, 255, 0.3);
+            --text-color: #f8f8f8;
+            --input-bg: rgba(255, 255, 255, 0.1);
+            --placeholder-color: rgba(255, 255, 255, 0.7);
+            --button-color: #2c3e50;
+            --error-color: #ff5252;
+            --brand-color: #795548;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e293b, #4b5563);
+            color: var(--text-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 2;
+            padding: 40px;
+            background: var(--form-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            transition: transform 0.3s ease;
+        }
+
+        .login-container:hover {
+            transform: translateY(-5px);
+        }
+
+        .login-container h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--brand-color);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 15px 15px 50px;
+            border: none;
+            background: var(--input-bg);
+            border-radius: 8px;
+            color: var(--text-color);
+            font-size: 1em;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input::placeholder {
+            color: var(--placeholder-color);
+        }
+
+        .input-group input:focus {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+        }
+
+        .input-group .icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--placeholder-color);
+            font-size: 1.2em;
+        }
+
+        .btn-login {
+            padding: 15px;
+            border: none;
+            background: var(--button-color);
+            color: white;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-login:hover {
+            background: #4b6587;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .error-message {
+            color: var(--error-color);
+            margin-top: 10px;
+            font-size: 0.9em;
+            font-weight: 500;
+            height: 20px;
+            transition: opacity 0.3s ease;
+        }
+    </style>
 </head>
-<body class="centered">
-  <div class="login-box">
-    <h2>Restaurant POS Login</h2>
-    <input type="text" id="username" placeholder="Username" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="login()">Login</button>
-    <div id="login-error" class="error-msg"></div>
-  </div>
-  <script src="users.js"></script>
-<script>
-  const users = [
-    { username: "admin", password: "admin123", role: "admin" },
-    { username: "cashier", password: "cashier123", role: "sales" }
-  ];
+<body>
+    <div class="login-container">
+        <h1>Welcome</h1>
+        <div class="login-form">
+            <div class="input-group">
+                <i class="fas fa-user icon"></i>
+                <input type="text" id="username" placeholder="Username" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <i class="fas fa-lock icon"></i>
+                <input type="password" id="password" placeholder="Password">
+            </div>
+            <button class="btn-login" onclick="login()">Login</button>
+            <div id="login-error" class="error-message"></div>
+        </div>
+    </div>
+    
+    <script>
+        const users = [
+            { username: "admin", password: "admin123", role: "admin" },
+            { username: "cashier", password: "cashier123", role: "cashier" }
+        ];
 
-  function login() {
-    const uname = document.getElementById("username").value;
-    const pwd = document.getElementById("password").value;
+        function login() {
+            const usernameInput = document.getElementById("username");
+            const passwordInput = document.getElementById("password");
+            const errorMessage = document.getElementById("login-error");
 
-    const user = users.find(u => u.username === uname && u.password === pwd);
-    if (user) {
-      localStorage.setItem("currentUser", JSON.stringify(user));
-      window.location.href = "pos.html"; // <- This should work!
-    } else {
-      alert("Invalid username or password!");
-    }
-  }
-</script>
+            const uname = usernameInput.value.trim();
+            const pwd = passwordInput.value;
 
+            const user = users.find(u => u.username === uname && u.password === pwd);
+
+            if (user) {
+                // Clear any previous error messages
+                errorMessage.textContent = "";
+                // Store the user info and redirect
+                localStorage.setItem("currentUser", JSON.stringify(user));
+                window.location.href = "dashboard.html"; // Redirect to the dashboard
+            } else {
+                // Display error message
+                errorMessage.textContent = "Invalid username or password. Please try again.";
+            }
+        }
+    </script>
 </body>
 </html>
