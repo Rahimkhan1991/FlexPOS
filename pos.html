@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>POS Billing</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic POS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,7 +13,6 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Custom scrollbar for better aesthetics */
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
         }
@@ -33,7 +32,7 @@
         <div class="flex-1 flex flex-col lg:flex-row gap-4 h-full">
             <div class="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
                 <section id="categoryButtons" class="flex flex-col p-4 bg-indigo-100 rounded-2xl shadow-lg w-full lg:w-48 xl:w-64 custom-scrollbar overflow-y-auto hidden lg:flex">
-                    </section>
+                </section>
                 <section class="flex-1 p-6 bg-white rounded-2xl shadow-lg flex flex-col min-h-0">
                     <div class="flex items-center justify-between mb-4 lg:hidden">
                         <button id="toggleCategoriesBtn" class="bg-indigo-500 text-white p-3 rounded-lg flex items-center shadow-md transition-transform transform hover:scale-105">
@@ -41,22 +40,20 @@
                         </button>
                     </div>
                     <h3 class="text-2xl font-bold text-slate-800 mb-4">Menu</h3>
-                    <div id="menuLoading" class="flex items-center justify-center h-full text-slate-500 text-lg">
-                        <i class="fas fa-spinner fa-spin mr-2"></i> Loading menu items...
+                    <div id="itemsList" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto custom-scrollbar flex-grow">
                     </div>
-                    <div id="itemsList" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto custom-scrollbar flex-grow">
-                        </div>
                 </section>
             </div>
             <aside class="flex-1 lg:w-96 xl:w-1/3 flex flex-col bg-white rounded-2xl shadow-lg p-6 min-w-80">
-                <p class="text-xs text-slate-500 mb-2">User ID: <span id="userIdDisplay" class="font-mono text-indigo-500"></span></p>
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-2xl font-bold text-slate-800">Order Summary</h3>
                 </div>
                 <div class="mb-4">
                     <label for="tableSelect" class="block text-sm font-semibold text-slate-700 mb-1">Select Table:</label>
                     <select id="tableSelect" class="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option>Loading tables...</option>
+                        <option value="1">Table 1</option>
+                        <option value="2">Table 2</option>
+                        <option value="3">Table 3</option>
                     </select>
                 </div>
                 <div id="orderItems" class="flex-grow overflow-y-auto custom-scrollbar mb-4 border-y border-slate-200 py-4">
@@ -102,20 +99,13 @@
                     <button id="placeOrderBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
                         <i class="fas fa-check mr-2"></i> Place Order
                     </button>
-                    <button id="exportCsvBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                        <i class="fas fa-file-csv mr-2"></i> Export CSV
-                    </button>
-                    <button id="printSummaryBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                        <i class="fas fa-print mr-2"></i> Print Summary
-                    </button>
-                    <button id="printKotBtn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                        <i class="fas fa-ticket-alt mr-2"></i> Print KOT
+                    <button id="resetOrderBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                        <i class="fas fa-trash-alt mr-2"></i> Clear Order
                     </button>
                 </div>
             </aside>
         </div>
     </main>
-
     <div id="modalOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-[1000] hidden items-center justify-center">
         <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center">
             <h4 id="modalTitle" class="text-xl font-bold text-slate-800 mb-2"></h4>
@@ -125,30 +115,34 @@
             </button>
         </div>
     </div>
+    <script>
+        // --- STATIC DATA (NO DATABASE) ---
+        const categories = [
+            { id: 1, name: 'Coffee' },
+            { id: 2, name: 'Beverages' },
+            { id: 3, name: 'Pastries' },
+            { id: 4, name: 'Sandwiches' },
+            { id: 5, name: 'Desserts' },
+        ];
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, getDocs, addDoc, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // --- GLOBAL VARIABLES & FIREBASE SETUP ---
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        let userId;
+        const items = [
+            { id: 101, name: 'Latte', price: 150, category: 'Coffee', image: 'https://images.unsplash.com/photo-1627915599026-c21d00c35478?w=500&auto=format&fit=crop' },
+            { id: 102, name: 'Cappuccino', price: 150, category: 'Coffee', image: 'https://images.unsplash.com/photo-1579998632616-56f4d2208a09?w=500&auto=format&fit=crop' },
+            { id: 103, name: 'Espresso', price: 100, category: 'Coffee', image: 'https://images.unsplash.com/photo-1558273615-d4191d902340?w=500&auto=format&fit=crop' },
+            { id: 104, name: 'Iced Coffee', price: 180, category: 'Coffee', image: 'https://images.unsplash.com/photo-1549412170-8e11a36746de?w=500&auto=format&fit=crop' },
+            { id: 201, name: 'Lemonade', price: 120, category: 'Beverages', image: 'https://images.unsplash.com/photo-1548347898-3331b2c45e5d?w=500&auto=format&fit=crop' },
+            { id: 202, name: 'Orange Juice', price: 130, category: 'Beverages', image: 'https://images.unsplash.com/photo-1545638140-547e80ac9d51?w=500&auto=format&fit=crop' },
+            { id: 301, name: 'Croissant', price: 90, category: 'Pastries', image: 'https://images.unsplash.com/photo-1616231922441-2a621d965d1d?w=500&auto=format&fit=crop' },
+            { id: 302, name: 'Muffin', price: 80, category: 'Pastries', image: 'https://images.unsplash.com/photo-1589182354519-74d6f46a2a07?w=500&auto=format&fit=crop' },
+            { id: 401, name: 'Club Sandwich', price: 250, category: 'Sandwiches', image: 'https://images.unsplash.com/photo-1587121650394-437ce4999f79?w=500&auto=format&fit=crop' },
+            { id: 402, name: 'Veggie Wrap', price: 200, category: 'Sandwiches', image: 'https://images.unsplash.com/photo-1582236307374-297c555513ba?w=500&auto=format&fit=crop' },
+            { id: 501, name: 'Chocolate Cake', price: 180, category: 'Desserts', image: 'https://images.unsplash.com/photo-1588195538326-c2b1e1cd7e12?w=500&auto=format&fit=crop' },
+            { id: 502, name: 'Cheesecake', price: 200, category: 'Desserts', image: 'https://images.unsplash.com/photo-1520105088218-4752c9215904?w=500&auto=format&fit=crop' },
+        ];
 
         // --- STATE & DATA ---
-        let categories = [];
-        let items = [];
-        let tables = [];
-        let ordersData = []; // Store placed orders
         let currentOrderItems = [];
-        let currentCategory = '';
+        let currentCategory = 'Coffee'; // Default category
         const taxRate = 0.05; // 5% tax
 
         // --- ELEMENTS ---
@@ -167,75 +161,52 @@
         const modalTitle = document.getElementById('modalTitle');
         const modalMessage = document.getElementById('modalMessage');
         const modalCloseBtn = document.getElementById('modalCloseBtn');
-        const menuLoadingState = document.getElementById('menuLoading');
-        const userIdDisplay = document.getElementById('userIdDisplay');
-        
-        // NEW: Get the toggle button element
         const toggleCategoriesBtn = document.getElementById('toggleCategoriesBtn');
+        const placeOrderBtn = document.getElementById('placeOrderBtn');
+        const resetOrderBtn = document.getElementById('resetOrderBtn');
 
         // --- UTILITY FUNCTIONS ---
-
-        // Custom modal for alerts
         function showAlert(message, title = 'Notification') {
             modalTitle.textContent = title;
             modalMessage.textContent = message;
             modalOverlay.style.display = 'flex';
         }
-        
+
         modalCloseBtn.addEventListener('click', () => {
             modalOverlay.style.display = 'none';
         });
 
-        // Add a placeholder image if an image fails to load
-        function getImageUrl(url, name) {
-            return url || `https://placehold.co/150x150/fef3c7/854d0e?text=${encodeURIComponent(name.slice(0, 10))}`;
-        }
-
         // --- RENDER FUNCTIONS ---
-
-        // Render category buttons
         function renderCategories() {
             categoryButtonsDiv.innerHTML = '';
-            if (categories.length === 0) {
-                categoryButtonsDiv.innerHTML = '<p class="text-center text-indigo-400">No categories found.</p>';
-                return;
-            }
-            categories.forEach((cat, idx) => {
+            categories.forEach(cat => {
                 const btn = document.createElement('button');
                 btn.textContent = cat.name;
                 btn.className = `category-btn w-full py-3 px-4 mb-2 bg-indigo-500 text-white font-bold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${cat.name === currentCategory ? 'bg-indigo-700 scale-105 shadow-lg' : ''}`;
                 btn.addEventListener('click', () => {
                     currentCategory = cat.name;
-                    renderCategories(); // Re-render to update active state
+                    renderCategories();
                     renderItems();
                 });
                 categoryButtonsDiv.appendChild(btn);
             });
         }
         
-        // Render menu items for the active category
         function renderItems() {
             const filteredItems = items.filter(i => i.category === currentCategory);
             itemsListDiv.innerHTML = '';
             
-            if (currentCategory === '') {
-                itemsListDiv.innerHTML = '<p class="text-center text-slate-500 col-span-full mt-10">Please select a category.</p>';
-                return;
-            }
             if (filteredItems.length === 0) {
                 itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">No items found in the "${currentCategory}" category.</p>`;
                 return;
             }
             
-            menuLoadingState.classList.add('hidden');
-            itemsListDiv.classList.remove('hidden');
-
             filteredItems.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 transform hover:scale-105 cursor-pointer flex flex-col items-center justify-between text-center aspect-square';
                 card.title = `${item.name}\nPrice: ₹${item.price}`;
                 card.innerHTML = `
-                    <img src="${getImageUrl(item.image, item.name)}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2">
+                    <img src="${item.image}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2">
                     <div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div>
                     <div class="font-semibold text-green-600 text-lg mt-auto">₹${parseFloat(item.price).toFixed(2)}</div>
                 `;
@@ -244,7 +215,6 @@
             });
         }
 
-        // Render the order summary and calculate totals
         function renderOrder() {
             orderItemsDiv.innerHTML = '';
             if (currentOrderItems.length === 0) {
@@ -278,26 +248,7 @@
             updateTotals();
         }
 
-        // Update tables dropdown
-        function renderTables() {
-            tableSelect.innerHTML = '';
-            if (tables.length === 0) {
-                tableSelect.innerHTML = '<option value="">No tables available</option>';
-                tableSelect.disabled = true;
-            } else {
-                tables.forEach(t => {
-                    const option = document.createElement('option');
-                    option.value = t.name;
-                    option.textContent = t.name;
-                    tableSelect.appendChild(option);
-                });
-                tableSelect.disabled = false;
-            }
-        }
-
         // --- LOGIC FUNCTIONS ---
-
-        // Add item to the current order
         function addItemToOrder(item) {
             const existingItem = currentOrderItems.find(o => o.id === item.id);
             if (existingItem) {
@@ -307,128 +258,56 @@
             }
             renderOrder();
         }
-        
-        // NEW: Function to toggle the visibility of the category panel
+
+        function updateTotals() {
+            const subtotal = currentOrderItems.reduce((sum, item) => sum + parseFloat(item.price) * item.qty, 0);
+            const discountValue = parseFloat(discountInput.value) || 0;
+            const serviceChargeValue = parseFloat(serviceChargeInput.value) || 0;
+            const isDiscountPercent = discountTypeSelect.value === 'percentage';
+            const isServiceChargePercent = serviceChargeTypeSelect.value === 'percentage';
+            const discountAmount = isDiscountPercent ? subtotal * (discountValue / 100) : discountValue;
+            const serviceChargeAmount = isServiceChargePercent ? subtotal * (serviceChargeValue / 100) : serviceChargeValue;
+            const taxableAmount = subtotal - discountAmount + serviceChargeAmount;
+            const taxAmount = taxableAmount * taxRate;
+            const totalAmount = taxableAmount + taxAmount;
+            subtotalSpan.textContent = subtotal.toFixed(2);
+            taxSpan.textContent = taxAmount.toFixed(2);
+            totalSpan.textContent = Math.max(0, totalAmount).toFixed(2);
+        }
+
         function toggleCategories() {
             categoryButtonsDiv.classList.toggle('hidden');
             categoryButtonsDiv.classList.toggle('flex');
         }
 
-        // Update all totals based on the order and inputs
-        function updateTotals() {
-            const subtotal = currentOrderItems.reduce((sum, item) => sum + parseFloat(item.price) * item.qty, 0);
-            
-            const discountValue = parseFloat(discountInput.value) || 0;
-            const serviceChargeValue = parseFloat(serviceChargeInput.value) || 0;
-            
-            const isDiscountPercent = discountTypeSelect.value === 'percentage';
-            const isServiceChargePercent = serviceChargeTypeSelect.value === 'percentage';
-
-            const discountAmount = isDiscountPercent ? subtotal * (discountValue / 100) : discountValue;
-            const serviceChargeAmount = isServiceChargePercent ? subtotal * (serviceChargeValue / 100) : serviceChargeValue;
-
-            const taxableAmount = subtotal - discountAmount + serviceChargeAmount;
-            const taxAmount = taxableAmount * taxRate;
-            const totalAmount = taxableAmount + taxAmount;
-
-            subtotalSpan.textContent = subtotal.toFixed(2);
-            taxSpan.textContent = taxAmount.toFixed(2);
-            totalSpan.textContent = Math.max(0, totalAmount).toFixed(2); // Prevent negative total
-        }
-
-        // Place an order and save it to Firestore
-        async function placeOrder() {
+        function placeOrder() {
             if (currentOrderItems.length === 0) {
                 return showAlert('Please add items to the order first.');
             }
-            if (!tableSelect.value) {
-                return showAlert('Please select a table.');
-            }
-            
-            try {
-                const newOrder = {
-                    table: tableSelect.value,
-                    items: currentOrderItems,
-                    date: new Date().toISOString().split('T')[0],
-                    time: new Date().toLocaleTimeString(),
-                    subtotal: parseFloat(subtotalSpan.textContent),
-                    tax: parseFloat(taxSpan.textContent),
-                    discount: parseFloat(discountInput.value) || 0,
-                    discountType: discountTypeSelect.value,
-                    // FIXED: Correctly get value from serviceChargeInput
-                    serviceCharge: parseFloat(serviceChargeInput.value) || 0,
-                    serviceChargeType: serviceChargeTypeSelect.value,
-                    total: parseFloat(totalSpan.textContent),
-                    status: 'placed',
-                    userId: userId // Add the user who placed the order
-                };
-                
-                const ordersRef = collection(db, `/artifacts/${appId}/public/data/orders`);
-                await addDoc(ordersRef, newOrder);
-                
-                showAlert(`Order for ${newOrder.table} has been placed successfully!`, 'Order Placed');
-                
-                // Reset order
-                currentOrderItems = [];
-                discountInput.value = 0;
-                serviceChargeInput.value = 0;
-                renderOrder();
-            } catch (error) {
-                console.error("Error placing order:", error);
-                showAlert('Failed to place order. Please try again.', 'Error');
-            }
-        }
-        
-        // Export placed orders to a CSV file
-        function exportCSV() {
-            if (ordersData.length === 0) {
-                return showAlert('No orders have been placed to export.');
-            }
-            let csvContent = 'OrderID,Table,ItemName,Qty,Price,Date,Time,Subtotal,Tax,Discount,ServiceCharge,Total\n';
-            ordersData.forEach(ord => {
-                ord.items.forEach(item => {
-                    csvContent += `${ord.id},${ord.table},"${item.name}",${item.qty},${item.price},${ord.date},${ord.time},${ord.subtotal},${ord.tax},${ord.discount},${ord.serviceCharge},${ord.total}\n`;
-                });
-            });
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.setAttribute('download', `pos_orders_${Date.now()}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showAlert('All placed orders exported successfully!');
+            showAlert(`Order for Table ${tableSelect.value} has been placed.`, 'Order Placed');
+            // This is where you would normally send the order to a server
+            resetOrder();
         }
 
-        // Placeholder for printing
-        function printSummary() {
-            showAlert('Print summary feature is a work in progress!', 'Feature Under Development');
-        }
-        
-        // Placeholder for KOT
-        function printKOT() {
-            showAlert('Print Kitchen Order Ticket (KOT) feature is a work in progress!', 'Feature Under Development');
+        function resetOrder() {
+            currentOrderItems = [];
+            discountInput.value = 0;
+            serviceChargeInput.value = 0;
+            renderOrder();
         }
 
         // --- EVENT LISTENERS ---
-        
-        document.getElementById('placeOrderBtn').addEventListener('click', placeOrder);
-        document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
-        document.getElementById('printSummaryBtn').addEventListener('click', printSummary);
-        document.getElementById('printKotBtn').addEventListener('click', printKOT);
-        
-        // NEW: Event listener for the toggle button
         toggleCategoriesBtn.addEventListener('click', toggleCategories);
+        placeOrderBtn.addEventListener('click', placeOrder);
+        resetOrderBtn.addEventListener('click', resetOrder);
 
-        // Event delegation for order item controls
         orderItemsDiv.addEventListener('click', (event) => {
             const target = event.target;
             const qtyBtn = target.closest('.qty-btn');
             const removeBtn = target.closest('.remove-btn');
 
             if (qtyBtn) {
-                // FIXED: Do not use parseInt(), Firestore IDs are strings
-                const id = qtyBtn.dataset.id;
+                const id = parseInt(qtyBtn.dataset.id);
                 const action = qtyBtn.dataset.action;
                 const item = currentOrderItems.find(o => o.id === id);
                 if (item) {
@@ -440,78 +319,22 @@
                     renderOrder();
                 }
             } else if (removeBtn) {
-                // FIXED: Do not use parseInt(), Firestore IDs are strings
-                const id = removeBtn.dataset.id;
+                const id = parseInt(removeBtn.dataset.id);
                 currentOrderItems = currentOrderItems.filter(i => i.id !== id);
                 renderOrder();
             }
         });
 
-        // Listen for changes in discount/service charge inputs
         [discountInput, discountTypeSelect, serviceChargeInput, serviceChargeTypeSelect].forEach(el => {
             el.addEventListener('change', updateTotals);
             el.addEventListener('input', updateTotals);
         });
 
         // --- INITIALIZATION ---
-        
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Signed in with custom token.");
-                } else {
-                    await signInAnonymously(auth);
-                    console.log("Signed in anonymously.");
-                }
-
-                // Listen for auth state changes and set up listeners only after a user is authenticated
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        userIdDisplay.textContent = userId;
-
-                        // --- Real-time data listeners for Firestore ---
-                        
-                        // Categories
-                        onSnapshot(collection(db, `/artifacts/${appId}/public/data/categories`), (snapshot) => {
-                            categories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                            // Set default category if none is selected
-                            if (!currentCategory && categories.length > 0) {
-                                currentCategory = categories[0].name;
-                            }
-                            renderCategories();
-                            renderItems();
-                        });
-
-                        // Menu Items
-                        onSnapshot(collection(db, `/artifacts/${appId}/public/data/items`), (snapshot) => {
-                            items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                            renderItems();
-                        });
-
-                        // Tables
-                        onSnapshot(collection(db, `/artifacts/${appId}/public/data/tables`), (snapshot) => {
-                            tables = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                            renderTables();
-                        });
-
-                        // Placed Orders (for CSV export)
-                        onSnapshot(collection(db, `/artifacts/${appId}/public/data/orders`), (snapshot) => {
-                            ordersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        });
-
-                    } else {
-                        // This block will be executed if authentication fails or user logs out.
-                        // For this app, we'll assume a user is always logged in.
-                        console.log("No user is signed in.");
-                    }
-                });
-
-            } catch (error) {
-                console.error("Firebase initialization or authentication error:", error);
-                showAlert(`Authentication failed: ${error.message}`, 'Auth Error');
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCategories();
+            renderItems(); // Render initial category items
+            renderOrder();
         });
     </script>
 </body>
