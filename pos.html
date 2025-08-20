@@ -199,15 +199,24 @@
         </div>
     </div>
     <script>
-        // --- STATIC DATA (NO DATABASE) ---
-        const categories = [
-            { id: 1, name: 'Coffee' },
-            { id: 2, name: 'Beverages' },
-            { id: 3, name: 'Pastries' },
-            { id: 4, name: 'Sandwiches' },
-            { id: 5, name: 'Desserts' },
-        ];
-        const allItems = [
+// --- FETCH DATA FROM LOCALSTORAGE ---
+let categories = JSON.parse(localStorage.getItem('categories')) || [];
+let allItems = JSON.parse(localStorage.getItem('items')) || [];
+
+// If nothing is saved in localStorage, initialize default (optional)
+if (categories.length === 0) {
+    categories = [
+        { id: 1, name: 'Coffee' },
+        { id: 2, name: 'Beverages' },
+        { id: 3, name: 'Pastries' },
+        { id: 4, name: 'Sandwiches' },
+        { id: 5, name: 'Desserts' },
+    ];
+    localStorage.setItem('categories', JSON.stringify(categories));
+}
+
+if (allItems.length === 0) {
+    allItems = [
             { id: 101, name: 'Latte', price: 150, category: 'Coffee', image: 'https://images.unsplash.com/photo-1627915599026-c21d00c35478?w=500&auto=format&fit=crop' },
             { id: 102, name: 'Cappuccino', price: 150, category: 'Coffee', image: 'https://images.unsplash.com/photo-1579998632616-56f4d2208a09?w=500&auto=format&fit=crop' },
             { id: 103, name: 'Espresso', price: 100, category: 'Coffee', image: 'https://images.unsplash.com/photo-1558273615-d4191d902340?w=500&auto=format&fit=crop' },
@@ -220,8 +229,12 @@
             { id: 402, name: 'Veggie Wrap', price: 200, category: 'Sandwiches', image: 'https://images.unsplash.com/photo-1582236307374-297c555513ba?w=500&auto=format&fit=crop' },
             { id: 501, name: 'Chocolate Cake', price: 180, category: 'Desserts', image: 'https://images.unsplash.com/photo-1588195538326-c2b1e1cd7e12?w=500&auto=format&fit=crop' },
             { id: 502, name: 'Cheesecake', price: 200, category: 'Desserts', image: 'https://images.unsplash.com/photo-1520105088218-4752c9215904?w=500&auto=format&fit=crop' },
-        ];
-        let items = [...allItems]; // A mutable copy for searching
+    ];
+    localStorage.setItem('items', JSON.stringify(allItems));
+}
+
+// Create a mutable copy for searching/filtering
+let items = [...allItems];
         
         // --- STATE & DATA ---
         let currentOrderItems = [];
