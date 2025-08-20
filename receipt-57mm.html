@@ -21,13 +21,19 @@
     .center { text-align: center; }
     .qr { margin-top: 6px; text-align: center; }
     .footer { margin-top: 4px; font-size: 10px; text-align: center; }
+    .logo { max-width: 150px; max-height: 60px; display: block; margin: 0 auto 5px; object-fit: contain; }
+    .charges { display: flex; justify-content: space-between; font-size: 12px; }
+    .charges .label { text-align: left; }
+    .charges .amount { text-align: right; }
 </style>
 </head>
 <body>
 
 <div class="receipt" id="receipt">
-    <div class="center"><strong>My Shop Name</strong></div>
-    <div class="center">Jalan Merdeka No.21</div>
+    <img id="shopLogo" class="logo" src="" alt="Logo">
+    <div class="center"><strong id="shopName">My Shop Name</strong></div>
+    <div class="center" id="shopAddress">Jalan Merdeka No.21</div>
+    <div class="center" id="shopPhone"></div>
     <hr>
     <div>Cashier: <span id="cashier"></span></div>
     <div>Invoice: <span id="receiptNo"></span></div>
@@ -41,11 +47,18 @@
                 <th class="right">Total</th>
             </tr>
         </thead>
-        <tbody id="receiptItems">
-        </tbody>
+        <tbody id="receiptItems"></tbody>
     </table>
     <hr>
-    <div>Total: <span id="totalAmount"></span></div>
+    <div class="charges"><span class="label">Subtotal:</span> <span class="amount" id="subTotal"></span></div>
+    <div class="charges"><span class="label">Tax:</span> <span class="amount" id="tax"></span></div>
+    <div class="charges"><span class="label">Service Charge:</span> <span class="amount" id="serviceCharge"></span></div>
+    <div class="charges"><span class="label">Discount:</span> <span class="amount" id="discount"></span></div>
+    <div class="charges"><strong class="label">Total:</strong> <strong class="amount" id="totalAmount"></strong></div>
+    <div class="charges"><span class="label">Cash Received:</span> <span class="amount" id="cashReceived"></span></div>
+    <div class="charges"><span class="label">Change:</span> <span class="amount" id="change"></span></div>
+    <hr>
+    <div class="center" id="footerText">Thank you for visiting!</div>
 </div>
 
 <div class="qr">
@@ -55,16 +68,34 @@
 </div>
 
 <div class="footer">
-    Thank you for visiting!
+    Powered by MyShop Billing System
 </div>
 
 <script>
-const order = JSON.parse(localStorage.getItem('currentOrder')) || [];
-const totalAmount = Number(localStorage.getItem('totalAmount')) || 0;
-const cashier = localStorage.getItem('cashier') || 'Cashier';
-const receiptNo = localStorage.getItem('receiptNo') || '#00000';
+// --- Fetch Order Data ---
+const orderData = JSON.parse(localStorage.getItem('currentPrintOrder')) || {};
+const order = orderData.items || [];
+const cashier = orderData.cashier || 'Cashier';
 
-// Fill receipt items
+// --- Dynamic Invoice Number ---
+let invoiceStart = parseInt(localStorage.getItem('invoiceStart') || 1000);
+let lastInvoice = parseInt(localStorage.getItem('lastInvoice') || invoiceStart-1);
+const receiptNo = '#' + (lastInvoice + 1);
+localStorage.setItem('lastInvoice', lastInvoice + 1);
+
+// --- Charges ---
+const subTotal = order.reduce((sum, item) => sum + item.price * item.qty, 0);
+const tax = parseFloat(orderData.tax || 0);
+const serviceCharge = parseFloat(orderData.serviceCharge || 0);
+const discount = parseFloat(orderData.discount || 0);
+const totalAmount = subTotal + tax + serviceCharge - discount;
+
+// --- Cash Received & Change ---
+let defaultCash = parseFloat(localStorage.getItem('defaultCash') || totalAmount);
+const cashReceived = parseFloat(orderData.cashReceived || defaultCash);
+const change = cashReceived - totalAmount;
+
+// --- Fill Receipt Items ---
 const receiptItems = document.getElementById('receiptItems');
 receiptItems.innerHTML = '';
 order.forEach(item => {
@@ -78,39 +109,60 @@ order.forEach(item => {
     receiptItems.appendChild(row);
 });
 
-// Fill details
+// --- Fill Charges ---
+document.getElementById('subTotal').innerText = subTotal.toFixed(2);
+document.getElementById('tax').innerText = tax.toFixed(2);
+document.getElementById('serviceCharge').innerText = serviceCharge.toFixed(2);
+document.getElementById('discount').innerText = discount.toFixed(2);
+document.getElementById('totalAmount').innerText = totalAmount.toFixed(2);
+document.getElementById('cashReceived').innerText = cashReceived.toFixed(2);
+document.getElementById('change').innerText = change.toFixed(2);
+
+// --- Fill Header Info ---
 document.getElementById('cashier').innerText = cashier;
 document.getElementById('receiptNo').innerText = receiptNo;
 document.getElementById('dateTime').innerText = new Date().toLocaleString();
-document.getElementById('totalAmount').innerText = totalAmount.toFixed(2);
+document.getElementById('shopName').innerText = localStorage.getItem('shopName') || 'My Shop Name';
+document.getElementById('shopAddress').innerText = localStorage.getItem('shopAddress') || 'Jalan Merdeka No.21';
+document.getElementById('shopPhone').innerText = localStorage.getItem('shopPhone') || '';
+document.getElementById('footerText').innerText = localStorage.getItem('footerText') || 'Thank you for visiting!';
 
-// QR Code generation
-let baseQRIS = "00020101021240580013ID.CO.BRI.WWW011893600002100425918802151175010018055365204482953033605802ID5913WAHYUSUBEKTI6011MALANGKOT.";
-const amountStr = totalAmount.toFixed(2);
-const amountField = "54" + (amountStr.length < 10 ? "0" : "") + amountStr.length + amountStr;
-let payloadNoCRC = baseQRIS + amountField + "6304";
+// --- Shop Logo ---
+const logoSrc = localStorage.getItem('shopLogo');
+if(logoSrc) document.getElementById('shopLogo').src = logoSrc;
 
-function crc16(str) {
-    let crc = 0xFFFF;
-    for (let c of str) {
-        crc ^= c.charCodeAt(0) << 8;
-        for (let i = 0; i < 8; i++) {
-            if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ 0x1021;
-            else crc = crc << 1;
-            crc &= 0xFFFF;
+// --- QR Code ---
+if(localStorage.getItem('enableQRIS') === "true") {
+    let baseQRIS = "00020101021240580013ID.CO.BRI.WWW011893600002100425918802151175010018055365204482953033605802ID5913WAHYUSUBEKTI6011MALANGKOT.";
+    const amountStr = totalAmount.toFixed(2);
+    const amountField = "54" + (amountStr.length < 10 ? "0" : "") + amountStr.length + amountStr;
+    let payloadNoCRC = baseQRIS + amountField + "6304";
+
+    function crc16(str) {
+        let crc = 0xFFFF;
+        for (let c of str) {
+            crc ^= c.charCodeAt(0) << 8;
+            for (let i = 0; i < 8; i++) {
+                if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ 0x1021;
+                else crc = crc << 1;
+                crc &= 0xFFFF;
+            }
         }
+        return crc.toString(16).toUpperCase().padStart(4, "0");
     }
-    return crc.toString(16).toUpperCase().padStart(4, "0");
+
+    const crc = crc16(payloadNoCRC);
+    const finalQRIS = payloadNoCRC + crc;
+
+    QRCode.toCanvas(document.getElementById("qrcode"), finalQRIS, { width: 100 }, function (error) {
+        if (error) console.error(error);
+    });
+
+    document.getElementById('qrAmount').innerText = `Scan to Pay: ${totalAmount.toFixed(2)}`;
+} else {
+    document.getElementById('qrcode').style.display = 'none';
+    document.getElementById('qrAmount').style.display = 'none';
 }
-
-const crc = crc16(payloadNoCRC);
-const finalQRIS = payloadNoCRC + crc;
-
-QRCode.toCanvas(document.getElementById("qrcode"), finalQRIS, { width: 100 }, function (error) {
-    if (error) console.error(error);
-});
-
-document.getElementById('qrAmount').innerText = `Scan to Pay: ${totalAmount.toFixed(2)}`;
 </script>
 
 </body>
