@@ -365,16 +365,56 @@ function renderOrder() {
             renderOrder();
         }
         
-        function filterItems(query) {
-            const filtered = allItems.filter(item => 
-                item.name.toLowerCase().includes(query.toLowerCase()) ||
-                item.category.toLowerCase().includes(query.toLowerCase())
-            );
-            items = filtered;
-            currentCategory = '';
-            renderCategories();
-            renderItems();
+      // This is the new, corrected renderItems function
+function renderItems() {
+    let itemsToDisplay = [...allItems]; // Always start with the complete master list
+
+    // Get the current search query from the input box
+    const searchQuery = itemSearchInput.value.toLowerCase();
+
+    // If there is a search query, filter by item name
+    if (searchQuery) {
+        currentCategory = ''; // De-select any category while searching
+        itemsToDisplay = itemsToDisplay.filter(item =>
+            item.name.toLowerCase().includes(searchQuery)
+        );
+    } 
+    // Otherwise, if there is a category selected, filter by category
+    else if (currentCategory) {
+        itemsToDisplay = itemsToDisplay.filter(item => item.category === currentCategory);
+    }
+    
+    // Update the active category button styles
+    renderCategories();
+
+    // Now, render the filtered list
+    itemsListDiv.innerHTML = '';
+    if (itemsToDisplay.length === 0) {
+        let message = 'No items found. Please add them in the admin panel.';
+        if (searchQuery) {
+            message = `No items match your search for "${searchQuery}".`;
+        } else if (currentCategory) {
+            message = `No items found in the "${currentCategory}" category.`;
         }
+        itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">${message}</p>`;
+        return;
+    }
+
+    itemsToDisplay.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 transform hover:scale-105 cursor-pointer flex flex-col items-center justify-between text-center aspect-square';
+        card.title = `${item.name}\nPrice: ₹${item.sales}`;
+        const imageUrl = item.image || 'https://placehold.co/400x300?text=No+Image';
+
+        card.innerHTML = `
+            <img src="${imageUrl}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2">
+            <div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div>
+            <div class="font-semibold text-green-600 text-lg mt-auto">₹${parseFloat(item.sales || 0).toFixed(2)}</div>
+        `;
+        card.addEventListener('click', () => addItemToOrder(item));
+        itemsListDiv.appendChild(card);
+    });
+}
         
         function updateTotals() {
             const subtotal = currentOrderItems.reduce((sum, item) => sum + parseFloat(item.sales) * item.qty, 0);
