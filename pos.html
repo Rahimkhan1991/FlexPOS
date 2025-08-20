@@ -301,31 +301,29 @@ let items = [...allItems];
         
         
         
+// This is the new, corrected renderOrder function
 function renderOrder() {
     orderItemsDiv.innerHTML = '';
     if (currentOrderItems.length === 0) {
         orderItemsDiv.innerHTML = '<div class="text-slate-500 text-center">No items added yet.</div>';
     } else {
         currentOrderItems.forEach(item => {
-            const itemTotal = parseFloat(item.sales) * item.qty;
+            const itemTotal = parseFloat(item.sales || 0) * item.qty;
             const div = document.createElement('div');
+            // Use the item's ID if it exists, otherwise fall back to its name
+            const uniqueId = item.id || item.name;
+
             div.className = 'flex items-center justify-between bg-slate-50 rounded-lg p-3 mb-2 shadow-sm';
             div.innerHTML = `
                 <div class="flex-1">
                     <span class="font-semibold text-slate-800">${item.name}</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button data-id="${item.id}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-transform hover:scale-110">
-                        -
-                    </button>
+                    <button data-id="${uniqueId}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-transform hover:scale-110">-</button>
                     <span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span>
-                    <button data-id="${item.id}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-transform hover:scale-110">
-                        +
-                    </button>
+                    <button data-id="${uniqueId}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-transform hover:scale-110">+</button>
                     <span class="font-semibold text-green-600 w-20 text-right">₹${itemTotal.toFixed(2)}</span>
-                    <button data-id="${item.id}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-transform hover:scale-110" aria-label="Remove ${item.name}">
-                        ×
-                    </button>
+                    <button data-id="${uniqueId}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-transform hover:scale-110" aria-label="Remove ${item.name}">×</button>
                 </div>
             `;
             orderItemsDiv.appendChild(div);
