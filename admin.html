@@ -1,486 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Panel</title>
-    <style>
-        :root {
-            --primary-bg: #f1f5f9;
-            --sidebar-bg: #1e293b;
-            --sidebar-text: #f8fafc;
-            --accent-color: #4f46e5;
-            --accent-hover: #4338ca;
-            --panel-bg: #ffffff;
-            --border-color: #e2e8f0;
-            --danger-color: #ef4444;
-            --danger-hover: #dc2626;
-            --success-color: #10b981;
-        }
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            display: flex;
-            height: 100vh;
-            background: var(--primary-bg);
-            font-size: 14px;
-        }
-        .sidebar {
-            width: 240px;
-            background: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            flex-shrink: 0;
-        }
-        .sidebar h2 {
-            font-size: 22px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        .sidebar .nav-button {
-            margin-bottom: 10px;
-            padding: 12px 15px;
-            width: 100%;
-            background: #334155;
-            color: var(--sidebar-text);
-            border: none;
-            cursor: pointer;
-            text-align: left;
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: background-color 0.2s;
-        }
-        .sidebar .nav-button:hover {
-            background: #475569;
-        }
-        .sidebar .nav-button.active {
-            background: var(--accent-color);
-        }
-        .sidebar .pos-link {
-            margin-top: auto;
-            background: var(--success-color);
-        }
-        .main-panel {
-            flex: 1;
-            padding: 25px;
-            overflow-y: auto;
-        }
-        .form-section {
-            margin-bottom: 25px;
-            background: var(--panel-bg);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-        .form-section h3 {
-            margin-top: 0;
-            font-size: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-        .form-section input,
-        .form-section select,
-        .form-section textarea {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-family: inherit;
-            font-size: 1rem;
-        }
-        .form-section .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        .form-section button.add-btn {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: background-color 0.2s;
-        }
-        .form-section button.add-btn:hover {
-            background: var(--accent-hover);
-        }
-        .data-preview {
-            margin-top: 25px;
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        .data-preview h4 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-        }
-        .data-preview ul {
-            list-style-type: none;
-            padding-left: 0;
-            margin: 0;
-            max-height: 350px;
-            overflow-y: auto;
-        }
-        .data-preview li {
-            border-bottom: 1px solid var(--border-color);
-            padding: 10px 5px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-        }
-        .data-preview li:last-child {
-            border-bottom: none;
-        }
-        .data-preview .item-details {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .data-preview img {
-            width: 45px;
-            height: 45px;
-            object-fit: cover;
-            border-radius: 6px;
-            background: #e2e8f0;
-        }
-        .no-data {
-            color: #64748b;
-            font-style: italic;
-            padding: 10px 0;
-        }
-        .delete-btn {
-            background: var(--danger-color);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1rem;
-            line-height: 28px;
-            text-align: center;
-            transition: background-color 0.2s;
-            flex-shrink: 0;
-        }
-        .delete-btn:hover {
-            background: var(--danger-hover);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
-<body>
-    <div class="sidebar">
-        <h2>Admin Panel</h2>
-        <button class="nav-button active" onclick="showSection(event, 'items')">Items</button>
-        <button class="nav-button" onclick="showSection(event, 'categories')">Categories</button>
-        <button class="nav-button" onclick="showSection(event, 'tables')">Tables</button>
-        <button class="nav-button" onclick="showSection(event, 'kitchens')">Kitchens</button>
-        <button class="nav-button" onclick="showSection(event, 'users')">Users</button>
-        <button class="nav-button pos-link" onclick="window.location.href='pos.html'">Go to POS</button>
+<body class="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 min-h-screen flex flex-col">
+
+  <!-- Topbar -->
+<header class="bg-white shadow-md p-4 flex justify-between items-center">
+    <div>
+      <h1 class="text-xl font-bold">Admin Panel</h1>
+      <p class="text-sm text-slate-400">Manage system settings & configurations</p>
+       <p class="text-sm" id="dateTime">Loading date & time...</p>
     </div>
-
-    <div class="main-panel">
-        <div id="items" class="form-section">
-            <h3>Manage Items</h3>
-            <div class="form-grid">
-                <input type="text" id="itemName" placeholder="Item Name" />
-                <input type="number" step="0.01" id="itemPrice" placeholder="Item Price" />
-                <select id="itemCategory"></select>
-                <select id="itemKitchen"></select>
-            </div>
-            <textarea id="itemDescription" placeholder="Item Description" rows="3"></textarea>
-            <label for="itemImage">Item Image:</label>
-            <input type="file" id="itemImage" accept="image/*" />
-            <button class="add-btn" onclick="addItem()">Add Item</button>
-
-            <div class="data-preview">
-                <h4>Current Items</h4>
-                <ul id="itemList"></ul>
-            </div>
-        </div>
-
-        <div id="categories" class="form-section" style="display:none">
-            <h3>Manage Categories</h3>
-            <input type="text" id="categoryName" placeholder="New Category Name" />
-            <button class="add-btn" onclick="addCategory()">Add Category</button>
-            <div class="data-preview">
-                <h4>Current Categories</h4>
-                <ul id="categoryList"></ul>
-            </div>
-        </div>
-
-        <div id="tables" class="form-section" style="display:none">
-            <h3>Manage Tables</h3>
-            <input type="text" id="tableName" placeholder="New Table Name (e.g., Table 6, VIP Lounge)" />
-            <button class="add-btn" onclick="addTable()">Add Table</button>
-            <div class="data-preview">
-                <h4>Current Tables</h4>
-                <ul id="tableList"></ul>
-            </div>
-        </div>
-
-        <div id="kitchens" class="form-section" style="display:none">
-            <h3>Manage Kitchens</h3>
-            <input type="text" id="kitchenName" placeholder="New Kitchen Name (e.g., Main Kitchen, Bar)" />
-            <button class="add-btn" onclick="addKitchen()">Add Kitchen</button>
-            <div class="data-preview">
-                <h4>Current Kitchens</h4>
-                <ul id="kitchenList"></ul>
-            </div>
-        </div>
-
-        <div id="users" class="form-section" style="display:none">
-            <h3>Manage Users</h3>
-            <input type="text" id="userName" placeholder="Username" />
-            <select id="userRole">
-                <option value="cashier">Cashier</option>
-                <option value="admin">Admin</option>
-            </select>
-            <button class="add-btn" onclick="addUser()">Add User</button>
-            <div class="data-preview">
-                <h4>Current Users</h4>
-                <ul id="userList"></ul>
-            </div>
-        </div>
+    
+    <div class="flex items-center space-x-3">
+      <span id="loggedUser" class="text-gray-700 font-semibold">User: Admin</span>
+      
+      <img src="https://i.pravatar.cc/40" alt="Profile" class="w-10 h-10 rounded-full border-2 border-purple-400">
+      
     </div>
+    </div>
+  </header>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
+  <!-- Main Content -->
+  <main class="flex-1 flex items-center justify-center p-6">
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-6 w-full max-w-5xl">
 
-            // --- DATA HELPERS ---
-            const getData = key => JSON.parse(localStorage.getItem(key) || '[]');
-            const setData = (key, data) => localStorage.setItem(key, JSON.stringify(data));
+      <!-- Item Creation -->
+      <a href="#" class="bg-white shadow-md p-6 rounded-2xl
+            shadow-lg flex flex-col items-center text-center transition">
+        <i class="fas fa-burger text-4xl text-yellow-400 mb-4"></i>
+        <h2 class="font-semibold text-lg">Item Creation</h2>
+        <p class="text-sm text-slate-400">Add or manage menu items</p>
+      </a>
 
-            // --- UI & TAB SWITCHING ---
-            window.showSection = function(event, id) {
-                document.querySelectorAll('.form-section').forEach(sec => sec.style.display = 'none');
-                document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
-                document.getElementById(id).style.display = 'block';
-                event.currentTarget.classList.add('active');
-            }
+      <!-- Category Creation -->
+      <a href="#" class="bg-white shadow-md p-6 rounded-2xl shadow-lg flex flex-col items-center text-center transition">
+        <i class="fas fa-list text-4xl text-green-400 mb-4"></i>
+        <h2 class="font-semibold text-lg">Category Creation</h2>
+        <p class="text-sm text-slate-400">Organize items by category</p>
+      </a>
 
-            // --- GENERIC ADD/RENDER/DELETE for simple lists (Categories, Tables, Kitchens) ---
-            function setupSimpleListManagement(config) {
-                const { key, nameInputId, listId, entityName } = config;
+      <!-- Table Creation -->
+      <a href="#" class="bg-white shadow-md p-6 rounded-2xl shadow-lg flex flex-col items-center text-center transition">
+        <i class="fas fa-chair text-4xl text-indigo-400 mb-4"></i>
+        <h2 class="font-semibold text-lg">Table Creation</h2>
+        <p class="text-sm text-slate-400">Setup dining tables</p>
+      </a>
 
-                window[`add${entityName}`] = function() {
-                    const nameInput = document.getElementById(nameInputId);
-                    const name = nameInput.value.trim();
-                    if (!name) return alert(`Please enter a ${entityName.toLowerCase()} name.`);
+      <!-- Kitchen Creation -->
+      <a href="#" class="bg-white shadow-md p-6 rounded-2xl shadow-lg flex flex-col items-center text-center transition">
+        <i class="fas fa-utensils text-4xl text-red-400 mb-4"></i>
+        <h2 class="font-semibold text-lg">Kitchen Creation</h2>
+        <p class="text-sm text-slate-400">Assign items to kitchens</p>
+      </a>
 
-                    let data = getData(key);
-                    if (data.find(item => item.toLowerCase() === name.toLowerCase())) {
-                        return alert(`${entityName} already exists!`);
-                    }
-                    data.push(name);
-                    setData(key, data);
-                    renderSimpleList();
-                    if (config.onAdd) config.onAdd();
-                    nameInput.value = '';
-                }
+      <!-- User Management -->
+      <a href="#" class="bg-white shadow-md p-6 rounded-2xl shadow-lg flex flex-col items-center text-center transition">
+        <i class="fas fa-users-cog text-4xl text-teal-400 mb-4"></i>
+        <h2 class="font-semibold text-lg">User Management</h2>
+        <p class="text-sm text-slate-400">Create and manage system users</p>
+      </a>
 
-                function renderSimpleList() {
-                    const list = document.getElementById(listId);
-                    list.innerHTML = '';
-                    const data = getData(key);
-                    if (data.length === 0) {
-                        list.innerHTML = `<li class="no-data">No ${entityName.toLowerCase()}s added yet.</li>`;
-                        return;
-                    }
-                    data.forEach(item => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `<span>${item}</span><button class="delete-btn" data-name="${item}">&times;</button>`;
-                        list.appendChild(li);
-                    });
-                }
-                
-                document.getElementById(listId).addEventListener('click', function(event) {
-                    if (event.target.classList.contains('delete-btn')) {
-                        const name = event.target.dataset.name;
-                        if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
-                            // FIXED: Added a safety check to prevent deletion of in-use categories/kitchens
-                            if (config.isInUse && config.isInUse(name)) {
-                                return alert(`Cannot delete "${name}" because it is currently assigned to one or more items.`);
-                            }
-                            let data = getData(key);
-                            data = data.filter(item => item !== name);
-                            setData(key, data);
-                            renderSimpleList();
-                            if (config.onDelete) config.onDelete();
-                        }
-                    }
-                });
-                
-                renderSimpleList();
-                return renderSimpleList;
-            }
+      <!-- Settings -->
+      <a href="#" class="bg-white shadow-md p-6 rounded-2xl shadow-lg flex flex-col items-center text-center transition">
+        <i class="fas fa-cogs text-4xl text-orange-400 mb-4"></i>
+        <h2 class="font-semibold text-lg">System Settings</h2>
+        <p class="text-sm text-slate-400">Currency, taxes, branding</p>
+      </a>
 
-            const isCategoryInUse = name => getData('items').some(item => item.category === name);
-            const isKitchenInUse = name => getData('items').some(item => item.kitchen === name);
+      <!-- Backup -->
+      <a href="#" class="bg-white shadow-md p-6 rounded-2xl shadow-lg flex flex-col items-center text-center transition">
+        <i class="fas fa-database text-4xl text-purple-400 mb-4"></i>
+        <h2 class="font-semibold text-lg">Data Backup</h2>
+        <p class="text-sm text-slate-400">Save all data securely</p>
+      </a>
 
-            setupSimpleListManagement({ key: 'categories', nameInputId: 'categoryName', listId: 'categoryList', entityName: 'Category', onAdd: loadCategoryOptions, onDelete: loadCategoryOptions, isInUse: isCategoryInUse });
-            setupSimpleListManagement({ key: 'tables', nameInputId: 'tableName', listId: 'tableList', entityName: 'Table' });
-            setupSimpleListManagement({ key: 'kitchens', nameInputId: 'kitchenName', listId: 'kitchenList', entityName: 'Kitchen', onAdd: loadKitchenOptions, onDelete: loadKitchenOptions, isInUse: isKitchenInUse });
+      <!-- Restore -->
+      <a href="#" class="bg-white shadow-md p-6 rounded-2xl shadow-lg flex flex-col items-center text-center transition">
+        <i class="fas fa-upload text-4xl text-pink-400 mb-4"></i>
+        <h2 class="font-semibold text-lg">Data Restore</h2>
+        <p class="text-sm text-slate-400">Recover saved data</p>
+      </a>
 
-            // --- ITEM MANAGEMENT ---
-            window.addItem = function() {
-                const name = document.getElementById('itemName').value.trim();
-                const price = parseFloat(document.getElementById('itemPrice').value);
-                const category = document.getElementById('itemCategory').value;
-                const kitchen = document.getElementById('itemKitchen').value;
-                const description = document.getElementById('itemDescription').value.trim();
-                const imageInput = document.getElementById('itemImage');
+    </div>
+  </main>
 
-                if (!name || isNaN(price) || !category) return alert('Please fill in Item Name, Price, and Category.');
+  <!-- Footer -->
+  <footer class="bg-white shadow-md text-center text-sm text-slate-500 py-3">
+    © 2025 POS System | Admin Panel
+  </footer>
 
-                const items = getData('items');
-                if (items.find(i => i.name.toLowerCase() === name.toLowerCase() && i.category === category)) {
-                    return alert('An item with the same name already exists in this category.');
-                }
-                
-                const file = imageInput.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = e => saveItem({ name, price, category, kitchen, description, image: e.target.result });
-                    reader.readAsDataURL(file);
-                } else {
-                    saveItem({ name, price, category, kitchen, description, image: null });
-                }
-            }
-
-            function saveItem(newItemData) {
-                const items = getData('items');
-                newItemData.id = Date.now();
-                items.push(newItemData);
-                setData('items', items);
-                renderItems();
-                clearItemForm();
-            }
-
-            function renderItems() {
-                const list = document.getElementById('itemList');
-                const items = getData('items');
-                list.innerHTML = '';
-                if (items.length === 0) {
-                    list.innerHTML = '<li class="no-data">No items added yet.</li>';
-                    return;
-                }
-                items.forEach(item => {
-                    const li = document.createElement('li');
-                    const imgSrc = item.image || 'https://placehold.co/45x45/e2e8f0/64748b?text=N/A';
-                    li.innerHTML = `
-                        <div class="item-details">
-                            <img src="${imgSrc}" alt="${item.name}">
-                            <div>
-                                <strong>${item.name}</strong> (₹${item.price.toFixed(2)})<br>
-                                <small><em>Category: ${item.category} | Kitchen: ${item.kitchen || 'N/A'}</em></small>
-                            </div>
-                        </div>
-                        <button class="delete-btn" data-id="${item.id}">&times;</button>
-                    `;
-                    list.appendChild(li);
-                });
-            }
-
-            document.getElementById('itemList').addEventListener('click', function(event) {
-                if (event.target.classList.contains('delete-btn')) {
-                    const id = parseInt(event.target.dataset.id);
-                    if (window.confirm(`Are you sure you want to delete this item?`)) {
-                        let items = getData('items');
-                        items = items.filter(item => item.id !== id);
-                        setData('items', items);
-                        renderItems();
-                    }
-                }
-            });
-            
-            function clearItemForm() {
-                document.getElementById('itemName').value = '';
-                document.getElementById('itemPrice').value = '';
-                document.getElementById('itemCategory').value = '';
-                document.getElementById('itemKitchen').value = '';
-                document.getElementById('itemDescription').value = '';
-                document.getElementById('itemImage').value = null;
-            }
-            
-            function loadCategoryOptions() {
-                const select = document.getElementById('itemCategory');
-                select.innerHTML = '<option value="">Select Category</option>';
-                getData('categories').forEach(cat => select.innerHTML += `<option value="${cat}">${cat}</option>`);
-            }
-
-            function loadKitchenOptions() {
-                const select = document.getElementById('itemKitchen');
-                select.innerHTML = '<option value="">Select Kitchen</option>';
-                getData('kitchens').forEach(kit => select.innerHTML += `<option value="${kit}">${kit}</option>`);
-            }
-            
-            // --- USER MANAGEMENT --- (unique implementation)
-            function renderUsers() {
-                const list = document.getElementById('userList');
-                const users = getData('users');
-                list.innerHTML = '';
-                if (users.length === 0) {
-                    list.innerHTML = '<li class="no-data">No users added yet.</li>';
-                    return;
-                }
-                users.forEach(user => {
-                    const li = document.createElement('li');
-                    // FIXED: Ensure the delete button has the data-name attribute
-                    li.innerHTML = `<span>${user.name} (<b>${user.role}</b>)</span><button class="delete-btn" data-name="${user.name}">&times;</button>`;
-                    list.appendChild(li);
-                });
-            }
-
-            window.addUser = function() {
-                const nameInput = document.getElementById('userName');
-                const name = nameInput.value.trim();
-                const role = document.getElementById('userRole').value;
-                if (!name) return alert('Please enter a username.');
-
-                let users = getData('users');
-                // FIXED: Changed to case-insensitive check
-                if (users.find(u => u.name.toLowerCase() === name.toLowerCase())) {
-                    return alert('Username already exists!');
-                }
-                users.push({ name, role });
-                setData('users', users);
-                renderUsers();
-                nameInput.value = '';
-            }
-
-            document.getElementById('userList').addEventListener('click', function(event) {
-                if (event.target.classList.contains('delete-btn')) {
-                    const name = event.target.dataset.name;
-                    if (window.confirm(`Are you sure you want to delete user "${name}"?`)) {
-                        let users = getData('users');
-                        users = users.filter(user => user.name !== name);
-                        setData('users', users);
-                        renderUsers();
-                    }
-                }
-            });
-
-
-            // --- INITIAL LOAD ---
-            renderItems();
-            renderUsers();
-            loadCategoryOptions();
-            loadKitchenOptions();
-        });
-    </script>
+  <script>
+    function updateDateTime() {
+      const now = new Date();
+      document.getElementById('dateTime').textContent = now.toLocaleString();
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+  </script>
 </body>
 </html>
