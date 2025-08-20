@@ -44,6 +44,7 @@
   </div>
 
   <script>
+    // Categories are now stored as an array of objects: [{name: 'CategoryName'}]
     let categories = JSON.parse(localStorage.getItem('categories') || '[]');
     const categoryListDiv = document.getElementById('categoryList');
     const categoryForm = document.getElementById('categoryForm');
@@ -59,7 +60,8 @@
         const card = document.createElement('div');
         card.className = 'bg-gray-50 rounded-xl shadow p-4 flex justify-between items-center';
         card.innerHTML = `
-          <span class="font-semibold text-gray-700">${cat}</span>
+          // Use cat.name to display the name from the object
+          <span class="font-semibold text-gray-700">${cat.name}</span>
           <div class="flex gap-2">
             <button class="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600" onclick="editCategory(${index})">Edit</button>
             <button class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600" onclick="deleteCategory(${index})">Delete</button>
@@ -70,13 +72,15 @@
     }
 
     function editCategory(index) {
-      document.getElementById('categoryName').value = categories[index];
+      // Use cat.name to get the name for editing
+      document.getElementById('categoryName').value = categories[index].name;
       categoryForm.dataset.editIndex = index;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function deleteCategory(index) {
-      if (confirm('Are you sure you want to delete this category?')) {
+      const categoryNameToDelete = categories[index].name;
+      if (confirm(`Are you sure you want to delete "${categoryNameToDelete}"?`)) {
         categories.splice(index, 1);
         localStorage.setItem('categories', JSON.stringify(categories));
         renderCategories();
@@ -89,15 +93,19 @@
       if (!nameInput) return;
 
       const editIndex = categoryForm.dataset.editIndex;
-      if (editIndex !== undefined) {
-        categories[editIndex] = nameInput;
-        delete categoryForm.dataset.editIndex;
+
+      if (editIndex !== undefined && editIndex !== '') {
+        // Update the name property of the existing object
+        categories[editIndex].name = nameInput;
+        categoryForm.removeAttribute('data-edit-index');
       } else {
-        if (categories.includes(nameInput)) {
+        // Check if a category with this name already exists
+        if (categories.some(cat => cat.name.toLowerCase() === nameInput.toLowerCase())) {
           alert('Category already exists!');
           return;
         }
-        categories.push(nameInput);
+        // Push a new object to the array
+        categories.push({ name: nameInput });
       }
 
       localStorage.setItem('categories', JSON.stringify(categories));
