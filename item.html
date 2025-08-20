@@ -9,53 +9,44 @@
 <body class="bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen p-6">
 
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-auto p-8">
-    <!-- Header -->
     <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Add New Item</h2>
 
-    <!-- Item Form -->
     <form id="itemForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <input type="hidden" id="editIndex" value="">
       
-      <!-- Item Name -->
       <div>
         <label class="block text-gray-700 font-medium mb-2">Item Name</label>
         <input id="itemName" type="text" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:outline-none" placeholder="Enter item name" required>
       </div>
 
-      <!-- Category -->
       <div>
         <label class="block text-gray-700 font-medium mb-2">Category</label>
         <select id="itemCategory" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:outline-none">
         </select>
       </div>
 
-      <!-- Kitchen -->
       <div>
         <label class="block text-gray-700 font-medium mb-2">Kitchen</label>
         <select id="itemKitchen" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:outline-none">
         </select>
       </div>
 
-      <!-- Sales Price -->
       <div>
         <label class="block text-gray-700 font-medium mb-2">Sales Price</label>
         <input id="salesPrice" type="number" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:outline-none" placeholder="Enter sales price">
       </div>
 
-      <!-- Purchase Price -->
       <div>
         <label class="block text-gray-700 font-medium mb-2">Purchase Price</label>
         <input id="purchasePrice" type="number" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:outline-none" placeholder="Enter purchase price">
       </div>
 
-      <!-- Image Upload -->
       <div class="md:col-span-2">
         <label class="block text-gray-700 font-medium mb-2">Upload Item Image</label>
         <input type="file" id="itemImage" accept="image/*" class="w-full p-2 border border-gray-300 rounded-xl">
         <div id="preview" class="mt-3"></div>
       </div>
 
-      <!-- Buttons -->
       <div class="md:col-span-2 flex justify-center gap-4 mt-6">
         <button type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold shadow-md transition">Save Item</button>
         <button type="reset" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-xl font-semibold shadow-md transition">Reset</button>
@@ -63,7 +54,6 @@
     </form>
   </div>
 
-  <!-- Item List -->
   <div class="bg-white rounded-2xl shadow-xl w-full max-w-5xl mx-auto p-8 mt-8">
     <h2 class="text-xl font-bold text-gray-800 mb-6 text-center">Items List</h2>
     <div id="itemsList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
@@ -126,24 +116,34 @@
       const imageFile = document.getElementById('itemImage').files[0];
       const editIndex = document.getElementById('editIndex').value;
 
+      // If a new image is selected, read it as a Data URL.
       if (imageFile) {
         const reader = new FileReader();
         reader.onload = function(event) {
           saveItem(itemName, itemCategory, itemKitchen, salesPrice, purchasePrice, event.target.result, editIndex);
         };
         reader.readAsDataURL(imageFile);
-      } else {
-        saveItem(itemName, itemCategory, itemKitchen, salesPrice, purchasePrice, null, editIndex);
+      } 
+      // If no new image is selected...
+      else {
+        // ...check if we are editing an existing item.
+        // If so, use its current image. Otherwise, it's a new item with no image.
+        const existingImage = (editIndex !== '' && items[editIndex]) ? items[editIndex].image : null;
+        saveItem(itemName, itemCategory, itemKitchen, salesPrice, purchasePrice, existingImage, editIndex);
       }
     });
 
     function saveItem(name, category, kitchen, sales, purchase, image, index) {
-      const newItem = { name, category, kitchen, sales, purchase, image };
+      const itemData = { name, category, kitchen, sales, purchase, image };
 
-      if (index) {
-        items[index] = newItem;
-      } else {
-        items.push(newItem);
+      // If an index is provided, it's an update.
+      if (index !== '' && items[index]) {
+        // Safely update the existing item by merging new data
+        items[index] = Object.assign(items[index], itemData);
+      } 
+      // Otherwise, it's a new item.
+      else {
+        items.push(itemData);
       }
 
       localStorage.setItem('items', JSON.stringify(items));
@@ -213,6 +213,16 @@
       document.getElementById('salesPrice').value = item.sales;
       document.getElementById('purchasePrice').value = item.purchase;
       document.getElementById('editIndex').value = index;
+      
+      // Show the existing image in the preview
+      preview.innerHTML = '';
+      if (item.image) {
+        const img = document.createElement('img');
+        img.src = item.image;
+        img.className = "w-32 h-32 object-cover rounded-xl shadow-md border";
+        preview.appendChild(img);
+      }
+      
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
