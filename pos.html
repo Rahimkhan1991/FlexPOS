@@ -299,26 +299,7 @@ let items = [...allItems];
             categoryButtonsDiv.appendChild(dashboardBtn);
         }
         
-        function renderItems() {
-            const filteredItems = items.filter(i => i.category === currentCategory);
-            itemsListDiv.innerHTML = '';
-            if (filteredItems.length === 0) {
-                itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">No items found in the "${currentCategory}" category.</p>`;
-                return;
-            }
-            filteredItems.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 transform hover:scale-105 cursor-pointer flex flex-col items-center justify-between text-center aspect-square';
-                card.title = `${item.name}\nPrice: ₹${item.sales}`;
-                card.innerHTML = `
-                    <img src="${item.image}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2">
-                    <div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div>
-                    <div class="font-semibold text-green-600 text-lg mt-auto">₹${parseFloat(item.sales).toFixed(2)}</div>
-                `;
-                card.addEventListener('click', () => addItemToOrder(item));
-                itemsListDiv.appendChild(card);
-            });
-        }
+        
         
 function renderOrder() {
     orderItemsDiv.innerHTML = '';
@@ -517,9 +498,11 @@ function renderItems() {
         printBillBtn.addEventListener('click', printBill);
         printKotBtn.addEventListener('click', printKot);
         
-        itemSearchInput.addEventListener('input', (event) => {
-            filterItems(event.target.value);
-        });
+       // This is the corrected event listener
+itemSearchInput.addEventListener('input', () => {
+    // Now it calls the correct function
+    renderItems(); 
+});
         
         // NEW: Payment button listeners
         cashBtn.addEventListener('click', () => {
