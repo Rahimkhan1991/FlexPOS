@@ -59,38 +59,32 @@
     <div id="itemsList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
   </div>
 
-  <script>
+ <script>
     let items = JSON.parse(localStorage.getItem('items')) || [];
 
     // Fetch categories and kitchens from localStorage
-    let categories = JSON.parse(localStorage.getItem('categories')) || ['Starters', 'Main Course', 'Desserts', 'Beverages'];
-    let kitchens = JSON.parse(localStorage.getItem('kitchens')) || ['Kitchen 1', 'Kitchen 2', 'Kitchen 3'];
-
-    // Store default categories/kitchens if empty
-    localStorage.setItem('categories', JSON.stringify(categories));
-    localStorage.setItem('kitchens', JSON.stringify(kitchens));
+    let categories = JSON.parse(localStorage.getItem('categories')) || [];
+    let kitchens = JSON.parse(localStorage.getItem('kitchens')) || [];
 
     // Populate Category select
-const categorySelect = document.getElementById('itemCategory');
-categorySelect.innerHTML = '<option>Select Category</option>';
-categories.forEach(cat => {
-  const option = document.createElement('option');
-  // Use the .name property from the category object
-  option.value = cat.name;
-  option.textContent = cat.name;
-  categorySelect.appendChild(option);
-});
+    const categorySelect = document.getElementById('itemCategory');
+    categorySelect.innerHTML = '<option>Select Category</option>';
+    categories.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat.name;
+      option.textContent = cat.name;
+      categorySelect.appendChild(option);
+    });
 
-  // Populate Kitchen select
-const kitchenSelect = document.getElementById('itemKitchen');
-kitchenSelect.innerHTML = '<option>Select Kitchen</option>';
-kitchens.forEach(k => {
-  const option = document.createElement('option');
-  // Use the .name property from the kitchen object
-  option.value = k.name; 
-  option.textContent = k.name;
-  kitchenSelect.appendChild(option);
-});
+    // Populate Kitchen select
+    const kitchenSelect = document.getElementById('itemKitchen');
+    kitchenSelect.innerHTML = '<option>Select Kitchen</option>';
+    kitchens.forEach(k => {
+      const option = document.createElement('option');
+      option.value = k.name;
+      option.textContent = k.name;
+      kitchenSelect.appendChild(option);
+    });
 
     // Image Preview
     const itemImage = document.getElementById('itemImage');
@@ -118,7 +112,6 @@ kitchens.forEach(k => {
       const imageFile = document.getElementById('itemImage').files[0];
       const editIndex = document.getElementById('editIndex').value;
 
-      // If a new image is selected, read it as a Data URL.
       if (imageFile) {
         const reader = new FileReader();
         reader.onload = function(event) {
@@ -126,10 +119,7 @@ kitchens.forEach(k => {
         };
         reader.readAsDataURL(imageFile);
       } 
-      // If no new image is selected...
       else {
-        // ...check if we are editing an existing item.
-        // If so, use its current image. Otherwise, it's a new item with no image.
         const existingImage = (editIndex !== '' && items[editIndex]) ? items[editIndex].image : null;
         saveItem(itemName, itemCategory, itemKitchen, salesPrice, purchasePrice, existingImage, editIndex);
       }
@@ -138,13 +128,13 @@ kitchens.forEach(k => {
     function saveItem(name, category, kitchen, sales, purchase, image, index) {
       const itemData = { name, category, kitchen, sales, purchase, image };
 
-      // If an index is provided, it's an update.
       if (index !== '' && items[index]) {
-        // Safely update the existing item by merging new data
+        // This is an update, so we preserve the existing ID
         items[index] = Object.assign(items[index], itemData);
       } 
-      // Otherwise, it's a new item.
       else {
+        // This is a new item, so we add a unique ID
+        itemData.id = Date.now(); 
         items.push(itemData);
       }
 
@@ -161,7 +151,7 @@ kitchens.forEach(k => {
       listDiv.innerHTML = '';
 
       if (items.length === 0) {
-        listDiv.innerHTML = '<p class="text-gray-500">No items created yet.</p>';
+        listDiv.innerHTML = '<p class="text-gray-500 col-span-full text-center">No items created yet.</p>';
         return;
       }
 
@@ -199,9 +189,7 @@ kitchens.forEach(k => {
 
         btnDiv.appendChild(editBtn);
         btnDiv.appendChild(delBtn);
-
         card.appendChild(btnDiv);
-
         listDiv.appendChild(card);
       });
     }
@@ -216,7 +204,6 @@ kitchens.forEach(k => {
       document.getElementById('purchasePrice').value = item.purchase;
       document.getElementById('editIndex').value = index;
       
-      // Show the existing image in the preview
       preview.innerHTML = '';
       if (item.image) {
         const img = document.createElement('img');
@@ -239,6 +226,6 @@ kitchens.forEach(k => {
 
     // Initial render
     renderItems();
-  </script>
+</script>
 </body>
 </html>
