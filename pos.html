@@ -372,7 +372,7 @@ function renderItems() {
     // Get the current search query from the input box
     const searchQuery = itemSearchInput.value.toLowerCase();
 
-    // If there is a search query, filter by item name
+    // If there is a search query, filter ONLY by item name
     if (searchQuery) {
         currentCategory = ''; // De-select any category while searching
         itemsToDisplay = itemsToDisplay.filter(item =>
