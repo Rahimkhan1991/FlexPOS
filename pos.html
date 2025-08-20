@@ -414,22 +414,34 @@ function renderOrder() {
         function saveOrder() {
             showAlert('Order saved successfully!', 'Saved');
         }
-        function printBill() {
-    // Optional: show alert for feedback
-    showAlert('Printing bill...', 'Printing');
+ function printBill() {
+    if (currentOrderItems.length === 0) {
+        return showAlert('No items to print.', 'Error');
+    }
 
-    // Get printer size from settings
-    const printerSize = localStorage.getItem('printerSize') || '80'; // default 80mm
+    // Save current order to localStorage
+    const orderData = {
+        table: tableSelect.value,
+        items: currentOrderItems,
+        subtotal: parseFloat(subtotalSpan.textContent),
+        discount: parseFloat(discountInput.value),
+        serviceCharge: parseFloat(serviceChargeInput.value),
+        tax: parseFloat(taxSpan.textContent),
+        total: parseFloat(totalSpan.textContent),
+        paymentMethod: paymentMethod,
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString(),
+    };
+    localStorage.setItem('currentPrintOrder', JSON.stringify(orderData));
 
-    // Open the correct receipt/bill HTML
+    const printerSize = localStorage.getItem('printerSize') || '80'; 
     if (printerSize === '80') {
         window.open('receipt-80mm.html', '_blank');
     } else if (printerSize === '57') {
         window.open('receipt-57mm.html', '_blank');
-    } else {
-        console.error('Invalid printer size selected!');
     }
 }
+
 
         function printKot() {
     showAlert('Printing Kitchen Order Ticket...', 'Printing');
