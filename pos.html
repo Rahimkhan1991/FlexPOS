@@ -89,7 +89,7 @@
 </head>
 <body class="bg-slate-100">
     <header class="flex items-center justify-between p-4 md:p-8 bg-white shadow-sm">
-        <h1 class="text-3xl font-bold text-slate-800">POS Billing</h1>
+        <h1 id="shopNameHeader" class="text-3xl font-bold text-slate-800">POS Billing</h1>
         <button id="toggleCategoriesBtn" class="bg-indigo-500 text-white p-3 rounded-lg flex items-center shadow-md transition-transform transform hover:scale-105 lg:hidden">
             <i class="fas fa-bars mr-2"></i> Categories
         </button>
@@ -551,6 +551,10 @@ orderItemsDiv.addEventListener('click', (event) => {
         
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
+               const shopName = localStorage.getItem('shopName');
+    if (shopName) {
+        document.getElementById('shopNameHeader').textContent = shopName;
+    }
             renderCategories();
             renderItems();
             renderOrder();
