@@ -48,73 +48,58 @@
   </div>
 
   <script>
-    let kitchens = JSON.parse(localStorage.getItem('kitchens') || '[]');
-    const kitchenListDiv = document.getElementById('kitchenList');
-    const kitchenForm = document.getElementById('kitchenForm');
+  // Fetch kitchens from localStorage
+  let kitchens = JSON.parse(localStorage.getItem('kitchens') || '[]');
 
-    function renderKitchens() {
-      kitchenListDiv.innerHTML = '';
-      if (kitchens.length === 0) {
-        kitchenListDiv.innerHTML = '<p class="text-gray-500 text-center">No kitchens added yet.</p>';
-        return;
-      }
+  const kitchenListDiv = document.getElementById('kitchenList');
 
-      kitchens.forEach((k, index) => {
-        const card = document.createElement('div');
-        card.className = 'bg-gray-50 rounded-xl shadow p-4 flex justify-between items-center';
-        card.innerHTML = `
-          <div>
-            <span class="font-semibold text-gray-700">${k.name}</span>
-            <p class="text-sm text-gray-500">${k.desc || ''}</p>
-          </div>
-          <div class="flex gap-2">
-            <button class="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600" onclick="editKitchen(${index})">Edit</button>
-            <button class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600" onclick="deleteKitchen(${index})">Delete</button>
-          </div>
-        `;
-        kitchenListDiv.appendChild(card);
-      });
+  function renderKitchens() {
+    kitchenListDiv.innerHTML = '';
+
+    if (kitchens.length === 0) {
+      kitchenListDiv.innerHTML = '<p class="text-gray-500 text-center">No kitchens added yet.</p>';
+      return;
     }
 
-    function editKitchen(index) {
-      const k = kitchens[index];
-      document.getElementById('kitchenName').value = k.name;
-      document.getElementById('kitchenDesc').value = k.desc || '';
-      kitchenForm.dataset.editIndex = index;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function deleteKitchen(index) {
-      if (confirm('Are you sure you want to delete this kitchen?')) {
-        kitchens.splice(index, 1);
-        localStorage.setItem('kitchens', JSON.stringify(kitchens));
-        renderKitchens();
-      }
-    }
-
-    kitchenForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const name = document.getElementById('kitchenName').value.trim();
-      const desc = document.getElementById('kitchenDesc').value.trim();
-
-      if (!name) return;
-
-      const editIndex = kitchenForm.dataset.editIndex;
-      if (editIndex !== undefined) {
-        kitchens[editIndex] = { name, desc };
-        delete kitchenForm.dataset.editIndex;
-      } else {
-        kitchens.push({ name, desc });
-      }
-
-      localStorage.setItem('kitchens', JSON.stringify(kitchens));
-      kitchenForm.reset();
-      renderKitchens();
+    kitchens.forEach((k, index) => {
+      const card = document.createElement('div');
+      card.className = 'bg-gray-50 rounded-xl shadow p-4 flex justify-between items-center';
+      card.innerHTML = `
+        <div>
+          <span class="font-semibold text-gray-700">${k.name || "Unnamed Kitchen"}</span>
+          <p class="text-sm text-gray-500">${k.desc || ''}</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600" onclick="editKitchen(${index})">Edit</button>
+          <button class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600" onclick="deleteKitchen(${index})">Delete</button>
+        </div>
+      `;
+      kitchenListDiv.appendChild(card);
     });
+  }
 
-    // Initial render
-    renderKitchens();
-  </script>
+  // Edit kitchen
+  function editKitchen(index) {
+    const k = kitchens[index];
+    document.getElementById('kitchenName').value = k.name;
+    document.getElementById('kitchenDesc').value = k.desc || '';
+    kitchenForm.dataset.editIndex = index;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Delete kitchen
+  function deleteKitchen(index) {
+    if (confirm('Are you sure you want to delete this kitchen?')) {
+      kitchens.splice(index, 1);
+      localStorage.setItem('kitchens', JSON.stringify(kitchens));
+      renderKitchens();
+    }
+  }
+
+  // Initial render
+  renderKitchens();
+</script>
+
 
 </body>
 </html>
