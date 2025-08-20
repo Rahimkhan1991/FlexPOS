@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Receipt 57mm</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<style>
+    body { font-family: monospace; white-space: pre; text-align: center; }
+    .receipt { display: inline-block; text-align: left; border: 1px dashed #000; padding: 10px; width: 180px; }
+    .qr { margin-top: 8px; text-align: center; }
+    .footer { margin-top: 6px; font-size: 10px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="receipt" id="receipt">
+    [Logo Here]
+
+    My Shop Name
+    Jalan Merdeka No.21
+    ----------------------------
+    Item   Qty   Total
+    ----------------------------
+</div>
+
+<div class="qr">
+    <canvas id="qrcode"></canvas>
+    <div id="qrAmount"></div>
+    <div>Linked to QRIS (BRI)</div>
+</div>
+
+<div class="footer">
+    Thank you for visiting!
+</div>
+
+<script>
+const order = JSON.parse(localStorage.getItem('currentOrder')) || [];
+const totalAmount = Number(localStorage.getItem('totalAmount')) || 0;
+const cashier = localStorage.getItem('cashier') || 'Cashier';
+const receiptNo = localStorage.getItem('receiptNo') || '#00000';
+
+// Build receipt content
+let receiptContent = `[Logo Here]
+
+My Shop Name
+Jalan Merdeka No.21
+----------------------------
+Item   Qty   Total
+----------------------------
+`;
+
+order.forEach(item => {
+    const total = item.price * item.qty;
+    receiptContent += `${item.name.padEnd(8)} ${String(item.qty).padEnd(3)} ${total}\n`;
+});
+
+receiptContent += '----------------------------\n';
+receiptContent += `TOTAL   ${totalAmount}\n`;
+receiptContent += `Cashier: ${cashier}\n`;
+receiptContent += `Invoice: ${receiptNo}\n`;
+receiptContent += '----------------------------\n';
+receiptContent += 'Thank you for visiting!\n';
+
+document.getElementById('receipt').innerText = receiptContent;
+
+// QR Code generation
+let baseQRIS = "00020101021240580013ID.CO.BRI.WWW011893600002100425918802151175010018055365204482953033605802ID5913WAHYUSUBEKTI6011MALANGKOT.";
+const amountStr = totalAmount.toFixed(2);
+const amountField = "54" + (amountStr.length < 10 ? "0" : "") + amountStr.length + amountStr;
+let payloadNoCRC = baseQRIS + amountField + "6304";
+
+function crc16(str) {
+    let crc = 0xFFFF;
+    for (let c of str) {
+        crc ^= c.charCodeAt(0) << 8;
+        for (let i = 0; i < 8; i++) {
+            if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ 0x1021;
+            else crc = crc << 1;
+            crc &= 0xFFFF;
+        }
+    }
+    return crc.toString(16).toUpperCase().padStart(4, "0");
+}
+
+const crc = crc16(payloadNoCRC);
+const finalQRIS = payloadNoCRC + crc;
+
+QRCode.toCanvas(document.getElementById("qrcode"), finalQRIS, { width: 100 }, function (error) {
+    if (error) console.error(error);
+});
+
+document.getElementById('qrAmount').innerText = `Scan to Pay: ${totalAmount}`;
+</script>
+
+</body>
+</html>
