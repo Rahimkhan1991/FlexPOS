@@ -49,6 +49,10 @@
         <tbody id="receiptItems"></tbody>
     </table>
     <hr>
+    <div>Subtotal: <span id="subTotal"></span></div>
+    <div>Tax: <span id="tax"></span></div>
+    <div>Service Charge: <span id="serviceCharge"></span></div>
+    <div>Discount: <span id="discount"></span></div>
     <div>Total: <span id="totalAmount"></span></div>
     <div>Cash Received: <span id="cashReceived"></span></div>
     <div>Change: <span id="change"></span></div>
@@ -69,7 +73,6 @@
 <script>
 const orderData = JSON.parse(localStorage.getItem('currentPrintOrder')) || {};
 const order = orderData.items || [];
-const totalAmount = parseFloat(orderData.total) || 0;
 const cashier = orderData.cashier || 'Cashier';
 const tableNo = orderData.table || '1';
 
@@ -79,7 +82,14 @@ let lastInvoice = parseInt(localStorage.getItem('lastInvoice') || invoiceStart-1
 const receiptNo = '#' + (lastInvoice + 1);
 localStorage.setItem('lastInvoice', lastInvoice + 1);
 
-// --- Cash Received (prefilled) ---
+// --- Calculate Subtotal, Tax, Service Charge, Discount, Total ---
+const subTotal = order.reduce((sum, item) => sum + item.price * item.qty, 0);
+const tax = parseFloat(orderData.tax || 0);
+const serviceCharge = parseFloat(orderData.serviceCharge || 0);
+const discount = parseFloat(orderData.discount || 0);
+const totalAmount = subTotal + tax + serviceCharge - discount;
+
+// --- Cash Received & Change ---
 let defaultCash = parseFloat(localStorage.getItem('defaultCash') || totalAmount);
 const cashReceived = parseFloat(orderData.cashReceived || defaultCash);
 const change = cashReceived - totalAmount;
@@ -104,6 +114,11 @@ document.getElementById('tableNo').innerText = tableNo;
 document.getElementById('cashier').innerText = cashier;
 document.getElementById('dateTime').innerText = new Date().toLocaleString();
 document.getElementById('receiptNo').innerText = receiptNo;
+
+document.getElementById('subTotal').innerText = subTotal.toFixed(2);
+document.getElementById('tax').innerText = tax.toFixed(2);
+document.getElementById('serviceCharge').innerText = serviceCharge.toFixed(2);
+document.getElementById('discount').innerText = discount.toFixed(2);
 document.getElementById('totalAmount').innerText = totalAmount.toFixed(2);
 document.getElementById('cashReceived').innerText = cashReceived.toFixed(2);
 document.getElementById('change').innerText = change.toFixed(2);
