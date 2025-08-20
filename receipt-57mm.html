@@ -69,6 +69,33 @@ let baseQRIS = "00020101021240580013ID.CO.BRI.WWW0118936000021004259188021511750
 const amountStr = totalAmount.toFixed(2);
 const amountField = "54" + (amountStr.length < 10 ? "0" : "") + amountStr.length + amountStr;
 let payloadNoCRC = baseQRIS + amountField + "6304";
+function printBill() {
+    if (currentOrderItems.length === 0) {
+        return showAlert('No items to print.', 'Error');
+    }
+
+    // Save current order to localStorage
+    const orderData = {
+        table: tableSelect.value,
+        items: currentOrderItems,
+        subtotal: parseFloat(subtotalSpan.textContent),
+        discount: parseFloat(discountInput.value),
+        serviceCharge: parseFloat(serviceChargeInput.value),
+        tax: parseFloat(taxSpan.textContent),
+        total: parseFloat(totalSpan.textContent),
+        paymentMethod: paymentMethod,
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString(),
+    };
+    localStorage.setItem('currentPrintOrder', JSON.stringify(orderData));
+
+    const printerSize = localStorage.getItem('printerSize') || '80'; 
+    if (printerSize === '80') {
+        window.open('receipt-80mm.html', '_blank');
+    } else if (printerSize === '57') {
+        window.open('receipt-57mm.html', '_blank');
+    }
+}
 
 function crc16(str) {
     let crc = 0xFFFF;
