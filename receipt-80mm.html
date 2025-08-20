@@ -6,8 +6,19 @@
 <title>Receipt 80mm</title>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <style>
-    body { font-family: monospace; white-space: pre; text-align: center; }
-    .receipt { display: inline-block; text-align: left; border: 1px dashed #000; padding: 10px; width: 280px; }
+    body { font-family: monospace; text-align: center; }
+    .receipt { 
+        display: inline-block; 
+        text-align: left; 
+        border: 1px dashed #000; 
+        padding: 10px; 
+        width: 280px; 
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 2px 0; }
+    th { border-bottom: 1px dashed #000; }
+    .right { text-align: right; }
+    .center { text-align: center; }
     .qr { margin-top: 10px; text-align: center; }
     .footer { margin-top: 8px; font-size: 12px; text-align: center; }
 </style>
@@ -15,19 +26,32 @@
 <body>
 
 <div class="receipt" id="receipt">
-    [Logo Here]
-
-    My Shop Name
-    Jalan Merdeka No.21
-    Malang, Indonesia
-    ----------------------------
-    Table: 
-    Cashier: 
-    Date & Time: 
-    Invoice No: 
-    ----------------------------
-    Item         Qty   Price   Total
-    ----------------------------
+    <div class="center"><strong>My Shop Name</strong></div>
+    <div class="center">Jalan Merdeka No.21, Malang, Indonesia</div>
+    <hr>
+    <div>Table: <span id="tableNo"></span></div>
+    <div>Cashier: <span id="cashier"></span></div>
+    <div>Date & Time: <span id="dateTime"></span></div>
+    <div>Invoice No: <span id="receiptNo"></span></div>
+    <hr>
+    <table>
+        <thead>
+            <tr>
+                <th style="text-align:left;">Item</th>
+                <th class="center">Qty</th>
+                <th class="right">Price</th>
+                <th class="right">Total</th>
+            </tr>
+        </thead>
+        <tbody id="receiptItems">
+        </tbody>
+    </table>
+    <hr>
+    <div>Total: <span id="totalAmount"></span></div>
+    <div>Cash Received: <span id="cashReceived"></span></div>
+    <div>Change: <span id="change"></span></div>
+    <hr>
+    <div class="center">Thank you for visiting!</div>
 </div>
 
 <div class="qr">
@@ -37,8 +61,7 @@
 </div>
 
 <div class="footer">
-    Follow us: @myshopid
-    <br>
+    Follow us: @myshopid<br>
     Powered by MyShop Billing System
 </div>
 
@@ -51,37 +74,29 @@ const tableNo = localStorage.getItem('tableNo') || '1';
 const cashReceived = Number(localStorage.getItem('cashReceived')) || 0;
 const change = cashReceived - totalAmount;
 
-// Build receipt content
-let receiptContent = `[Logo Here]
-
-My Shop Name
-Jalan Merdeka No.21
-Malang, Indonesia
-----------------------------
-Table: ${tableNo}
-Cashier: ${cashier}
-Date & Time: ${new Date().toLocaleString()}
-Invoice No: ${receiptNo}
-----------------------------
-Item         Qty   Price   Total
-----------------------------
-`;
-
+// Fill receipt items
+const receiptItems = document.getElementById('receiptItems');
+receiptItems.innerHTML = '';
 order.forEach(item => {
-    const total = item.price * item.qty;
-    receiptContent += `${item.name.padEnd(12)} ${String(item.qty).padEnd(3)} ${String(item.price).padEnd(6)} ${total}\n`;
+    const total = (item.price * item.qty).toFixed(2);
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td style="text-align:left;">${item.name}</td>
+        <td class="center">${item.qty}</td>
+        <td class="right">${item.price.toFixed(2)}</td>
+        <td class="right">${total}</td>
+    `;
+    receiptItems.appendChild(row);
 });
 
-receiptContent += '----------------------------\n';
-receiptContent += `TOTAL                    ${totalAmount}\n`;
-receiptContent += `Cash Received            ${cashReceived}\n`;
-receiptContent += `Change                   ${change}\n`;
-receiptContent += '----------------------------\n';
-receiptContent += 'Social Media / Advt: @myshopid\n';
-receiptContent += '----------------------------\n';
-receiptContent += '   Thank you for visiting!\n';
-
-document.getElementById('receipt').innerText = receiptContent;
+// Fill details
+document.getElementById('tableNo').innerText = tableNo;
+document.getElementById('cashier').innerText = cashier;
+document.getElementById('dateTime').innerText = new Date().toLocaleString();
+document.getElementById('receiptNo').innerText = receiptNo;
+document.getElementById('totalAmount').innerText = totalAmount.toFixed(2);
+document.getElementById('cashReceived').innerText = cashReceived.toFixed(2);
+document.getElementById('change').innerText = change.toFixed(2);
 
 // QR Code generation
 let baseQRIS = "00020101021240580013ID.CO.BRI.WWW011893600002100425918802151175010018055365204482953033605802ID5913WAHYUSUBEKTI6011MALANGKOT.";
@@ -109,7 +124,7 @@ QRCode.toCanvas(document.getElementById("qrcode"), finalQRIS, { width: 150 }, fu
     if (error) console.error(error);
 });
 
-document.getElementById('qrAmount').innerText = `Scan to Pay: ${totalAmount}`;
+document.getElementById('qrAmount').innerText = `Scan to Pay: ${totalAmount.toFixed(2)}`;
 </script>
 
 </body>
