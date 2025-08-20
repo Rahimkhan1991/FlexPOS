@@ -514,29 +514,35 @@ itemSearchInput.addEventListener('input', () => {
             cashBtn.classList.remove('active');
         });
 
-        orderItemsDiv.addEventListener('click', (event) => {
-            const target = event.target;
-            const qtyBtn = target.closest('.qty-btn');
-            const removeBtn = target.closest('.remove-btn');
-            
-            if (qtyBtn) {
-                const id = parseInt(qtyBtn.dataset.id);
-                const action = qtyBtn.dataset.action;
-                const item = currentOrderItems.find(o => o.id === id);
-                if (item) {
-                    if (action === 'increment') item.qty++;
-                    else if (action === 'decrement' && item.qty > 1) item.qty--;
-                    else if (action === 'decrement' && item.qty === 1) {
-                        currentOrderItems = currentOrderItems.filter(i => i.id !== id);
-                    }
-                    renderOrder();
-                }
-            } else if (removeBtn) {
-                const id = parseInt(removeBtn.dataset.id);
-                currentOrderItems = currentOrderItems.filter(i => i.id !== id);
-                renderOrder();
+        // This is the new, corrected event listener
+orderItemsDiv.addEventListener('click', (event) => {
+    const target = event.target;
+    const qtyBtn = target.closest('.qty-btn');
+    const removeBtn = target.closest('.remove-btn');
+        
+    if (qtyBtn) {
+        const id = qtyBtn.dataset.id; // Get the ID (could be a number or a name string)
+        const action = qtyBtn.dataset.action;
+        // Find the item by checking both its id AND its name
+        const item = currentOrderItems.find(o => (o.id == id) || (o.name == id));
+        
+        if (item) {
+            if (action === 'increment') {
+                item.qty++;
+            } else if (action === 'decrement' && item.qty > 1) {
+                item.qty--;
+            } else if (action === 'decrement' && item.qty === 1) {
+                currentOrderItems = currentOrderItems.filter(i => (i.id || i.name) != id);
             }
-        });
+            renderOrder();
+        }
+    } else if (removeBtn) {
+        const id = removeBtn.dataset.id;
+        // Find and remove the item by checking both its id AND its name
+        currentOrderItems = currentOrderItems.filter(i => (i.id || i.name) != id);
+        renderOrder();
+    }
+});
         
         [discountInput, discountTypeSelect, serviceChargeInput, serviceChargeTypeSelect].forEach(el => {
             el.addEventListener('change', updateTotals);
