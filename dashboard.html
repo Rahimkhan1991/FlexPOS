@@ -1,377 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard - POS System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2s+lHh1p7n5K24Jq4i+c6A5aJ6K6O4f3T2X6Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        /* General Styles and Variables */
-        :root {
-            --primary-bg: #f8fafc;
-            --sidebar-bg: #1e293b;
-            --sidebar-text: #e2e8f0;
-            --panel-bg: #ffffff;
-            --border-color: #e2e8f0;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --accent-color: #4f46e5;
-            --accent-hover: #4338ca;
-            --sales-color: #10b981;
-            --orders-color: #3b82f6;
-            --items-color: #f59e0b;
-            --top-item-color: #8b5cf6;
-        }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            min-height: 100vh;
-            background: var(--primary-bg);
-            color: var(--text-primary);
-        }
-        /* Sidebar */
-        .sidebar {
-            width: 260px;
-            background: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            transition: transform 0.3s ease-in-out;
-        }
-        .sidebar h2 {
-            font-size: 1.5rem;
-            padding: 1.5rem;
-            text-align: center;
-            border-bottom: 1px solid #334155;
-        }
-        .sidebar .nav-link {
-            color: var(--sidebar-text);
-            text-decoration: none;
-            padding: 1.2rem 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: background-color 0.2s, color 0.2s;
-        }
-        .sidebar .nav-link:hover {
-            background-color: #334155;
-        }
-        .sidebar .nav-link.active {
-            background-color: var(--accent-color);
-            font-weight: 600;
-        }
-        .sidebar .nav-link .icon {
-            width: 20px;
-            text-align: center;
-        }
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            padding: 2rem;
-            overflow-y: auto;
-        }
-        .header {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-        }
-        .header h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-        }
-        .welcome {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-        }
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .card {
-            background: var(--panel-bg);
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            padding: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            border: 1px solid var(--border-color);
-        }
-        .card .icon-wrapper {
-            font-size: 1.8rem;
-            padding: 1rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .card .details h3 {
-            margin: 0;
-            font-size: 1.8rem;
-            color: var(--text-primary);
-            font-weight: 700;
-        }
-        .card .details p {
-            margin: 0;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-        /* Card Colors */
-        .card.sales .icon-wrapper { background-color: #d1fae5; color: var(--sales-color); }
-        .card.orders .icon-wrapper { background-color: #dbeafe; color: var(--orders-color); }
-        .card.items-sold .icon-wrapper { background-color: #fef9e6; color: var(--items-color); }
-        .card.top-item .icon-wrapper { background-color: #ede9fe; color: var(--top-item-color); }
-        /* Charts & Lists */
-        .charts-section {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-        .chart-container {
-            background: var(--panel-bg);
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border-color);
-        }
-        .chart-container h2 {
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-        .data-list {
-            list-style: none;
-            padding: 0;
-            margin-top: 1rem;
-        }
-        .data-list li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .data-list li:last-child {
-            border-bottom: none;
-        }
-        .data-list .item-name {
-            font-weight: 500;
-        }
-        .data-list .item-count {
-            color: var(--text-secondary);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body>
-    <aside class="sidebar">
-        <h2>POS System</h2>
-        <a href="dashboard.html" class="nav-link active"><i class="fas fa-chart-line icon"></i> Dashboard</a>
-        <a href="pos.html" class="nav-link"><i class="fas fa-cash-register icon"></i> POS Billing</a>
-        <a href="admin.html" class="nav-link"><i class="fas fa-cogs icon"></i> Admin Panel</a>
-    </aside>
+<body class="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 min-h-screen flex flex-col">
 
-    <main class="main-content">
-        <header class="header">
-            <h1>Dashboard</h1>
-            <div class="welcome">
-                Welcome, <strong id="user-role">Admin</strong>!
-            </div>
-        </header>
-
-        <div class="stats-grid">
-            <div class="card sales">
-                <div class="icon-wrapper"><i class="fas fa-rupee-sign"></i></div>
-                <div class="details">
-                    <h3 id="sales-today">₹0.00</h3>
-                    <p>Total Sales Today</p>
-                </div>
-            </div>
-            <div class="card orders">
-                <div class="icon-wrapper"><i class="fas fa-receipt"></i></div>
-                <div class="details">
-                    <h3 id="order-count">0</h3>
-                    <p>Orders Today</p>
-                </div>
-            </div>
-            <div class="card items-sold">
-                <div class="icon-wrapper"><i class="fas fa-box"></i></div>
-                <div class="details">
-                    <h3 id="items-sold-count">0</h3>
-                    <p>Items Sold Today</p>
-                </div>
-            </div>
-            <div class="card top-item">
-                <div class="icon-wrapper"><i class="fas fa-star"></i></div>
-                <div class="details">
-                    <h3 id="top-item-name">-</h3>
-                    <p>Top Selling Item</p>
-                </div>
-            </div>
+  <!-- 🔹 Top Bar -->
+  <header class="bg-white shadow-md p-4 flex justify-between items-center">
+    <div>
+      <h1 class="text-xl font-bold">Welcome, <span id="username">John Doe</span></h1>
+      <p class="text-sm" id="dateTime">Loading date & time...</p>
         </div>
+    <div class="flex items-center space-x-3">
+      <span id="loggedUser" class="text-gray-700 font-semibold">User: Admin</span>
+      <img src="https://i.pravatar.cc/40" alt="Profile" class="w-10 h-10 rounded-full border-2 border-purple-400">
+    </div>
+  </header>
 
-        <div class="charts-section">
-            <div class="chart-container">
-                <h2>Last 7 Days Sales</h2>
-                <div style="height: 350px;">
-                    <canvas id="salesChart"></canvas>
-                </div>
-            </div>
-            <div class="chart-container">
-                <h2>Top 5 Items & Categories</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <h3 class="font-semibold text-lg mb-2">Top 5 Items</h3>
-                        <ul id="top-items-list" class="data-list"></ul>
-                    </div>
-                    <div>
-                        <h3 class="font-semibold text-lg mb-2">Top 5 Categories</h3>
-                        <ul id="top-categories-list" class="data-list"></ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
+  <!-- 🔹 Main Dashboard Content -->
+  <main class="flex-grow flex items-center justify-center p-6">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-5xl">
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-            const todayStr = new Date().toISOString().split('T')[0];
+      <!-- POS -->
+      <a href="pos.html" class="bg-white shadow-md rounded-2xl p-6 flex flex-col items-center justify-center hover:shadow-xl transition">
+        <i class="fas fa-cash-register text-4xl text-indigo-600 mb-3"></i>
+        <h2 class="text-lg font-semibold">POS Billing</h2>
+        <p class="text-sm text-gray-500">Manage orders & billing</p>
+      </a>
 
-            // --- CALCULATE STATS ---
-            const todayOrders = orders.filter(o => o.date === todayStr);
-            const totalSales = todayOrders.reduce((sum, order) => sum + order.total, 0);
-            const totalOrdersCount = todayOrders.length;
-            const totalItemsSold = todayOrders.reduce((sum, order) => sum + order.items.reduce((itemSum, item) => itemSum + item.qty, 0), 0);
+      <!-- Orders -->
+      <a href="orders.html" class="bg-white shadow-md rounded-2xl p-6 flex flex-col items-center justify-center hover:shadow-xl transition">
+        <i class="fas fa-receipt text-4xl text-green-600 mb-3"></i>
+        <h2 class="text-lg font-semibold">Orders</h2>
+        <p class="text-sm text-gray-500">View all orders</p>
+      </a>
 
-            // --- CALCULATE TOP ITEMS AND CATEGORIES ---
-            function getTopItemsAndCategories() {
-                const itemCounts = {};
-                const categoryCounts = {};
-                
-                orders.forEach(order => {
-                    order.items.forEach(item => {
-                        const itemName = item.name;
-                        const itemCategory = item.category;
-                        itemCounts[itemName] = (itemCounts[itemName] || 0) + item.qty;
-                        categoryCounts[itemCategory] = (categoryCounts[itemCategory] || 0) + item.qty;
-                    });
-                });
+      <!-- Reports -->
+      <a href="reports.html" class="bg-white shadow-md rounded-2xl p-6 flex flex-col items-center justify-center hover:shadow-xl transition">
+        <i class="fas fa-chart-line text-4xl text-blue-600 mb-3"></i>
+        <h2 class="text-lg font-semibold">Reports</h2>
+        <p class="text-sm text-gray-500">View sales reports</p>
+      </a>
 
-                const sortedItems = Object.entries(itemCounts).sort(([, a], [, b]) => b - a);
-                const sortedCategories = Object.entries(categoryCounts).sort(([, a], [, b]) => b - a);
+      <!-- Inventory -->
+      <a href="inventory.html" class="bg-white shadow-md rounded-2xl p-6 flex flex-col items-center justify-center hover:shadow-xl transition">
+        <i class="fas fa-boxes text-4xl text-yellow-600 mb-3"></i>
+        <h2 class="text-lg font-semibold">Inventory</h2>
+        <p class="text-sm text-gray-500">Manage stock items</p>
+      </a>
 
-                return {
-                    topItem: sortedItems[0]?.[0] || 'N/A',
-                    top5Items: sortedItems.slice(0, 5),
-                    top5Categories: sortedCategories.slice(0, 5)
-                };
-            }
-            const { topItem, top5Items, top5Categories } = getTopItemsAndCategories();
+      <!-- Customers -->
+      <a href="customers.html" class="bg-white shadow-md rounded-2xl p-6 flex flex-col items-center justify-center hover:shadow-xl transition">
+        <i class="fas fa-users text-4xl text-purple-600 mb-3"></i>
+        <h2 class="text-lg font-semibold">Customers</h2>
+        <p class="text-sm text-gray-500">Manage customer details</p>
+      </a>
 
-            // --- UPDATE STAT CARDS ---
-            document.getElementById('sales-today').textContent = `₹${totalSales.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            document.getElementById('order-count').textContent = totalOrdersCount;
-            document.getElementById('items-sold-count').textContent = totalItemsSold;
-            document.getElementById('top-item-name').textContent = topItem;
-            document.getElementById('user-role').textContent = localStorage.getItem('loggedUser') || 'Admin';
+      <!-- Settings -->
+      <a href="settings.html" class="bg-white shadow-md rounded-2xl p-6 flex flex-col items-center justify-center hover:shadow-xl transition">
+        <i class="fas fa-cog text-4xl text-gray-600 mb-3"></i>
+        <h2 class="text-lg font-semibold">Settings</h2>
+        <p class="text-sm text-gray-500">App preferences</p>
+      </a>
 
-            // --- RENDER TOP 5 LISTS ---
-            function renderTopList(elementId, data) {
-                const list = document.getElementById(elementId);
-                list.innerHTML = '';
-                if (data.length === 0) {
-                    list.innerHTML = `<li class="text-center text-slate-400">No data available.</li>`;
-                    return;
-                }
-                data.forEach(([name, count]) => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<span class="item-name">${name}</span><span class="item-count">${count} sold</span>`;
-                    list.appendChild(li);
-                });
-            }
-            renderTopList('top-items-list', top5Items);
-            renderTopList('top-categories-list', top5Categories);
+      <!-- Admin Panel -->
+      <a href="admin.html" class="bg-white shadow-md rounded-2xl p-6 flex flex-col items-center justify-center hover:shadow-xl transition">
+        <i class="fas fa-user-shield text-4xl text-red-600 mb-3"></i>
+        <h2 class="text-lg font-semibold">Admin Panel</h2>
+        <p class="text-sm text-gray-500">Manage system</p>
+      </a>
 
-            // --- SALES CHART LOGIC ---
-            function getSalesForLast7Days() {
-                const salesData = {};
-                const labels = [];
-                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                
-                for (let i = 6; i >= 0; i--) {
-                    const d = new Date();
-                    d.setDate(d.getDate() - i);
-                    const dateStr = d.toISOString().split('T')[0];
-                    const dayLabel = days[d.getDay()];
-                    labels.push(dayLabel);
-                    salesData[dateStr] = 0;
-                }
+      <!-- Logout -->
+      <a href="logout.html" class="bg-white shadow-md rounded-2xl p-6 flex flex-col items-center justify-center hover:shadow-xl transition">
+        <i class="fas fa-sign-out-alt text-4xl text-pink-600 mb-3"></i>
+        <h2 class="text-lg font-semibold">Log Out</h2>
+        <p class="text-sm text-gray-500">Sign out of system</p>
+      </a>
 
-                orders.forEach(order => {
-                    if (salesData.hasOwnProperty(order.date)) {
-                        salesData[order.date] += order.total;
-                    }
-                });
+    </div>
+  </main>
 
-                return {
-                    labels: labels,
-                    data: Object.values(salesData)
-                };
-            }
-            
-            const salesChartData = getSalesForLast7Days();
-            const ctx = document.getElementById('salesChart').getContext('2d');
-            const salesChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: salesChartData.labels,
-                    datasets: [{
-                        label: 'Total Sales (₹)',
-                        data: salesChartData.data,
-                        borderColor: 'rgba(79, 70, 229, 1)',
-                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                        fill: true,
-                        tension: 0.3,
-                        borderWidth: 2,
-                        pointRadius: 5,
-                        pointHoverRadius: 7,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) { return '₹' + value.toLocaleString('en-IN'); }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `Sales: ₹${context.parsed.y.toLocaleString('en-IN')}`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        });
-    </script>
+  <!-- 🔹 Footer -->
+  <footer class="bg-white shadow-inner text-center text-gray-600 text-sm p-3">
+    &copy; 2025 POS System. All rights reserved.
+  </footer>
+
+  <!-- 🔹 Date & Time Script -->
+  <script>
+    function updateDateTime() {
+      const now = new Date();
+      document.getElementById("dateTime").innerText = now.toLocaleString();
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+  </script>
 </body>
 </html>
