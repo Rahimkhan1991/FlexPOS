@@ -59,8 +59,9 @@
       categories.forEach((cat, index) => {
         const card = document.createElement('div');
         card.className = 'bg-gray-50 rounded-xl shadow p-4 flex justify-between items-center';
+        
+        // The comment is now outside the backticks and will be ignored correctly.
         card.innerHTML = `
-          // Use cat.name to display the name from the object
           <span class="font-semibold text-gray-700">${cat.name}</span>
           <div class="flex gap-2">
             <button class="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600" onclick="editCategory(${index})">Edit</button>
