@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 500px;
+      background: #fff;
+      margin: auto;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    h2 { text-align: center; margin-bottom: 20px; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+    button {
+      flex: 1;
+      padding: 10px;
+      margin: 5px;
+      border: none;
+      border-radius: 4px;
+      background: #007bff;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover { background: #0056b3; }
+    .switch {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .switch input { margin-right: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>App Settings</h2>
+
+    <!-- Shop Info -->
+    <label for="shopName">Shop Name</label>
+    <input type="text" id="shopName" placeholder="Enter shop name">
+
+    <label for="shopAddress">Shop Address</label>
+    <input type="text" id="shopAddress" placeholder="Enter shop address">
+
+    <label for="shopPhone">Shop Phone</label>
+    <input type="text" id="shopPhone" placeholder="Enter shop phone">
+
+    <label for="footerText">Footer Text</label>
+    <input type="text" id="footerText" placeholder="Enter footer message">
+
+    <!-- Printer Size -->
+    <label for="printerSize">Printer Size</label>
+    <select id="printerSize">
+      <option value="57">57mm</option>
+      <option value="80">80mm</option>
+    </select>
+
+    <!-- QRIS Enable/Disable -->
+    <div class="switch">
+      <input type="checkbox" id="enableQRIS">
+      <label for="enableQRIS">Enable QRIS Payment QR Code</label>
+    </div>
+
+    <div class="row">
+      <button onclick="saveSettings()">Save</button>
+      <button onclick="resetSettings()" style="background:#dc3545">Reset</button>
+    </div>
+  </div>
+
+  <script>
+    // Load settings
+    window.onload = function() {
+      document.getElementById("shopName").value = localStorage.getItem("shopName") || "";
+      document.getElementById("shopAddress").value = localStorage.getItem("shopAddress") || "";
+      document.getElementById("shopPhone").value = localStorage.getItem("shopPhone") || "";
+      document.getElementById("footerText").value = localStorage.getItem("footerText") || "";
+      document.getElementById("printerSize").value = localStorage.getItem("printerSize") || "57";
+      document.getElementById("enableQRIS").checked = localStorage.getItem("enableQRIS") === "true";
+    }
+
+    // Save settings
+    function saveSettings() {
+      localStorage.setItem("shopName", document.getElementById("shopName").value);
+      localStorage.setItem("shopAddress", document.getElementById("shopAddress").value);
+      localStorage.setItem("shopPhone", document.getElementById("shopPhone").value);
+      localStorage.setItem("footerText", document.getElementById("footerText").value);
+      localStorage.setItem("printerSize", document.getElementById("printerSize").value);
+      localStorage.setItem("enableQRIS", document.getElementById("enableQRIS").checked);
+      alert("✅ Settings saved successfully!");
+    }
+
+    // Reset settings
+    function resetSettings() {
+      localStorage.clear();
+      alert("⚠️ All settings reset!");
+      location.reload();
+    }
+  </script>
+</body>
+</html>
