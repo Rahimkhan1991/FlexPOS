@@ -432,8 +432,17 @@ function renderOrder() {
 }
 
         function printKot() {
-            showAlert('Printing Kitchen Order Ticket...', 'Printing');
-        }
+    showAlert('Printing Kitchen Order Ticket...', 'Printing');
+
+    // Optional: store any temporary KOT data in localStorage
+    // e.g., current order items and table number
+    // localStorage.setItem('kotOrder', JSON.stringify(currentOrderItems));
+    // localStorage.setItem('kotTable', currentTableNo);
+
+    // Open the KOT HTML template
+    window.open('kot.html', '_blank');
+}
+
         
         // --- EVENT LISTENERS ---
         toggleCategoriesBtn.addEventListener('click', toggleCategories);
