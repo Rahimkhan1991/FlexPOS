@@ -80,15 +80,16 @@
       categorySelect.appendChild(option);
     });
 
-    // Populate Kitchen select
-    const kitchenSelect = document.getElementById('itemKitchen');
-    kitchenSelect.innerHTML = '<option>Select Kitchen</option>';
-    kitchens.forEach(k => {
-      const option = document.createElement('option');
-      option.value = k;
-      option.textContent = k;
-      kitchenSelect.appendChild(option);
-    });
+  // Populate Kitchen select
+const kitchenSelect = document.getElementById('itemKitchen');
+kitchenSelect.innerHTML = '<option>Select Kitchen</option>';
+kitchens.forEach(k => {
+  const option = document.createElement('option');
+  // Use the .name property from the kitchen object
+  option.value = k.name; 
+  option.textContent = k.name;
+  kitchenSelect.appendChild(option);
+});
 
     // Image Preview
     const itemImage = document.getElementById('itemImage');
