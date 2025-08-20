@@ -6,31 +6,33 @@
   <title>Category Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen flex items-center justify-center p-6">
+<body class="bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen p-6">
 
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-8">
-    <!-- Header -->
-    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Add New Category</h2>
+  <div class="max-w-5xl mx-auto space-y-12">
 
-    <form id="categoryForm" class="grid grid-cols-1 gap-6">
-      <!-- Category Name -->
-      <div>
-        <label class="block text-gray-700 font-medium mb-2">Category Name</label>
-        <input type="text" id="categoryName" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:outline-none" placeholder="Enter category name" required>
-      </div>
+    <!-- Section 1: Add New Category -->
+    <section class="bg-white rounded-2xl shadow-2xl p-8">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Add New Category</h2>
 
-      <!-- Buttons -->
-      <div class="flex justify-center gap-4 mt-6">
-        <button type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold shadow-md transition">Save Category</button>
-        <button type="reset" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-xl font-semibold shadow-md transition">Reset</button>
-      </div>
-    </form>
+      <form id="categoryForm" class="grid grid-cols-1 gap-6">
+        <div>
+          <label class="block text-gray-700 font-medium mb-2">Category Name</label>
+          <input type="text" id="categoryName" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:outline-none" placeholder="Enter category name" required>
+        </div>
 
-    <!-- Current Categories -->
-    <div class="mt-8">
-      <h3 class="text-xl font-semibold mb-4 text-center">Current Categories</h3>
+        <div class="flex justify-center gap-4 mt-6">
+          <button type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold shadow-md transition">Save Category</button>
+          <button type="reset" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-xl font-semibold shadow-md transition">Reset</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Section 2: Current Categories -->
+    <section class="bg-white rounded-2xl shadow-2xl p-8">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Current Categories</h2>
       <div id="categoryList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-    </div>
+    </section>
+
   </div>
 
   <script>
@@ -95,48 +97,8 @@
       renderCategories();
     });
 
-    // Initial render
     renderCategories();
-    
-  let categories = JSON.parse(localStorage.getItem('categories') || '[]');
-
-function renderCategories() {
-  categoryListDiv.innerHTML = '';
-  if (categories.length === 0) {
-    categoryListDiv.innerHTML = '<p class="text-gray-500 text-center">No categories added yet.</p>';
-    return;
-  }
-
-  categories.forEach((cat, index) => {
-    const card = document.createElement('div');
-    card.className = 'bg-gray-50 rounded-xl shadow p-4 flex justify-between items-center';
-    card.innerHTML = `
-      <span class="font-semibold text-gray-700">${cat}</span>
-      <div class="flex gap-2">
-        <button class="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600" onclick="editCategory(${index})">Edit</button>
-        <button class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600" onclick="deleteCategory(${index})">Delete</button>
-      </div>
-    `;
-    categoryListDiv.appendChild(card);
-  });
-}
-
-function editCategory(index) {
-  document.getElementById('categoryName').value = categories[index];
-  categoryForm.dataset.editIndex = index;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function deleteCategory(index) {
-  if (confirm('Are you sure you want to delete this category?')) {
-    categories.splice(index, 1);
-    localStorage.setItem('categories', JSON.stringify(categories));
-    renderCategories();
-  }
-}
-
   </script>
-  
 
 </body>
 </html>
