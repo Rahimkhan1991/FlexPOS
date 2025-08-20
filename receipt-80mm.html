@@ -66,12 +66,13 @@
 </div>
 
 <script>
-const order = JSON.parse(localStorage.getItem('currentPrintOrder')) || [];
-const totalAmount = Number(localStorage.getItem('totalAmount')) || 0;
-const cashier = localStorage.getItem('cashier') || 'Cashier';
-const receiptNo = localStorage.getItem('receiptNo') || '#00000';
-const tableNo = localStorage.getItem('tableNo') || '1';
-const cashReceived = Number(localStorage.getItem('cashReceived')) || 0;
+const orderData = JSON.parse(localStorage.getItem('currentPrintOrder')) || {};
+const order = orderData.items || [];
+const totalAmount = parseFloat(orderData.total) || 0;
+const cashier = orderData.cashier || 'Cashier';
+const receiptNo = orderData.receiptNo || '#00000';
+const tableNo = orderData.table || '1';
+const cashReceived = parseFloat(orderData.cashReceived || orderData.total) || 0;
 const change = cashReceived - totalAmount;
 
 // Fill receipt items
