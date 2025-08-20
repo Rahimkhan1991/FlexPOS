@@ -21,13 +21,16 @@
     .center { text-align: center; }
     .qr { margin-top: 10px; text-align: center; }
     .footer { margin-top: 8px; font-size: 12px; text-align: center; }
+    .logo { max-width: 200px; max-height: 80px; display: block; margin: 0 auto 5px; object-fit: contain; }
 </style>
 </head>
 <body>
 
 <div class="receipt" id="receipt">
-    <div class="center"><strong>My Shop Name</strong></div>
-    <div class="center">Jalan Merdeka No.21, Malang, Indonesia</div>
+    <img id="shopLogo" class="logo" src="" alt="Logo">
+    <div class="center"><strong id="shopName">My Shop Name</strong></div>
+    <div class="center" id="shopAddress">Jalan Merdeka No.21, Malang, Indonesia</div>
+    <div class="center" id="shopPhone"></div>
     <hr>
     <div>Table: <span id="tableNo"></span></div>
     <div>Cashier: <span id="cashier"></span></div>
@@ -43,15 +46,14 @@
                 <th class="right">Total</th>
             </tr>
         </thead>
-        <tbody id="receiptItems">
-        </tbody>
+        <tbody id="receiptItems"></tbody>
     </table>
     <hr>
     <div>Total: <span id="totalAmount"></span></div>
     <div>Cash Received: <span id="cashReceived"></span></div>
     <div>Change: <span id="change"></span></div>
     <hr>
-    <div class="center">Thank you for visiting!</div>
+    <div class="center" id="footerText">Thank you for visiting!</div>
 </div>
 
 <div class="qr">
@@ -61,7 +63,6 @@
 </div>
 
 <div class="footer">
-    Follow us: @myshopid<br>
     Powered by MyShop Billing System
 </div>
 
@@ -70,12 +71,20 @@ const orderData = JSON.parse(localStorage.getItem('currentPrintOrder')) || {};
 const order = orderData.items || [];
 const totalAmount = parseFloat(orderData.total) || 0;
 const cashier = orderData.cashier || 'Cashier';
-const receiptNo = orderData.receiptNo || '#00000';
 const tableNo = orderData.table || '1';
-const cashReceived = parseFloat(orderData.cashReceived || orderData.total) || 0;
+
+// --- Dynamic Invoice Number ---
+let invoiceStart = parseInt(localStorage.getItem('invoiceStart') || 1000);
+let lastInvoice = parseInt(localStorage.getItem('lastInvoice') || invoiceStart-1);
+const receiptNo = '#' + (lastInvoice + 1);
+localStorage.setItem('lastInvoice', lastInvoice + 1);
+
+// --- Cash Received (prefilled) ---
+let defaultCash = parseFloat(localStorage.getItem('defaultCash') || totalAmount);
+const cashReceived = parseFloat(orderData.cashReceived || defaultCash);
 const change = cashReceived - totalAmount;
 
-// Fill receipt items
+// --- Fill receipt items ---
 const receiptItems = document.getElementById('receiptItems');
 receiptItems.innerHTML = '';
 order.forEach(item => {
@@ -90,7 +99,7 @@ order.forEach(item => {
     receiptItems.appendChild(row);
 });
 
-// Fill details
+// --- Fill details ---
 document.getElementById('tableNo').innerText = tableNo;
 document.getElementById('cashier').innerText = cashier;
 document.getElementById('dateTime').innerText = new Date().toLocaleString();
@@ -99,33 +108,48 @@ document.getElementById('totalAmount').innerText = totalAmount.toFixed(2);
 document.getElementById('cashReceived').innerText = cashReceived.toFixed(2);
 document.getElementById('change').innerText = change.toFixed(2);
 
-// QR Code generation
-let baseQRIS = "00020101021240580013ID.CO.BRI.WWW011893600002100425918802151175010018055365204482953033605802ID5913WAHYUSUBEKTI6011MALANGKOT.";
-const amountStr = totalAmount.toFixed(2);
-const amountField = "54" + (amountStr.length < 10 ? "0" : "") + amountStr.length + amountStr;
-let payloadNoCRC = baseQRIS + amountField + "6304";
+// --- Footer and shop info ---
+document.getElementById('shopName').innerText = localStorage.getItem('shopName') || 'My Shop Name';
+document.getElementById('shopAddress').innerText = localStorage.getItem('shopAddress') || 'Jalan Merdeka No.21';
+document.getElementById('shopPhone').innerText = localStorage.getItem('shopPhone') || '';
+document.getElementById('footerText').innerText = localStorage.getItem('footerText') || 'Thank you for visiting!';
 
-function crc16(str) {
-    let crc = 0xFFFF;
-    for (let c of str) {
-        crc ^= c.charCodeAt(0) << 8;
-        for (let i = 0; i < 8; i++) {
-            if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ 0x1021;
-            else crc = crc << 1;
-            crc &= 0xFFFF;
+// --- Shop Logo ---
+const logoSrc = localStorage.getItem('shopLogo');
+if(logoSrc) document.getElementById('shopLogo').src = logoSrc;
+
+// --- QR Code generation ---
+if(localStorage.getItem('enableQRIS') === "true") {
+    let baseQRIS = "00020101021240580013ID.CO.BRI.WWW011893600002100425918802151175010018055365204482953033605802ID5913WAHYUSUBEKTI6011MALANGKOT.";
+    const amountStr = totalAmount.toFixed(2);
+    const amountField = "54" + (amountStr.length < 10 ? "0" : "") + amountStr.length + amountStr;
+    let payloadNoCRC = baseQRIS + amountField + "6304";
+
+    function crc16(str) {
+        let crc = 0xFFFF;
+        for (let c of str) {
+            crc ^= c.charCodeAt(0) << 8;
+            for (let i = 0; i < 8; i++) {
+                if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ 0x1021;
+                else crc = crc << 1;
+                crc &= 0xFFFF;
+            }
         }
+        return crc.toString(16).toUpperCase().padStart(4, "0");
     }
-    return crc.toString(16).toUpperCase().padStart(4, "0");
+
+    const crc = crc16(payloadNoCRC);
+    const finalQRIS = payloadNoCRC + crc;
+
+    QRCode.toCanvas(document.getElementById("qrcode"), finalQRIS, { width: 150 }, function (error) {
+        if (error) console.error(error);
+    });
+
+    document.getElementById('qrAmount').innerText = `Scan to Pay: ${totalAmount.toFixed(2)}`;
+} else {
+    document.getElementById('qrcode').style.display = 'none';
+    document.getElementById('qrAmount').style.display = 'none';
 }
-
-const crc = crc16(payloadNoCRC);
-const finalQRIS = payloadNoCRC + crc;
-
-QRCode.toCanvas(document.getElementById("qrcode"), finalQRIS, { width: 150 }, function (error) {
-    if (error) console.error(error);
-});
-
-document.getElementById('qrAmount').innerText = `Scan to Pay: ${totalAmount.toFixed(2)}`;
 </script>
 
 </body>
