@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Restore</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen flex items-center justify-center p-6">
+
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-8 text-center">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Data Restore</h2>
+
+    <p class="mb-6 text-gray-600">Upload your backup JSON file to restore all app data. This will overwrite your current data.</p>
+
+    <input type="file" id="restoreFile" accept="application/json" class="mb-6 p-2 border rounded-xl w-full">
+
+    <button id="restoreBtn" class="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-xl font-semibold shadow-md transition mb-4">
+      Restore Data
+    </button>
+
+    <div>
+      <button id="backBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-xl font-semibold shadow-md transition">
+        Back
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const restoreBtn = document.getElementById('restoreBtn');
+    const restoreFile = document.getElementById('restoreFile');
+    const backBtn = document.getElementById('backBtn');
+
+    restoreBtn.addEventListener('click', () => {
+      if (!restoreFile.files.length) {
+        alert('Please select a backup file first.');
+        return;
+      }
+
+      const file = restoreFile.files[0];
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+
+          if (data.items) localStorage.setItem('items', JSON.stringify(data.items));
+          if (data.categories) localStorage.setItem('categories', JSON.stringify(data.categories));
+          if (data.tables) localStorage.setItem('tables', JSON.stringify(data.tables));
+          if (data.kitchens) localStorage.setItem('kitchens', JSON.stringify(data.kitchens));
+          if (data.users) localStorage.setItem('users', JSON.stringify(data.users));
+          if (data.systemSettings) localStorage.setItem('systemSettings', JSON.stringify(data.systemSettings));
+
+          alert('Data restored successfully!');
+        } catch (err) {
+          console.error(err);
+          alert('Invalid backup file. Please check and try again.');
+        }
+      };
+
+      reader.readAsText(file);
+    });
+
+    backBtn.addEventListener('click', () => {
+      window.history.back();
+    });
+  </script>
+
+</body>
+</html>
