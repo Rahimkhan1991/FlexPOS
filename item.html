@@ -71,14 +71,15 @@
     localStorage.setItem('kitchens', JSON.stringify(kitchens));
 
     // Populate Category select
-    const categorySelect = document.getElementById('itemCategory');
-    categorySelect.innerHTML = '<option>Select Category</option>';
-    categories.forEach(cat => {
-      const option = document.createElement('option');
-      option.value = cat;
-      option.textContent = cat;
-      categorySelect.appendChild(option);
-    });
+const categorySelect = document.getElementById('itemCategory');
+categorySelect.innerHTML = '<option>Select Category</option>';
+categories.forEach(cat => {
+  const option = document.createElement('option');
+  // Use the .name property from the category object
+  option.value = cat.name;
+  option.textContent = cat.name;
+  categorySelect.appendChild(option);
+});
 
   // Populate Kitchen select
 const kitchenSelect = document.getElementById('itemKitchen');
