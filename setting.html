@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Settings</title>
+  <title>App Settings</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -51,11 +51,27 @@
       margin-top: 10px;
     }
     .switch input { margin-right: 10px; }
+    .small-note { font-size: 12px; color: #555; margin-top: 3px; }
+    #logoPreview {
+      display: block;
+      margin: 10px auto;
+      max-width: 150px;
+      max-height: 80px;
+      object-fit: contain;
+      border: 1px solid #ccc;
+      padding: 5px;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>App Settings</h2>
+
+    <!-- Shop Logo -->
+    <label for="shopLogo">Shop Logo</label>
+    <input type="file" id="shopLogo" accept="image/*">
+    <img id="logoPreview" src="" alt="Logo Preview">
 
     <!-- Shop Info -->
     <label for="shopName">Shop Name</label>
@@ -83,6 +99,16 @@
       <label for="enableQRIS">Enable QRIS Payment QR Code</label>
     </div>
 
+    <!-- Dynamic Invoice Number -->
+    <label for="invoiceStart">Invoice Start Number</label>
+    <input type="number" id="invoiceStart" placeholder="e.g. 1000">
+    <div class="small-note">Next invoice will start from this number</div>
+
+    <!-- Default Cash Received -->
+    <label for="defaultCash">Default Cash Received</label>
+    <input type="number" id="defaultCash" placeholder="Leave blank to auto-fill total">
+    <div class="small-note">Used as prefilled cash input in receipt</div>
+
     <div class="row">
       <button onclick="saveSettings()">Save</button>
       <button onclick="resetSettings()" style="background:#dc3545">Reset</button>
@@ -98,7 +124,23 @@
       document.getElementById("footerText").value = localStorage.getItem("footerText") || "";
       document.getElementById("printerSize").value = localStorage.getItem("printerSize") || "57";
       document.getElementById("enableQRIS").checked = localStorage.getItem("enableQRIS") === "true";
+      document.getElementById("invoiceStart").value = localStorage.getItem("invoiceStart") || "1000";
+      document.getElementById("defaultCash").value = localStorage.getItem("defaultCash") || "";
+      const logo = localStorage.getItem("shopLogo");
+      if(logo) document.getElementById("logoPreview").src = logo;
     }
+
+    // Logo preview
+    document.getElementById("shopLogo").addEventListener("change", function() {
+      const file = this.files[0];
+      if(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById("logoPreview").src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+      }
+    });
 
     // Save settings
     function saveSettings() {
@@ -108,14 +150,21 @@
       localStorage.setItem("footerText", document.getElementById("footerText").value);
       localStorage.setItem("printerSize", document.getElementById("printerSize").value);
       localStorage.setItem("enableQRIS", document.getElementById("enableQRIS").checked);
+      localStorage.setItem("invoiceStart", document.getElementById("invoiceStart").value);
+      localStorage.setItem("defaultCash", document.getElementById("defaultCash").value);
+      // Save logo as Base64
+      const logoSrc = document.getElementById("logoPreview").src;
+      if(logoSrc) localStorage.setItem("shopLogo", logoSrc);
+
       alert("✅ Settings saved successfully!");
     }
 
     // Reset settings
     function resetSettings() {
-      localStorage.clear();
-      alert("⚠️ All settings reset!");
-      location.reload();
+      if(confirm("⚠️ Are you sure? All settings will be cleared!")) {
+        localStorage.clear();
+        location.reload();
+      }
     }
   </script>
 </body>
