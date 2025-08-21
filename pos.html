@@ -194,340 +194,292 @@
         </div>
     </div>
     <script>
-// --- FETCH DATA FROM LOCALSTORAGE ---
-let categories = JSON.parse(localStorage.getItem('categories')) || [];
-let allItems = JSON.parse(localStorage.getItem('items')) || [];
+    // --- FETCH DATA FROM LOCALSTORAGE ---
+    let categories = JSON.parse(localStorage.getItem('categories')) || [];
+    let allItems = JSON.parse(localStorage.getItem('items')) || [];
+    let items = [...allItems];
 
+    // --- STATE & DATA ---
+    let currentOrderItems = [];
+    let currentCategory = 'Coffee'; // Default category
+    const taxRate = 0.05; // 5% tax
+    let paymentMethod = 'Cash'; // Default payment method
 
+    // --- ELEMENTS ---
+    const categoryButtonsDiv = document.getElementById('categoryButtons');
+    const itemsListDiv = document.getElementById('itemsList');
+    const tableSelect = document.getElementById('tableSelect');
+    const orderItemsDiv = document.getElementById('orderItems');
+    const subtotalSpan = document.getElementById('subtotal');
+    const taxSpan = document.getElementById('tax');
+    const totalSpan = document.getElementById('total');
+    const discountTypeSelect = document.getElementById('discountTypeSelect');
+    const discountInput = document.getElementById('discountInput');
+    const serviceChargeTypeSelect = document.getElementById('serviceChargeTypeSelect');
+    const serviceChargeInput = document.getElementById('serviceChargeInput');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const toggleCategoriesBtn = document.getElementById('toggleCategoriesBtn');
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+    const saveOrderBtn = document.getElementById('saveOrderBtn');
+    const printBillBtn = document.getElementById('printBillBtn');
+    const resetOrderBtn = document.getElementById('resetOrderBtn');
+    const itemSearchInput = document.getElementById('itemSearch');
+    const cashBtn = document.getElementById('cashBtn');
+    const cardBtn = document.getElementById('cardBtn');
 
-// Create a mutable copy for searching/filtering
-let items = [...allItems];
-        
-        // --- STATE & DATA ---
-        let currentOrderItems = [];
-        let currentCategory = 'Coffee'; // Default category
-        const taxRate = 0.05; // 5% tax
-        let paymentMethod = 'Cash'; // Default payment method
-        
-        // --- ELEMENTS ---
-        const categoryButtonsDiv = document.getElementById('categoryButtons');
-        const itemsListDiv = document.getElementById('itemsList');
-        const tableSelect = document.getElementById('tableSelect');
-        const orderItemsDiv = document.getElementById('orderItems');
-        const subtotalSpan = document.getElementById('subtotal');
-        const taxSpan = document.getElementById('tax');
-        const totalSpan = document.getElementById('total');
-        const discountTypeSelect = document.getElementById('discountTypeSelect');
-        const discountInput = document.getElementById('discountInput');
-        const serviceChargeTypeSelect = document.getElementById('serviceChargeTypeSelect');
-        const serviceChargeInput = document.getElementById('serviceChargeInput');
-        const modalOverlay = document.getElementById('modalOverlay');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalMessage = document.getElementById('modalMessage');
-        const modalCloseBtn = document.getElementById('modalCloseBtn');
-        const toggleCategoriesBtn = document.getElementById('toggleCategoriesBtn');
-        const placeOrderBtn = document.getElementById('placeOrderBtn');
-        const saveOrderBtn = document.getElementById('saveOrderBtn');
-        const printBillBtn = document.getElementById('printBillBtn');
-        const resetOrderBtn = document.getElementById('resetOrderBtn');
-        const itemSearchInput = document.getElementById('itemSearch');
-        const cashBtn = document.getElementById('cashBtn');
-        const cardBtn = document.getElementById('cardBtn');
-        
-        // --- UTILITY FUNCTIONS ---
-        function showAlert(message, title = 'Notification') {
-            modalTitle.textContent = title;
-            modalMessage.textContent = message;
-            modalOverlay.style.display = 'flex';
-        }
-        modalCloseBtn.addEventListener('click', () => {
-            modalOverlay.style.display = 'none';
-        });
-        
-        // --- RENDER FUNCTIONS ---
-        function renderCategories() {
-            categoryButtonsDiv.innerHTML = '';
-            categories.forEach(cat => {
-                const btn = document.createElement('button');
-                btn.textContent = cat.name;
-                btn.className = `category-btn w-full py-3 px-4 mb-2 bg-indigo-500 text-white font-bold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${cat.name === currentCategory ? 'bg-indigo-700 scale-105 shadow-lg' : ''}`;
-                btn.addEventListener('click', () => {
-                    currentCategory = cat.name;
-                    renderCategories();
-                    renderItems();
-                });
-                categoryButtonsDiv.appendChild(btn);
+    // --- UTILITY FUNCTIONS ---
+    function showAlert(message, title = 'Notification') {
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+        modalOverlay.style.display = 'flex';
+    }
+    modalCloseBtn.addEventListener('click', () => {
+        modalOverlay.style.display = 'none';
+    });
+
+    // --- RENDER FUNCTIONS ---
+    function renderCategories() {
+        categoryButtonsDiv.innerHTML = '';
+        categories.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.textContent = cat.name;
+            btn.className = `category-btn w-full py-3 px-4 mb-2 bg-indigo-500 text-white font-bold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${cat.name === currentCategory ? 'bg-indigo-700 scale-105 shadow-lg' : ''}`;
+            btn.addEventListener('click', () => {
+                currentCategory = cat.name;
+                renderCategories();
+                renderItems();
             });
-            const dashboardBtn = document.createElement('button');
-            dashboardBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i> Dashboard';
-            dashboardBtn.onclick = () => window.location.href = 'dashboard.html';
-            dashboardBtn.className = 'mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105';
-            categoryButtonsDiv.appendChild(dashboardBtn);
-        }
-        
-        
-        function renderTableDropdown() {
-    const tables = JSON.parse(localStorage.getItem('tables') || '[]');
-    const tableSelect = document.getElementById('tableSelect');
-    tableSelect.innerHTML = ''; // clear existing options
-
-    if (tables.length === 0) {
-        const option = document.createElement('option');
-        option.value = '';
-        option.textContent = 'No tables available';
-        tableSelect.appendChild(option);
-        return;
+            categoryButtonsDiv.appendChild(btn);
+        });
+        const dashboardBtn = document.createElement('button');
+        dashboardBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i> Dashboard';
+        dashboardBtn.onclick = () => window.location.href = 'dashboard.html';
+        dashboardBtn.className = 'mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105';
+        categoryButtonsDiv.appendChild(dashboardBtn);
     }
 
-    tables.forEach((tbl, index) => {
-        const option = document.createElement('option');
-        option.value = tbl.name;  // you saved `name` in table.html
-        option.textContent = tbl.name;
-        tableSelect.appendChild(option);
-    });
-}
-
-
-
-// This is the new, corrected renderOrder function
-function renderOrder() {
-    orderItemsDiv.innerHTML = '';
-    if (currentOrderItems.length === 0) {
-        orderItemsDiv.innerHTML = '<div class="text-slate-500 text-center">No items added yet.</div>';
-    } else {
-        currentOrderItems.forEach(item => {
-            const itemTotal = parseFloat(item.sales || 0) * item.qty;
-            const div = document.createElement('div');
-            // Use the item's ID if it exists, otherwise fall back to its name
-            const uniqueId = item.id || item.name;
-
-            div.className = 'flex items-center justify-between bg-slate-50 rounded-lg p-3 mb-2 shadow-sm';
-            div.innerHTML = `
-                <div class="flex-1">
-                    <span class="font-semibold text-slate-800">${item.name}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button data-id="${uniqueId}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-transform hover:scale-110">-</button>
-                    <span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span>
-                    <button data-id="${uniqueId}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-transform hover:scale-110">+</button>
-                    <span class="font-semibold text-green-600 w-20 text-right">₹${itemTotal.toFixed(2)}</span>
-                    <button data-id="${uniqueId}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-transform hover:scale-110" aria-label="Remove ${item.name}">×</button>
-                </div>
-            `;
-            orderItemsDiv.appendChild(div);
+    function renderTableDropdown() {
+        const tables = JSON.parse(localStorage.getItem('tables') || '[]');
+        tableSelect.innerHTML = '';
+        if (tables.length === 0) {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'No tables available';
+            tableSelect.appendChild(option);
+            return;
+        }
+        tables.forEach(tbl => {
+            const option = document.createElement('option');
+            option.value = tbl.name;
+            option.textContent = tbl.name;
+            tableSelect.appendChild(option);
         });
     }
-    updateTotals();
-}
 
-        
-        // --- LOGIC FUNCTIONS ---
-        function addItemToOrder(item) {
-            const existingItem = currentOrderItems.find(o => o.id === item.id);
-            if (existingItem) {
-                existingItem.qty++;
-            } else {
-                currentOrderItems.push({ ...item, qty: 1 });
-            }
-            renderOrder();
+    function renderOrder() {
+        orderItemsDiv.innerHTML = '';
+        if (currentOrderItems.length === 0) {
+            orderItemsDiv.innerHTML = '<div class="text-slate-500 text-center">No items added yet.</div>';
+        } else {
+            currentOrderItems.forEach(item => {
+                const itemTotal = parseFloat(item.sales || 0) * item.qty;
+                const div = document.createElement('div');
+                const uniqueId = item.id || item.name;
+                div.className = 'flex items-center justify-between bg-slate-50 rounded-lg p-3 mb-2 shadow-sm';
+                div.innerHTML = `
+                    <div class="flex-1"><span class="font-semibold text-slate-800">${item.name}</span></div>
+                    <div class="flex items-center gap-2">
+                        <button data-id="${uniqueId}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-transform hover:scale-110">-</button>
+                        <span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span>
+                        <button data-id="${uniqueId}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-transform hover:scale-110">+</button>
+                        <span class="font-semibold text-green-600 w-20 text-right">₹${itemTotal.toFixed(2)}</span>
+                        <button data-id="${uniqueId}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-transform hover:scale-110" aria-label="Remove ${item.name}">×</button>
+                    </div>`;
+                orderItemsDiv.appendChild(div);
+            });
         }
-        
-      // This is the new, corrected renderItems function
-function renderItems() {
-    let itemsToDisplay = [...allItems]; // Always start with the complete master list
-
-    // Get the current search query from the input box
-    const searchQuery = itemSearchInput.value.toLowerCase();
-
-    // If there is a search query, filter ONLY by item name
-    if (searchQuery) {
-        currentCategory = ''; // De-select any category while searching
-        itemsToDisplay = itemsToDisplay.filter(item =>
-            item.name.toLowerCase().includes(searchQuery)
-        );
-    } 
-    // Otherwise, if there is a category selected, filter by category
-    else if (currentCategory) {
-        itemsToDisplay = itemsToDisplay.filter(item => item.category === currentCategory);
-    }
-    
-    // Update the active category button styles
-    renderCategories();
-
-    // Now, render the filtered list
-    itemsListDiv.innerHTML = '';
-    if (itemsToDisplay.length === 0) {
-        let message = 'No items found. Please add them in the admin panel.';
-        if (searchQuery) {
-            message = `No items match your search for "${searchQuery}".`;
-        } else if (currentCategory) {
-            message = `No items found in the "${currentCategory}" category.`;
-        }
-        itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">${message}</p>`;
-        return;
+        updateTotals();
     }
 
-    itemsToDisplay.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 transform hover:scale-105 cursor-pointer flex flex-col items-center justify-between text-center aspect-square';
-        card.title = `${item.name}\nPrice: ₹${item.sales}`;
-        const imageUrl = item.image || 'https://placehold.co/400x300?text=No+Image';
-
-        card.innerHTML = `
-            <img src="${imageUrl}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2">
-            <div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div>
-            <div class="font-semibold text-green-600 text-lg mt-auto">₹${parseFloat(item.sales || 0).toFixed(2)}</div>
-        `;
-        card.addEventListener('click', () => addItemToOrder(item));
-        itemsListDiv.appendChild(card);
-    });
-}
-        
-        function updateTotals() {
-            const subtotal = currentOrderItems.reduce((sum, item) => sum + parseFloat(item.sales) * item.qty, 0);
-            const discountValue = parseFloat(discountInput.value) || 0;
-            const serviceChargeValue = parseFloat(serviceChargeInput.value) || 0;
-            const isDiscountPercent = discountTypeSelect.value === 'percentage';
-            const isServiceChargePercent = serviceChargeTypeSelect.value === 'percentage';
-            const discountAmount = isDiscountPercent ? subtotal * (discountValue / 100) : discountValue;
-            const serviceChargeAmount = isServiceChargePercent ? subtotal * (serviceChargeValue / 100) : serviceChargeValue;
-            const taxableAmount = subtotal - discountAmount + serviceChargeAmount;
-            const taxAmount = taxableAmount * taxRate;
-            const totalAmount = taxableAmount + taxAmount;
-            subtotalSpan.textContent = subtotal.toFixed(2);
-            taxSpan.textContent = taxAmount.toFixed(2);
-            totalSpan.textContent = Math.max(0, totalAmount).toFixed(2);
+    // --- LOGIC FUNCTIONS ---
+    function addItemToOrder(item) {
+        const existingItem = currentOrderItems.find(o => o.id === item.id);
+        if (existingItem) {
+            existingItem.qty++;
+        } else {
+            currentOrderItems.push({ ...item, qty: 1 });
         }
-        
-        function toggleCategories() {
-            categoryButtonsDiv.classList.toggle('hidden');
-            categoryButtonsDiv.classList.toggle('flex');
-        }
-        
-      // New, combined placeOrder function
-function placeOrder() {
-    const tableSelect = document.getElementById('tableSelect');
-    const selectedTable = tableSelect.value;
-
-    if (!selectedTable) {
-        alert("Please select a table!");
-        return;
-    }
-  function resetOrder() {
-            currentOrderItems = [];
-            discountInput.value = 0;
-            serviceChargeInput.value = 0;
-            renderOrder();
-        }
-        
-        // --- PLACEHOLDERS FOR NEW BUTTONS ---
-        function saveOrder() {
-            showAlert('Order saved successfully!', 'Saved');
-        }
- function printBill() {
-    if (currentOrderItems.length === 0) {
-        return showAlert('No items to print.', 'Error');
-    }
-
-    // Save current order to localStorage
-    const orderData = {
-        table: tableSelect.value,
-        items: currentOrderItems,
-        subtotal: parseFloat(subtotalSpan.textContent),
-        discount: parseFloat(discountInput.value),
-        serviceCharge: parseFloat(serviceChargeInput.value),
-        tax: parseFloat(taxSpan.textContent),
-        total: parseFloat(totalSpan.textContent),
-        paymentMethod: paymentMethod,
-        date: new Date().toLocaleDateString(),
-        time: new Date().toLocaleTimeString(),
-    };
-    localStorage.setItem('currentPrintOrder', JSON.stringify(orderData));
-
-    const printerSize = localStorage.getItem('printerSize') || '80'; 
-    if (printerSize === '80') {
-        window.open('receipt-80mm.html', '_blank');
-    } else if (printerSize === '57') {
-        window.open('receipt-57mm.html', '_blank');
-    }
-}
-
-
-  
-
-        
-        // --- EVENT LISTENERS ---
-        toggleCategoriesBtn.addEventListener('click', toggleCategories);
-        placeOrderBtn.addEventListener('click', placeOrder);
-        resetOrderBtn.addEventListener('click', resetOrder);
-        saveOrderBtn.addEventListener('click', saveOrder);
-        printBillBtn.addEventListener('click', printBill);
-        
-       // This is the corrected event listener
-itemSearchInput.addEventListener('input', () => {
-    // Now it calls the correct function
-    renderItems(); 
-});
-        
-        // NEW: Payment button listeners
-        cashBtn.addEventListener('click', () => {
-            paymentMethod = 'Cash';
-            cashBtn.classList.add('active');
-            cardBtn.classList.remove('active');
-        });
-        cardBtn.addEventListener('click', () => {
-            paymentMethod = 'Card';
-            cardBtn.classList.add('active');
-            cashBtn.classList.remove('active');
-        });
-
-        // This is the new, corrected event listener
-orderItemsDiv.addEventListener('click', (event) => {
-    const target = event.target;
-    const qtyBtn = target.closest('.qty-btn');
-    const removeBtn = target.closest('.remove-btn');
-        
-    if (qtyBtn) {
-        const id = qtyBtn.dataset.id; // Get the ID (could be a number or a name string)
-        const action = qtyBtn.dataset.action;
-        // Find the item by checking both its id AND its name
-        const item = currentOrderItems.find(o => (o.id == id) || (o.name == id));
-        
-        if (item) {
-            if (action === 'increment') {
-                item.qty++;
-            } else if (action === 'decrement' && item.qty > 1) {
-                item.qty--;
-            } else if (action === 'decrement' && item.qty === 1) {
-                currentOrderItems = currentOrderItems.filter(i => (i.id || i.name) != id);
-            }
-            renderOrder();
-        }
-    } else if (removeBtn) {
-        const id = removeBtn.dataset.id;
-        // Find and remove the item by checking both its id AND its name
-        currentOrderItems = currentOrderItems.filter(i => (i.id || i.name) != id);
         renderOrder();
     }
-});
-        
-        [discountInput, discountTypeSelect, serviceChargeInput, serviceChargeTypeSelect].forEach(el => {
-            el.addEventListener('change', updateTotals);
-            el.addEventListener('input', updateTotals);
+
+    function renderItems() {
+        let itemsToDisplay = [...allItems];
+        const searchQuery = itemSearchInput.value.toLowerCase();
+        if (searchQuery) {
+            currentCategory = '';
+            itemsToDisplay = itemsToDisplay.filter(item => item.name.toLowerCase().includes(searchQuery));
+        } else if (currentCategory) {
+            itemsToDisplay = itemsToDisplay.filter(item => item.category === currentCategory);
+        }
+        renderCategories();
+        itemsListDiv.innerHTML = '';
+        if (itemsToDisplay.length === 0) {
+            let message = 'No items found.';
+            if (searchQuery) message = `No items match your search for "${searchQuery}".`;
+            else if (currentCategory) message = `No items found in the "${currentCategory}" category.`;
+            itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">${message}</p>`;
+            return;
+        }
+        itemsToDisplay.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 transform hover:scale-105 cursor-pointer flex flex-col items-center justify-between text-center aspect-square';
+            card.title = `${item.name}\nPrice: ₹${item.sales}`;
+            const imageUrl = item.image || 'https://placehold.co/400x300?text=No+Image';
+            card.innerHTML = `
+                <img src="${imageUrl}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2">
+                <div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div>
+                <div class="font-semibold text-green-600 text-lg mt-auto">₹${parseFloat(item.sales || 0).toFixed(2)}</div>`;
+            card.addEventListener('click', () => addItemToOrder(item));
+            itemsListDiv.appendChild(card);
         });
-        
-        // --- INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', () => {
-               const shopName = localStorage.getItem('shopName');
-    if (shopName) {
-        document.getElementById('shopNameHeader').textContent = shopName;
     }
-            renderCategories();
-            renderItems();
+
+    function updateTotals() {
+        const subtotal = currentOrderItems.reduce((sum, item) => sum + parseFloat(item.sales) * item.qty, 0);
+        const discountValue = parseFloat(discountInput.value) || 0;
+        const serviceChargeValue = parseFloat(serviceChargeInput.value) || 0;
+        const isDiscountPercent = discountTypeSelect.value === 'percentage';
+        const isServiceChargePercent = serviceChargeTypeSelect.value === 'percentage';
+        const discountAmount = isDiscountPercent ? subtotal * (discountValue / 100) : discountValue;
+        const serviceChargeAmount = isServiceChargePercent ? subtotal * (serviceChargeValue / 100) : serviceChargeValue;
+        const taxableAmount = subtotal - discountAmount + serviceChargeAmount;
+        const taxAmount = taxableAmount * taxRate;
+        const totalAmount = taxableAmount + taxAmount;
+        subtotalSpan.textContent = subtotal.toFixed(2);
+        taxSpan.textContent = taxAmount.toFixed(2);
+        totalSpan.textContent = Math.max(0, totalAmount).toFixed(2);
+    }
+
+    function toggleCategories() {
+        categoryButtonsDiv.classList.toggle('hidden');
+        categoryButtonsDiv.classList.toggle('flex');
+    }
+
+    function placeOrder() {
+        const selectedTable = tableSelect.value;
+        if (!selectedTable) {
+            return alert("Please select a table!");
+        }
+        if (currentOrderItems.length === 0) {
+            return alert("No items in order!");
+        }
+        // ⭐ Open KOT in a new tab first
+        window.open('kot.html', '_blank');
+        const order = {
+            table: selectedTable,
+            items: currentOrderItems,
+            total: currentOrderItems.reduce((sum, item) => sum + (item.sales * item.qty), 0),
+            timestamp: new Date().toLocaleString()
+        };
+        localStorage.setItem("currentReceipt", JSON.stringify(order));
+        window.location.href = "receipt.html";
+    }
+
+    function resetOrder() {
+        currentOrderItems = [];
+        discountInput.value = 0;
+        serviceChargeInput.value = 0;
+        renderOrder();
+    }
+
+    function saveOrder() {
+        showAlert('Order saved successfully!', 'Saved');
+    }
+
+    function printBill() {
+        if (currentOrderItems.length === 0) {
+            return showAlert('No items to print.', 'Error');
+        }
+        const orderData = {
+            table: tableSelect.value,
+            items: currentOrderItems,
+            subtotal: parseFloat(subtotalSpan.textContent),
+            discount: parseFloat(discountInput.value),
+            serviceCharge: parseFloat(serviceChargeInput.value),
+            tax: parseFloat(taxSpan.textContent),
+            total: parseFloat(totalSpan.textContent),
+            paymentMethod: paymentMethod,
+            date: new Date().toLocaleDateString(),
+            time: new Date().toLocaleTimeString(),
+        };
+        localStorage.setItem('currentPrintOrder', JSON.stringify(orderData));
+        const printerSize = localStorage.getItem('printerSize') || '80';
+        if (printerSize === '80') {
+            window.open('receipt-80mm.html', '_blank');
+        } else if (printerSize === '57') {
+            window.open('receipt-57mm.html', '_blank');
+        }
+    }
+
+    // --- EVENT LISTENERS ---
+    toggleCategoriesBtn.addEventListener('click', toggleCategories);
+    placeOrderBtn.addEventListener('click', placeOrder);
+    resetOrderBtn.addEventListener('click', resetOrder);
+    saveOrderBtn.addEventListener('click', saveOrder);
+    printBillBtn.addEventListener('click', printBill);
+    itemSearchInput.addEventListener('input', renderItems);
+    cashBtn.addEventListener('click', () => {
+        paymentMethod = 'Cash';
+        cashBtn.classList.add('active');
+        cardBtn.classList.remove('active');
+    });
+    cardBtn.addEventListener('click', () => {
+        paymentMethod = 'Card';
+        cardBtn.classList.add('active');
+        cashBtn.classList.remove('active');
+    });
+    orderItemsDiv.addEventListener('click', (event) => {
+        const target = event.target;
+        const qtyBtn = target.closest('.qty-btn');
+        const removeBtn = target.closest('.remove-btn');
+        if (qtyBtn) {
+            const id = qtyBtn.dataset.id;
+            const action = qtyBtn.dataset.action;
+            const item = currentOrderItems.find(o => (o.id == id) || (o.name == id));
+            if (item) {
+                if (action === 'increment') {
+                    item.qty++;
+                } else if (action === 'decrement' && item.qty > 1) {
+                    item.qty--;
+                } else if (action === 'decrement' && item.qty === 1) {
+                    currentOrderItems = currentOrderItems.filter(i => (i.id || i.name) != id);
+                }
+                renderOrder();
+            }
+        } else if (removeBtn) {
+            const id = removeBtn.dataset.id;
+            currentOrderItems = currentOrderItems.filter(i => (i.id || i.name) != id);
             renderOrder();
-              renderTableDropdown(); // ✅ load tables from localStorage
-        });
-    </script>
-    
+        }
+    });
+    [discountInput, discountTypeSelect, serviceChargeInput, serviceChargeTypeSelect].forEach(el => {
+        el.addEventListener('input', updateTotals);
+    });
+
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const shopName = localStorage.getItem('shopName');
+        if (shopName) {
+            document.getElementById('shopNameHeader').textContent = shopName;
+        }
+        renderCategories();
+        renderItems();
+        renderOrder();
+        renderTableDropdown();
+    });
+</script>
 </body>
 </html>
