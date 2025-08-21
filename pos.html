@@ -184,6 +184,21 @@
             </button>
         </div>
     </div>
+        <!-- Payment Method Popup -->
+<div id="paymentPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+  <div class="bg-white rounded-lg shadow-lg p-6 w-80 text-center">
+    <h2 class="text-lg font-semibold mb-4">Select Payment Method</h2>
+    <div class="flex justify-around mb-6">
+      <button onclick="confirmPayment('Cash')" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+        Cash
+      </button>
+      <button onclick="confirmPayment('Card')" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+        Card
+      </button>
+    </div>
+    <button onclick="closePaymentPopup()" class="text-red-500">Cancel</button>
+  </div>
+</div>
     <script>
 // --- FETCH DATA FROM LOCALSTORAGE ---
 let categories = JSON.parse(localStorage.getItem('categories')) || [];
@@ -573,21 +588,5 @@ function confirmPayment(method) {
 }
 
     </script>
-    <!-- Payment Method Popup -->
-<div id="paymentPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
-  <div class="bg-white rounded-lg shadow-lg p-6 w-80 text-center">
-    <h2 class="text-lg font-semibold mb-4">Select Payment Method</h2>
-    <div class="flex justify-around mb-6">
-      <button onclick="confirmPayment('Cash')" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
-        Cash
-      </button>
-      <button onclick="confirmPayment('Card')" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-        Card
-      </button>
-    </div>
-    <button onclick="closePaymentPopup()" class="text-red-500">Cancel</button>
-  </div>
-</div>
-
 </body>
 </html>
