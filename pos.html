@@ -1,644 +1,780 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>POS Billing</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2s+lHh1p7n5K24Jq4i+c6A5aJ6K6O4f3T2X6Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #e2e8f0;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: #94a3b8;
-            border-radius: 10px;
-            border: 2px solid #f8fafc;
-        }
-        .grid-container {
-            display: grid;
-            grid-template-columns: minmax(200px, 1fr) minmax(500px, 4fr) minmax(300px, 1.7fr);
-            height: calc(100vh - 8rem); /* Adjusted height for new header */
-            gap: 1.5rem;
-            padding: 1rem;
-        }
-        .section-panel {
-            background-color: #fff;
-            border-radius: 1rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-        }
-        .sidebar {
-            background-color: #eef2ff;
-        }
-        @media (max-width: 1024px) {
-            .grid-container {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto auto;
-                height: auto;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>POS Billing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2s+lHh1p7n5K24Jq4i+c6A5aJ6K6O4f3T2X6Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; overflow: hidden; }
+    .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #94a3b8; border-radius: 10px; border: 2px solid #f8fafc; }
+    .grid-container { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(500px, 4fr) minmax(300px, 1.7fr); height: calc(100vh - 8rem); gap: 1.5rem; padding: 1rem; }
+    .section-panel { background-color: #fff; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.5rem; display: flex; flex-direction: column; min-height: 0; }
+    .sidebar { background-color: #eef2ff; }
+    @media (max-width: 1024px) { .grid-container { grid-template-columns: 1fr; grid-template-rows: auto auto auto; height: auto; } }
+  </style>
 </head>
 
 <body class="bg-slate-100">
+  <header class="p-4 bg-white shadow-sm">
+    <div class="flex items-center justify-between">
+      <h1 id="shopNameHeader" class="text-2xl font-bold text-slate-800">POS Billing</h1>
 
-    <header class="p-4 bg-white shadow-sm">
-        <div class="flex items-center justify-between">
-            <h1 id="shopNameHeader" class="text-2xl font-bold text-slate-800">POS Billing</h1>
+      <div class="relative flex-grow max-w-xl mx-8">
+        <i class="fas fa-search absolute top-1/2 left-4 transform -translate-y-1/2 text-slate-400"></i>
+        <input type="text" id="itemSearch" placeholder="Search items..." class="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
 
-            <div class="relative flex-grow max-w-xl mx-8">
-                <i class="fas fa-search absolute top-1/2 left-4 transform -translate-y-1/2 text-slate-400"></i>
-                <input type="text" id="itemSearch" placeholder="Search items..." class="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-
-            <div class="flex items-center gap-3">
-                <button id="dineInBtn" class="bg-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-blue-600 transition disabled:bg-slate-300 disabled:cursor-not-allowed">Dine In</button>
-                <button id="takeAwayBtn" class="bg-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-green-600 transition disabled:bg-slate-300 disabled:cursor-not-allowed">Take Away</button>
-                <button id="savedOrdersBtn" class="bg-yellow-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-yellow-600 transition">
-        Saved Orders
-    </button>
-            </div>
-        </div>
-        <div id="orderStatus" class="text-center font-semibold text-indigo-600 mt-2 h-6"></div>
-    </header>
-
-    <div class="grid-container">
-        <section id="categoryButtons" class="sidebar section-panel">
-             </section>
-
-        <main class="section-panel relative">
-           
-
-            <h3 class="text-2xl font-bold text-slate-800 mb-4">Menu</h3>
-            <div id="itemsList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-1 overflow-y-auto custom-scrollbar flex-grow">
-                </div>
-        </main>
-
-        <aside class="order-summary section-panel">
-            <h3 class="text-2xl font-bold text-slate-800 mb-4">Order Summary</h3>
-            
-            <div class="flex justify-between items-center text-xs font-bold text-slate-500 uppercase px-3 pb-2 border-b border-slate-200">
-                <span class="w-3/6">Item</span>
-                <span class="w-2/6 text-center" style="margin-right: 65px;">Qty</span>
-                <span class="w-1/6 text-right">Total</span>
-            </div>
-
-            <div id="orderItems" class="flex-grow overflow-y-auto custom-scrollbar pt-2">
-                <div class="text-slate-500 text-center py-4">No items added yet.</div>
-            </div>
-            
-            <div class="space-y-3 text-slate-700 mt-4">
-                <div class="flex justify-between items-center font-semibold text-lg">
-                    <span>Subtotal:</span>
-                    <span>₹<span id="subtotal">0.00</span></span>
-                </div>
-                <div class="flex justify-between items-center text-md">
-                    <span>Discount:</span>
-                    <div class="flex items-center gap-2">
-                        <select id="discountTypeSelect" class="p-1 border border-slate-300 rounded-lg text-sm">
-                            <option value="manual">(₹)</option>
-                            <option value="percentage">(%)</option>
-                        </select>
-                        <input type="number" id="discountInput" value="0" min="0" class="w-24 p-1 border border-slate-300 rounded-lg text-right text-sm">
-                    </div>
-                </div>
-                <div class="flex justify-between items-center text-md">
-                    <span>Service Charge:</span>
-                    <div class="flex items-center gap-2">
-                        <select id="serviceChargeTypeSelect" class="p-1 border border-slate-300 rounded-lg text-sm">
-                            <option value="manual">(₹)</option>
-                            <option value="percentage">(%)</option>
-                        </select>
-                        <input type="number" id="serviceChargeInput" value="0" min="0" class="w-24 p-1 border border-slate-300 rounded-lg text-right text-sm">
-                    </div>
-                </div>
-                <div class="flex justify-between items-center text-md">
-                    <span>Tax (5%):</span>
-                    <span>₹<span id="tax">0.00</span></span>
-                </div>
-            </div>
-            <div class="border-t border-slate-200 mt-4 pt-4">
-                <div class="flex justify-between items-center font-bold text-2xl text-slate-900">
-                    <span>Total:</span>
-                    <span class="text-green-600">₹<span id="total">0.00</span></span>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-3 mt-4">
-                <button id="placeOrderBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                    <i class="fas fa-check mr-2"></i> Place Order & KOT
-                </button>
-                <button id="saveOrderBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                    <i class="fas fa-save mr-2"></i> Save
-                </button>
-                <button id="printBillBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                    <i class="fas fa-print mr-2"></i> Print Bill
-                </button>
-                <button id="resetOrderBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                    <i class="fas fa-trash-alt mr-2"></i> Clear Order
-                </button>
-            </div>
-        </aside>
+      <div class="flex items-center gap-3">
+        <button id="dineInBtn" class="bg-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-blue-600 transition disabled:bg-slate-300 disabled:cursor-not-allowed">Dine In</button>
+        <button id="takeAwayBtn" class="bg-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-green-600 transition disabled:bg-slate-300 disabled:cursor-not-allowed">Take Away</button>
+        <button id="savedOrdersBtn" class="bg-yellow-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-yellow-600 transition">Saved Orders</button>
+      </div>
     </div>
+    <div id="orderStatus" class="text-center font-semibold text-indigo-600 mt-2 h-6"></div>
+  </header>
 
-    <div id="modalOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-[1000] hidden items-center justify-center">
-        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center">
-            <h4 id="modalTitle" class="text-xl font-bold text-slate-800 mb-2"></h4>
-            <p id="modalMessage" class="text-slate-600 mb-4"></p>
-            <button id="modalCloseBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">OK</button>
-        </div>
-    </div>
+  <div class="grid-container">
+    <section id="categoryButtons" class="sidebar section-panel"></section>
 
-    <div id="paymentPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center">
-            <h2 class="text-2xl font-bold text-slate-800 mb-4">Confirm Payment</h2>
-            <p class="text-slate-600 mb-6">Select the payment method to finalize the bill.</p>
-            <div class="flex justify-around gap-4 mb-6">
-                <button onclick="confirmPayment('Cash')" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                    <i class="fas fa-money-bill-wave mr-2"></i>Cash
-                </button>
-                <button onclick="confirmPayment('Card')" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                    <i class="fas fa-credit-card mr-2"></i>Card
-                </button>
-            </div>
-            <button onclick="closePaymentPopup()" class="text-slate-500 hover:text-slate-700 font-semibold">Cancel</button>
-        </div>
-    </div>
+    <main class="section-panel relative">
+      <h3 class="text-2xl font-bold text-slate-800 mb-4">Menu</h3>
+      <div id="itemsList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-1 overflow-y-auto custom-scrollbar flex-grow"></div>
+    </main>
 
-    <div id="tablePopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg text-center">
-            <h2 class="text-2xl font-bold text-slate-800 mb-4">Select a Table</h2>
-            <div id="tableGrid" class="grid grid-cols-4 sm:grid-cols-5 gap-4 mb-6">
-                </div>
-            <button onclick="closeTablePopup()" class="text-slate-500 hover:text-slate-700 font-semibold">Cancel</button>
+    <aside class="order-summary section-panel">
+      <h3 class="text-2xl font-bold text-slate-800 mb-4">Order Summary</h3>
+
+      <div class="flex justify-between items-center text-xs font-bold text-slate-500 uppercase px-3 pb-2 border-b border-slate-200">
+        <span class="w-3/6">Item</span>
+        <span class="w-2/6 text-center" style="margin-right: 65px;">Qty</span>
+        <span class="w-1/6 text-right">Total</span>
+      </div>
+
+      <div id="orderItems" class="flex-grow overflow-y-auto custom-scrollbar pt-2">
+        <div class="text-slate-500 text-center py-4">No items added yet.</div>
+      </div>
+
+      <div class="space-y-3 text-slate-700 mt-4">
+        <div class="flex justify-between items-center font-semibold text-lg">
+          <span>Subtotal:</span>
+          <span>₹<span id="subtotal">0.00</span></span>
         </div>
+        <div class="flex justify-between items-center text-md">
+          <span>Discount:</span>
+          <div class="flex items-center gap-2">
+            <select id="discountTypeSelect" class="p-1 border border-slate-300 rounded-lg text-sm">
+              <option value="manual">(₹)</option>
+              <option value="percentage">(%)</option>
+            </select>
+            <input type="number" id="discountInput" value="0" min="0" class="w-24 p-1 border border-slate-300 rounded-lg text-right text-sm">
+          </div>
+        </div>
+        <div class="flex justify-between items-center text-md">
+          <span>Service Charge:</span>
+          <div class="flex items-center gap-2">
+            <select id="serviceChargeTypeSelect" class="p-1 border border-slate-300 rounded-lg text-sm">
+              <option value="manual">(₹)</option>
+              <option value="percentage">(%)</option>
+            </select>
+            <input type="number" id="serviceChargeInput" value="0" min="0" class="w-24 p-1 border border-slate-300 rounded-lg text-right text-sm">
+          </div>
+        </div>
+        <div class="flex justify-between items-center text-md">
+          <span>Tax (5%):</span>
+          <span>₹<span id="tax">0.00</span></span>
+        </div>
+      </div>
+
+      <div class="border-t border-slate-200 mt-4 pt-4">
+        <div class="flex justify-between items-center font-bold text-2xl text-slate-900">
+          <span>Total:</span>
+          <span class="text-green-600">₹<span id="total">0.00</span></span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <button id="placeOrderBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+          <i class="fas fa-check mr-2"></i> Place Order & KOT
+        </button>
+        <button id="saveOrderBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+          <i class="fas fa-save mr-2"></i> Save
+        </button>
+        <button id="printBillBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+          <i class="fas fa-print mr-2"></i> Print Bill
+        </button>
+        <button id="resetOrderBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+          <i class="fas fa-trash-alt mr-2"></i> Clear Order
+        </button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Generic Alert Modal -->
+  <div id="modalOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-[1000] hidden items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center">
+      <h4 id="modalTitle" class="text-xl font-bold text-slate-800 mb-2"></h4>
+      <p id="modalMessage" class="text-slate-600 mb-4"></p>
+      <button id="modalCloseBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">OK</button>
     </div>
-<div id="saveOrderPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20">
+  </div>
+
+  <!-- Payment Popup -->
+  <div id="paymentPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
     <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center">
-        <h2 class="text-2xl font-bold text-slate-800 mb-4">Save Order As</h2>
-        <p class="text-slate-600 mb-6">Enter a reference name for this order (e.g., "Table 5" or "John Doe").</p>
-        <input type="text" id="saveOrderName" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:outline-none mb-4" placeholder="Reference Name">
-        <div class="flex justify-between gap-4">
-            <button onclick="closeSaveOrderPopup()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full">Cancel</button>
-            <button onclick="handleSaveOrder()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg w-full">Save Order</button>
-        </div>
+      <h2 id="paymentTitle" class="text-2xl font-bold text-slate-800 mb-4">Confirm Payment</h2>
+      <p class="text-slate-600 mb-6">Select the payment method to finalize the bill.</p>
+      <div class="flex justify-around gap-4 mb-6">
+        <button id="payCashBtn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+          <i class="fas fa-money-bill-wave mr-2"></i>Cash
+        </button>
+        <button id="payCardBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+          <i class="fas fa-credit-card mr-2"></i>Card
+        </button>
+      </div>
+      <button id="paymentCancelBtn" class="text-slate-500 hover:text-slate-700 font-semibold">Cancel</button>
     </div>
-</div>
+  </div>
 
-<div id="recallOrderPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20">
+  <!-- Table Popup -->
+  <div id="tablePopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20" role="dialog" aria-modal="true" aria-labelledby="tableTitle">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg text-center">
+      <h2 id="tableTitle" class="text-2xl font-bold text-slate-800 mb-4">Select a Table</h2>
+      <div id="tableGrid" class="grid grid-cols-4 sm:grid-cols-5 gap-4 mb-6"></div>
+      <button id="tableCancelBtn" class="text-slate-500 hover:text-slate-700 font-semibold">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Save Order Popup -->
+  <div id="saveOrderPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20" role="dialog" aria-modal="true" aria-labelledby="saveTitle">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center">
+      <h2 id="saveTitle" class="text-2xl font-bold text-slate-800 mb-4">Save Order As</h2>
+      <p class="text-slate-600 mb-6">Enter a reference name for this order (e.g., "Table 5" or "John Doe").</p>
+      <input type="text" id="saveOrderName" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:outline-none mb-4" placeholder="Reference Name">
+      <div class="flex justify-between gap-4">
+        <button id="saveCancelBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full">Cancel</button>
+        <button id="saveConfirmBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg w-full">Save Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recall Order Popup -->
+  <div id="recallOrderPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20" role="dialog" aria-modal="true" aria-labelledby="recallTitle">
     <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
-        <h2 class="text-2xl font-bold text-slate-800 mb-4 text-center">Recall a Saved Order</h2>
-        <div id="heldOrdersList" class="max-h-96 overflow-y-auto custom-scrollbar space-y-2">
-            </div>
-        <div class="flex justify-center mt-6">
-             <button onclick="closeRecallOrderPopup()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full max-w-xs">Close</button>
-        </div>
+      <h2 id="recallTitle" class="text-2xl font-bold text-slate-800 mb-4 text-center">Recall a Saved Order</h2>
+      <div id="heldOrdersList" class="max-h-96 overflow-y-auto custom-scrollbar space-y-2"></div>
+      <div class="flex justify-center mt-6">
+        <button id="recallCloseBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full max-w-xs">Close</button>
+      </div>
     </div>
-</div>
-   <script>
-    // --- FETCH DATA FROM LOCALSTORAGE ---
-    let categories = JSON.parse(localStorage.getItem('categories')) || [];
-    let allItems = JSON.parse(localStorage.getItem('items')) || [];
+  </div>
 
-    // --- STATE & DATA ---
-    let currentOrderItems = [];
-    let currentCategory = categories.length > 0 ? categories[0].name : '';
-    const taxRate = 0.05;
-    let paymentMethod = 'Cash';
-    let orderType = null;
-    let selectedTable = null;
-    let takeAwayOrderNumber = parseInt(localStorage.getItem('takeAwayOrderNumber')) || 101;
+  <!-- App Script -->
+  <script type="module">
+    class StorageManager {
+      static getJSON(key, fallback) {
+        try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+        catch { return fallback; }
+      }
+      static setJSON(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
 
-    // --- ELEMENTS ---
-    const categoryButtonsDiv = document.getElementById('categoryButtons');
-    const itemsListDiv = document.getElementById('itemsList');
-    const orderItemsDiv = document.getElementById('orderItems');
-    const subtotalSpan = document.getElementById('subtotal');
-    const taxSpan = document.getElementById('tax');
-    const totalSpan = document.getElementById('total');
-    const discountTypeSelect = document.getElementById('discountTypeSelect');
-    const discountInput = document.getElementById('discountInput');
-    const serviceChargeTypeSelect = document.getElementById('serviceChargeTypeSelect');
-    const serviceChargeInput = document.getElementById('serviceChargeInput');
-    const modalOverlay = document.getElementById('modalOverlay');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalMessage = document.getElementById('modalMessage');
-    const modalCloseBtn = document.getElementById('modalCloseBtn');
-    const placeOrderBtn = document.getElementById('placeOrderBtn');
-    const saveOrderBtn = document.getElementById('saveOrderBtn');
-    const printBillBtn = document.getElementById('printBillBtn');
-    const resetOrderBtn = document.getElementById('resetOrderBtn');
-    const itemSearchInput = document.getElementById('itemSearch');
-    const dineInBtn = document.getElementById('dineInBtn');
-    const takeAwayBtn = document.getElementById('takeAwayBtn');
-    const tablePopup = document.getElementById('tablePopup');
-    const tableGrid = document.getElementById('tableGrid');
-    const orderStatus = document.getElementById('orderStatus');
-    const savedOrdersBtn = document.getElementById('savedOrdersBtn');
-const saveOrderPopup = document.getElementById('saveOrderPopup');
-const recallOrderPopup = document.getElementById('recallOrderPopup');
-const heldOrdersList = document.getElementById('heldOrdersList');
+      static getCategories() { return this.getJSON('categories', []); }
+      static getItems() { return this.getJSON('items', []); }
+      static getTables() { return this.getJSON('tables', []); }
+      static getShopName() { return localStorage.getItem('shopName') || 'POS Billing'; }
+      static getPrinterSize() { return localStorage.getItem('printerSize') || '80'; }
 
-    // --- UTILITY FUNCTIONS ---
-    function showAlert(message, title = 'Notification') {
-        modalTitle.textContent = title;
-        modalMessage.textContent = message;
-        modalOverlay.style.display = 'flex';
-    }
-    // --- HOLD & RECALL FUNCTIONS (NEW) ---
+      static getTakeAwayNumber() { return parseInt(localStorage.getItem('takeAwayOrderNumber')) || 101; }
+      static incrementTakeAwayNumber() {
+        const next = this.getTakeAwayNumber() + 1;
+        localStorage.setItem('takeAwayOrderNumber', String(next));
+        return next;
+      }
 
-function openSaveOrderPopup() {
-    if (currentOrderItems.length === 0) {
-        return showAlert("Cannot save an empty order.", 'Error');
-    }
-    document.getElementById('saveOrderName').value = ''; // Clear previous input
-    saveOrderPopup.style.display = 'flex';
-}
+      static saveSale(sale) {
+        const sales = this.getJSON('sales', []);
+        sales.push(sale);
+        this.setJSON('sales', sales);
+      }
 
-function closeSaveOrderPopup() {
-    saveOrderPopup.style.display = 'none';
-}
+      static saveHeldOrder(order) {
+        const held = this.getJSON('heldOrders', []);
+        held.push(order);
+        this.setJSON('heldOrders', held);
+      }
 
-function handleSaveOrder() {
-    const orderName = document.getElementById('saveOrderName').value;
-    if (!orderName) {
-        return showAlert("Please enter a reference name for the order.", "Name Required");
+      static listHeldOrders() { return this.getJSON('heldOrders', []); }
+      static deleteHeldOrder(index) {
+        const held = this.getJSON('heldOrders', []);
+        held.splice(index, 1);
+        this.setJSON('heldOrders', held);
+      }
+
+      static popHeldOrder(index) {
+        const held = this.getJSON('heldOrders', []);
+        const order = held.splice(index, 1)[0];
+        this.setJSON('heldOrders', held);
+        return order;
+      }
+
+      static setCurrentPrintOrder(orderData) { this.setJSON('currentPrintOrder', orderData); }
     }
 
-    let heldOrders = JSON.parse(localStorage.getItem('heldOrders')) || [];
-    const orderToHold = {
-        name: orderName,
-        items: currentOrderItems,
-        orderType: orderType,
-        table: selectedTable,
-        discount: document.getElementById('discountInput').value,
-        serviceCharge: document.getElementById('serviceChargeInput').value,
-        timestamp: new Date().toISOString()
-    };
-    
-    heldOrders.push(orderToHold);
-    localStorage.setItem('heldOrders', JSON.stringify(heldOrders));
-    
-    closeSaveOrderPopup();
-    showAlert(`Order "${orderName}" has been saved.`, 'Success');
-    resetOrder(); // Clear the screen for the next customer
-}
+    class OrderManager {
+      constructor(taxRate = 0.05) {
+        this.taxRate = taxRate;
+        this.items = [];
+        this.discount = { value: 0, type: 'manual' };     // manual | percentage
+        this.serviceCharge = { value: 0, type: 'manual' }; // manual | percentage
+        this.paymentMethod = 'Cash';
+        this.orderType = null; // 'Dine In' | 'Take Away'
+        this.selectedTable = null;
+        this.takeAwayOrderNumber = StorageManager.getTakeAwayNumber();
+      }
 
-function openRecallOrderPopup() {
-    let heldOrders = JSON.parse(localStorage.getItem('heldOrders')) || [];
-    heldOrdersList.innerHTML = ''; // Clear the list
-
-    if (heldOrders.length === 0) {
-        heldOrdersList.innerHTML = '<p class="text-slate-500 text-center p-4">No orders are currently on hold.</p>';
-    } else {
-        heldOrders.forEach((order, index) => {
-            const orderDiv = document.createElement('div');
-            orderDiv.className = 'flex justify-between items-center bg-slate-100 p-3 rounded-lg';
-            orderDiv.innerHTML = `
-                <span class="font-semibold text-slate-800">${order.name}</span>
-                <div class="flex gap-2">
-                    <button onclick="loadHeldOrder(${index})" class="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600">Load</button>
-                    <button onclick="deleteHeldOrder(${index})" class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600">Delete</button>
-                </div>
-            `;
-            heldOrdersList.appendChild(orderDiv);
-        });
-    }
-    recallOrderPopup.style.display = 'flex';
-}
-
-function closeRecallOrderPopup() {
-    recallOrderPopup.style.display = 'none';
-}
-
-function loadHeldOrder(index) {
-    let heldOrders = JSON.parse(localStorage.getItem('heldOrders')) || [];
-    const orderToLoad = heldOrders[index];
-
-    if (orderToLoad) {
-        // Restore the order state
-        currentOrderItems = orderToLoad.items;
-        orderType = orderToLoad.orderType;
-        selectedTable = orderToLoad.table;
-        document.getElementById('discountInput').value = orderToLoad.discount;
-        document.getElementById('serviceChargeInput').value = orderToLoad.serviceCharge;
-
-        // Update UI
-        setOrderType(orderType, selectedTable);
-        renderOrder();
-        
-        // Remove the order from the held list
-        heldOrders.splice(index, 1);
-        localStorage.setItem('heldOrders', JSON.stringify(heldOrders));
-        
-        closeRecallOrderPopup();
-    }
-}
-
-function deleteHeldOrder(index) {
-    let heldOrders = JSON.parse(localStorage.getItem('heldOrders')) || [];
-    if (confirm(`Are you sure you want to delete the order "${heldOrders[index].name}"?`)) {
-        heldOrders.splice(index, 1);
-        localStorage.setItem('heldOrders', JSON.stringify(heldOrders));
-        openRecallOrderPopup(); // Refresh the list
-    }
-}
-
-    // --- WORKFLOW FUNCTIONS ---
-    function initializeOrderScreen() {
-        orderType = null;
-        selectedTable = null;
-        orderStatus.textContent = '';
-        currentOrderItems = [];
-        discountInput.value = 0;
-        serviceChargeInput.value = 0;
-        
-        // Ensure the Dine In and Take Away buttons are ENABLED for a new order
-        dineInBtn.disabled = false;
-        takeAwayBtn.disabled = false;
-        
-        renderOrder();
-    }
-
-    function setOrderType(type, details = null) {
-        orderType = type;
-        
-        // Disable the order type buttons after a choice is made
-        dineInBtn.disabled = true;
-        takeAwayBtn.disabled = true;
-
+      setOrderType(type, details = null) {
+        this.orderType = type;
         if (type === 'Dine In') {
-            selectedTable = details;
-            orderStatus.textContent = `Order for: Table ${selectedTable}`;
-            closeTablePopup(); // This will now close the popup automatically
+          this.selectedTable = details;
         } else if (type === 'Take Away') {
-            selectedTable = `TA-${takeAwayOrderNumber}`;
-            orderStatus.textContent = `Order for: Take Away #${takeAwayOrderNumber}`;
-            localStorage.setItem('takeAwayOrderNumber', takeAwayOrderNumber + 1);
-            takeAwayOrderNumber++;
+          this.selectedTable = `TA-${this.takeAwayOrderNumber}`;
+          this.takeAwayOrderNumber = StorageManager.incrementTakeAwayNumber();
         }
-    }
+      }
 
-    function openTablePopup() {
-        const tables = JSON.parse(localStorage.getItem('tables')) || [];
-        tableGrid.innerHTML = '';
-        if (tables.length > 0) {
-            tables.forEach(tbl => {
-                const btn = document.createElement('button');
-                btn.textContent = tbl.name;
-                btn.className = 'p-4 bg-indigo-500 text-white font-bold rounded-lg hover:bg-indigo-600 transition';
-                // This onclick will now work correctly
-                btn.onclick = () => setOrderType('Dine In', tbl.name);
-                tableGrid.appendChild(btn);
-            });
-        } else {
-            tableGrid.innerHTML = '<p class="col-span-full text-slate-500">No tables configured in settings.</p>';
-        }
-        tablePopup.style.display = 'flex';
-    }
+      addItem(item) {
+        const idKey = item.id ?? item.name; // fallback when id not present
+        const existing = this.items.find(i => (i.id ?? i.name) === idKey);
+        if (existing) existing.qty++;
+        else this.items.push({ ...item, qty: 1 });
+      }
 
-    function closeTablePopup() {
-        tablePopup.style.display = 'none';
-    }
-    
-    function openPaymentPopup() {
-        if (currentOrderItems.length === 0) {
-            return showAlert('Cannot process payment for an empty order.', 'Error');
-        }
-        document.getElementById('paymentPopup').style.display = 'flex';
-    }
+      updateQty(idKey, delta) {
+        const item = this.items.find(i => (i.id ?? i.name) == idKey);
+        if (!item) return;
+        item.qty += delta;
+        if (item.qty <= 0) this.removeItem(idKey);
+      }
 
-    function closePaymentPopup() {
-        document.getElementById('paymentPopup').style.display = 'none';
-    }
+      removeItem(idKey) {
+        this.items = this.items.filter(i => (i.id ?? i.name) != idKey);
+      }
 
-    function confirmPayment(method) {
-        paymentMethod = method;
-        const sales = JSON.parse(localStorage.getItem('sales')) || [];
-        const newSale = {
-            orderId: Date.now(),
-            date: new Date().toISOString(),
-            items: currentOrderItems,
-            subtotal: parseFloat(subtotalSpan.textContent),
-            discount: parseFloat(discountInput.value),
-            serviceCharge: parseFloat(serviceChargeInput.value),
-            tax: parseFloat(taxSpan.textContent),
-            total: parseFloat(totalSpan.textContent),
-            paymentMethod: paymentMethod,
-            orderType: orderType,
-            table: selectedTable
+      clear() {
+        this.items = [];
+        this.discount = { value: 0, type: 'manual' };
+        this.serviceCharge = { value: 0, type: 'manual' };
+        this.paymentMethod = 'Cash';
+        this.orderType = null;
+        this.selectedTable = null;
+      }
+
+      _calcFromType(base, { value, type }) {
+        const v = Math.max(0, parseFloat(value) || 0);
+        return type === 'percentage' ? base * (v / 100) : v;
+      }
+
+      calculateTotals() {
+        const subtotal = this.items.reduce((sum, i) => sum + (parseFloat(i.sales || 0) * i.qty), 0);
+        const discount = this._calcFromType(subtotal, this.discount);
+        const serviceCharge = this._calcFromType(subtotal, this.serviceCharge);
+        const taxable = Math.max(0, subtotal - discount + serviceCharge);
+        const tax = taxable * this.taxRate;
+        const total = taxable + tax;
+        return { subtotal, discount, serviceCharge, tax, total };
+      }
+
+      toSaleRecord(subtotal, discount, serviceCharge, tax, total) {
+        return {
+          orderId: Date.now(),
+          date: new Date().toISOString(),
+          items: this.items,
+          subtotal, discount, serviceCharge, tax, total,
+          paymentMethod: this.paymentMethod,
+          orderType: this.orderType,
+          table: this.selectedTable
         };
-        sales.push(newSale);
-        localStorage.setItem('sales', JSON.stringify(sales));
-        
-        printBill();
-        closePaymentPopup();
-        // initializeOrderScreen will be called by resetOrder
-        resetOrder();
-    }
+      }
 
-    // --- RENDER FUNCTIONS ---
-    function renderCategories() {
-        categoryButtonsDiv.innerHTML = '';
-        categories.forEach(cat => {
-            const btn = document.createElement('button');
-            btn.textContent = cat.name;
-            btn.className = `w-full text-left py-3 px-4 mb-2 font-bold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105 focus:outline-none ${cat.name === currentCategory ? 'bg-indigo-600 text-white scale-105 shadow-lg' : 'bg-white text-slate-700 hover:bg-indigo-100'}`;
-            btn.addEventListener('click', () => {
-                currentCategory = cat.name;
-                renderCategories();
-                renderItems();
-            });
-            categoryButtonsDiv.appendChild(btn);
-        });
-        const dashboardBtn = document.createElement('button');
-        dashboardBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i> Dashboard';
-        dashboardBtn.onclick = () => window.location.href = 'dashboard.html';
-        dashboardBtn.className = 'mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105';
-        categoryButtonsDiv.appendChild(dashboardBtn);
-    }
-
-    function renderOrder() {
-        orderItemsDiv.innerHTML = '';
-        if (currentOrderItems.length === 0) {
-            orderItemsDiv.innerHTML = '<div class="text-slate-500 text-center py-4">No items added yet.</div>';
-        } else {
-            currentOrderItems.forEach(item => {
-                const itemTotal = parseFloat(item.sales || 0) * item.qty;
-                const div = document.createElement('div');
-                const uniqueId = item.id || item.name;
-                div.className = 'flex items-center justify-between bg-slate-50 rounded-lg p-3 mb-2 shadow-sm';
-                div.innerHTML = `
-                    <div class="flex-1">
-                        <span class="font-semibold text-slate-800">${item.name}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button data-id="${uniqueId}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">-</button>
-                        <span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span>
-                        <button data-id="${uniqueId}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">+</button>
-                        <span class="font-semibold text-green-600 w-20 text-right">₹${itemTotal.toFixed(2)}</span>
-                        <button data-id="${uniqueId}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110" aria-label="Remove ${item.name}">×</button>
-                    </div>`;
-                orderItemsDiv.appendChild(div);
-            });
-        }
-        updateTotals();
-    }
-
-    function renderItems() {
-        let itemsToDisplay = [...allItems];
-        const searchQuery = itemSearchInput.value.toLowerCase();
-        if (searchQuery) {
-            itemsToDisplay = itemsToDisplay.filter(item => item.name.toLowerCase().includes(searchQuery));
-        } else if (currentCategory) {
-            itemsToDisplay = itemsToDisplay.filter(item => item.category === currentCategory);
-        }
-        itemsListDiv.innerHTML = '';
-        if (itemsToDisplay.length === 0) {
-            let message = 'No items found.';
-            if (searchQuery) message = `No items match your search for "${searchQuery}".`;
-            else if (currentCategory) message = `No items found in the "${currentCategory}" category.`;
-            itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">${message}</p>`;
-            return;
-        }
-             itemsToDisplay.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 transform hover:scale-105 cursor-pointer flex flex-col items-center justify-between text-center aspect-square';
-            card.title = `${item.name}\nPrice: ₹${item.sales}`;
-            const imageUrl = item.image || 'https://placehold.co/400x300?text=No+Image';
-            card.innerHTML = `
-                <img src="${imageUrl}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2">
-                <div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div>
-                <div class="font-semibold text-green-600 text-lg mt-auto">₹${parseFloat(item.sales || 0).toFixed(2)}</div>`;
-            card.addEventListener('click', () => addItemToOrder(item));
-            itemsListDiv.appendChild(card);
-        });
-    }
-
-    // --- LOGIC FUNCTIONS ---
-    function addItemToOrder(item) {
-        if (!orderType) {
-            showAlert('Please select "Dine In" or "Take Away" before adding items.', 'Order Type Required');
-            return;
-        }
-        const existingItem = currentOrderItems.find(o => o.id === item.id);
-        if (existingItem) {
-            existingItem.qty++;
-        } else {
-            currentOrderItems.push({ ...item, qty: 1 });
-        }
-        renderOrder();
-    }
-
-    function updateTotals() {
-        const subtotal = currentOrderItems.reduce((sum, item) => sum + parseFloat(item.sales) * item.qty, 0);
-        const discountValue = parseFloat(discountInput.value) || 0;
-        const serviceChargeValue = parseFloat(serviceChargeInput.value) || 0;
-        const isDiscountPercent = discountTypeSelect.value === 'percentage';
-        const isServiceChargePercent = serviceChargeTypeSelect.value === 'percentage';
-        const discountAmount = isDiscountPercent ? subtotal * (discountValue / 100) : discountValue;
-        const serviceChargeAmount = isServiceChargePercent ? subtotal * (serviceChargeValue / 100) : serviceChargeValue;
-        const taxableAmount = subtotal - discountAmount + serviceChargeAmount;
-        const taxAmount = taxableAmount * taxRate;
-        const totalAmount = taxableAmount + taxAmount;
-        subtotalSpan.textContent = subtotal.toFixed(2);
-        taxSpan.textContent = taxAmount.toFixed(2);
-        totalSpan.textContent = Math.max(0, totalAmount).toFixed(2);
-    }
-
-    function placeOrder() {
-        if (currentOrderItems.length === 0) return showAlert("No items in order!", 'Error');
-        window.open('kot.html', '_blank');
-        showAlert('Order placed and KOT sent to kitchen!', 'Success');
-    }
-
-    function resetOrder() {
-        initializeOrderScreen();
-    }
-
-
-
-    function printBill() {
-        if (currentOrderItems.length === 0) return;
-        const orderData = {
-            items: currentOrderItems,
-            subtotal: parseFloat(subtotalSpan.textContent),
-            discount: parseFloat(discountInput.value),
-            serviceCharge: parseFloat(serviceChargeInput.value),
-            tax: parseFloat(taxSpan.textContent),
-            total: parseFloat(totalSpan.textContent),
-            paymentMethod: paymentMethod,
-            orderType: orderType,
-            table: selectedTable,
-            date: new Date().toLocaleDateString(),
-            time: new Date().toLocaleTimeString(),
+      toPrintOrder(totals) {
+        return {
+          items: this.items,
+          subtotal: totals.subtotal,
+          discount: this.discount.value,
+          serviceCharge: this.serviceCharge.value,
+          tax: totals.tax,
+          total: totals.total,
+          paymentMethod: this.paymentMethod,
+          orderType: this.orderType,
+          table: this.selectedTable,
+          date: new Date().toLocaleDateString(),
+          time: new Date().toLocaleTimeString(),
         };
-        localStorage.setItem('currentPrintOrder', JSON.stringify(orderData));
-        const printerSize = localStorage.getItem('printerSize') || '80';
-        window.open(printerSize === '80' ? 'receipt-80mm.html' : 'receipt-57mm.html', '_blank');
+      }
     }
-    
-    // --- EVENT LISTENERS ---
-    modalCloseBtn.addEventListener('click', () => modalOverlay.style.display = 'none');
-    placeOrderBtn.addEventListener('click', placeOrder);
-    resetOrderBtn.addEventListener('click', resetOrder);
-    saveOrderBtn.addEventListener('click', openSaveOrderPopup);
-    savedOrdersBtn.addEventListener('click', openRecallOrderPopup);
-    printBillBtn.addEventListener('click', openPaymentPopup);
-    itemSearchInput.addEventListener('input', renderItems);
-    dineInBtn.addEventListener('click', openTablePopup);
-    takeAwayBtn.addEventListener('click', () => setOrderType('Take Away'));
 
-    
-    orderItemsDiv.addEventListener('click', (event) => {
-        const target = event.target;
-        const qtyBtn = target.closest('.qty-btn');
-        const removeBtn = target.closest('.remove-btn');
-        if (qtyBtn) {
+    class UIManager {
+      constructor(orderManager) {
+        this.order = orderManager;
+
+        // Data
+        this.categories = StorageManager.getCategories();
+        this.allItems = StorageManager.getItems();
+        this.currentCategory = this.categories.length ? this.categories[0].name : '';
+
+        // Cache DOM
+        this.cacheDOM();
+
+        // Bind events
+        this.bindGlobalEvents();
+
+        // Initial render
+        this.initScreen();
+      }
+
+      cacheDOM() {
+        // Header / search
+        this.shopNameHeader = document.getElementById('shopNameHeader');
+        this.itemSearchInput = document.getElementById('itemSearch');
+        this.orderStatus = document.getElementById('orderStatus');
+
+        // Panels
+        this.categoryButtonsDiv = document.getElementById('categoryButtons');
+        this.itemsListDiv = document.getElementById('itemsList');
+        this.orderItemsDiv = document.getElementById('orderItems');
+
+        // Totals
+        this.subtotalSpan = document.getElementById('subtotal');
+        this.taxSpan = document.getElementById('tax');
+        this.totalSpan = document.getElementById('total');
+        this.discountTypeSelect = document.getElementById('discountTypeSelect');
+        this.discountInput = document.getElementById('discountInput');
+        this.serviceChargeTypeSelect = document.getElementById('serviceChargeTypeSelect');
+        this.serviceChargeInput = document.getElementById('serviceChargeInput');
+
+        // Buttons
+        this.placeOrderBtn = document.getElementById('placeOrderBtn');
+        this.saveOrderBtn = document.getElementById('saveOrderBtn');
+        this.printBillBtn = document.getElementById('printBillBtn');
+        this.resetOrderBtn = document.getElementById('resetOrderBtn');
+        this.dineInBtn = document.getElementById('dineInBtn');
+        this.takeAwayBtn = document.getElementById('takeAwayBtn');
+        this.savedOrdersBtn = document.getElementById('savedOrdersBtn');
+
+        // Modals / Popups
+        this.modalOverlay = document.getElementById('modalOverlay');
+        this.modalTitle = document.getElementById('modalTitle');
+        this.modalMessage = document.getElementById('modalMessage');
+        this.modalCloseBtn = document.getElementById('modalCloseBtn');
+
+        this.paymentPopup = document.getElementById('paymentPopup');
+        this.payCashBtn = document.getElementById('payCashBtn');
+        this.payCardBtn = document.getElementById('payCardBtn');
+        this.paymentCancelBtn = document.getElementById('paymentCancelBtn');
+
+        this.tablePopup = document.getElementById('tablePopup');
+        this.tableGrid = document.getElementById('tableGrid');
+        this.tableCancelBtn = document.getElementById('tableCancelBtn');
+
+        this.saveOrderPopup = document.getElementById('saveOrderPopup');
+        this.saveOrderName = document.getElementById('saveOrderName');
+        this.saveCancelBtn = document.getElementById('saveCancelBtn');
+        this.saveConfirmBtn = document.getElementById('saveConfirmBtn');
+
+        this.recallOrderPopup = document.getElementById('recallOrderPopup');
+        this.heldOrdersList = document.getElementById('heldOrdersList');
+        this.recallCloseBtn = document.getElementById('recallCloseBtn');
+      }
+
+      bindGlobalEvents() {
+        // Header / search
+        this.itemSearchInput.addEventListener('input', () => this.renderItems());
+
+        // Order type
+        this.dineInBtn.addEventListener('click', () => this.openTablePopup());
+        this.takeAwayBtn.addEventListener('click', () => this.setOrderType('Take Away'));
+
+        // Order actions
+        this.placeOrderBtn.addEventListener('click', () => this.placeOrder());
+        this.resetOrderBtn.addEventListener('click', () => this.resetOrder());
+        this.saveOrderBtn.addEventListener('click', () => this.openSaveOrderPopup());
+        this.printBillBtn.addEventListener('click', () => this.openPaymentPopup());
+        this.savedOrdersBtn.addEventListener('click', () => this.openRecallOrderPopup());
+
+        // Totals inputs
+        [this.discountInput, this.discountTypeSelect, this.serviceChargeInput, this.serviceChargeTypeSelect]
+          .forEach(el => el.addEventListener('input', () => this.updateTotalsFromInputs()));
+
+        // Modals
+        this.modalCloseBtn.addEventListener('click', () => this.hideAlert());
+
+        // Payment popup
+        this.payCashBtn.addEventListener('click', () => this.confirmPayment('Cash'));
+        this.payCardBtn.addEventListener('click', () => this.confirmPayment('Card'));
+        this.paymentCancelBtn.addEventListener('click', () => this.closePaymentPopup());
+
+        // Table popup
+        this.tableCancelBtn.addEventListener('click', () => this.closeTablePopup());
+
+        // Save popup
+        this.saveCancelBtn.addEventListener('click', () => this.closeSaveOrderPopup());
+        this.saveConfirmBtn.addEventListener('click', () => this.handleSaveOrder());
+
+        // Recall popup
+        this.recallCloseBtn.addEventListener('click', () => this.closeRecallOrderPopup());
+        this.heldOrdersList.addEventListener('click', (e) => this.handleHeldOrdersClick(e));
+
+        // Order items (delegation)
+        this.orderItemsDiv.addEventListener('click', (event) => {
+          const qtyBtn = event.target.closest('.qty-btn');
+          const removeBtn = event.target.closest('.remove-btn');
+          if (qtyBtn) {
             const id = qtyBtn.dataset.id;
             const action = qtyBtn.dataset.action;
-            const item = currentOrderItems.find(o => (o.id == id) || (o.name == id));
-            if (item) {
-                if (action === 'increment') item.qty++;
-                else if (action === 'decrement' && item.qty > 1) item.qty--;
-                else if (action === 'decrement' && item.qty === 1) currentOrderItems = currentOrderItems.filter(i => (i.id || i.name) != id);
-                renderOrder();
-            }
-        } else if (removeBtn) {
+            this.order.updateQty(id, action === 'increment' ? 1 : -1);
+            this.renderOrder();
+          } else if (removeBtn) {
             const id = removeBtn.dataset.id;
-            currentOrderItems = currentOrderItems.filter(i => (i.id || i.name) != id);
-            renderOrder();
-        }
-    });
-    [discountInput, discountTypeSelect, serviceChargeInput, serviceChargeTypeSelect].forEach(el => {
-        el.addEventListener('input', updateTotals);
-    });
+            this.order.removeItem(id);
+            this.renderOrder();
+          }
+        });
+      }
 
-    // --- INITIALIZATION ---
-    document.addEventListener('DOMContentLoaded', () => {
-        const shopName = localStorage.getItem('shopName');
-        if (shopName) {
-            document.getElementById('shopNameHeader').textContent = shopName;
+      initScreen() {
+        // Shop name
+        const shopName = StorageManager.getShopName();
+        this.shopNameHeader.textContent = shopName;
+
+        // Render lists
+        this.renderCategories();
+        this.renderItems();
+
+        // Reset order UI
+        this.initializeOrderScreen();
+      }
+
+      initializeOrderScreen() {
+        this.order.orderType = null;
+        this.order.selectedTable = null;
+        this.order.paymentMethod = 'Cash';
+        this.order.items = [];
+        this.order.discount = { value: 0, type: 'manual' };
+        this.order.serviceCharge = { value: 0, type: 'manual' };
+
+        this.orderStatus.textContent = '';
+        this.discountInput.value = 0;
+        this.serviceChargeInput.value = 0;
+        this.discountTypeSelect.value = 'manual';
+        this.serviceChargeTypeSelect.value = 'manual';
+
+        this.dineInBtn.disabled = false;
+        this.takeAwayBtn.disabled = false;
+
+        this.renderOrder();
+      }
+
+      renderCategories() {
+        this.categoryButtonsDiv.innerHTML = '';
+        this.categories.forEach(cat => {
+          const btn = document.createElement('button');
+          btn.textContent = cat.name;
+          btn.className = `w-full text-left py-3 px-4 mb-2 font-bold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105 focus:outline-none ${cat.name === this.currentCategory ? 'bg-indigo-600 text-white scale-105 shadow-lg' : 'bg-white text-slate-700 hover:bg-indigo-100'}`;
+          btn.addEventListener('click', () => {
+            this.currentCategory = cat.name;
+            this.renderCategories();
+            this.renderItems();
+          });
+          this.categoryButtonsDiv.appendChild(btn);
+        });
+
+        const dashboardBtn = document.createElement('button');
+        dashboardBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i> Dashboard';
+        dashboardBtn.className = 'mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105';
+        dashboardBtn.addEventListener('click', () => (window.location.href = 'dashboard.html'));
+        this.categoryButtonsDiv.appendChild(dashboardBtn);
+      }
+
+      renderItems() {
+        let itemsToDisplay = [...this.allItems];
+        const q = (this.itemSearchInput.value || '').toLowerCase();
+        if (q) itemsToDisplay = itemsToDisplay.filter(i => (i.name || '').toLowerCase().includes(q));
+        else if (this.currentCategory) itemsToDisplay = itemsToDisplay.filter(i => i.category === this.currentCategory);
+
+        this.itemsListDiv.innerHTML = '';
+        if (!itemsToDisplay.length) {
+          const message = q
+            ? `No items match your search for "${q}".`
+            : this.currentCategory
+              ? `No items found in the "${this.currentCategory}" category.`
+              : 'No items found.';
+          this.itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">${message}</p>`;
+          return;
         }
-        renderCategories();
-        renderItems();
-        initializeOrderScreen();
+
+        itemsToDisplay.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 transform hover:scale-105 cursor-pointer flex flex-col items-center justify-between text-center aspect-square';
+          const img = item.image || 'https://placehold.co/400x300?text=No+Image';
+          card.title = `${item.name}\nPrice: ₹${item.sales}`;
+          card.innerHTML = `
+            <img src="${img}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2">
+            <div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div>
+            <div class="font-semibold text-green-600 text-lg mt-auto">₹${parseFloat(item.sales || 0).toFixed(2)}</div>
+          `;
+          card.addEventListener('click', () => this.addItemToOrder(item));
+          this.itemsListDiv.appendChild(card);
+        });
+      }
+
+      renderOrder() {
+        this.orderItemsDiv.innerHTML = '';
+        if (!this.order.items.length) {
+          this.orderItemsDiv.innerHTML = '<div class="text-slate-500 text-center py-4">No items added yet.</div>';
+        } else {
+          this.order.items.forEach(item => {
+            const itemTotal = parseFloat(item.sales || 0) * item.qty;
+            const uniqueId = item.id ?? item.name;
+            const div = document.createElement('div');
+            div.className = 'flex items-center justify-between bg-slate-50 rounded-lg p-3 mb-2 shadow-sm';
+            div.innerHTML = `
+              <div class="flex-1">
+                <span class="font-semibold text-slate-800">${item.name}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button data-id="${uniqueId}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">-</button>
+                <span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span>
+                <button data-id="${uniqueId}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">+</button>
+                <span class="font-semibold text-green-600 w-20 text-right">₹${itemTotal.toFixed(2)}</span>
+                <button data-id="${uniqueId}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110" aria-label="Remove ${item.name}">×</button>
+              </div>
+            `;
+            this.orderItemsDiv.appendChild(div);
+          });
+        }
+        this.updateTotalsUI();
+      }
+
+      updateTotalsFromInputs() {
+        this.order.discount = {
+          value: parseFloat(this.discountInput.value) || 0,
+          type: this.discountTypeSelect.value
+        };
+        this.order.serviceCharge = {
+          value: parseFloat(this.serviceChargeInput.value) || 0,
+          type: this.serviceChargeTypeSelect.value
+        };
+        this.updateTotalsUI();
+      }
+
+      updateTotalsUI() {
+        const totals = this.order.calculateTotals();
+        this.subtotalSpan.textContent = totals.subtotal.toFixed(2);
+        this.taxSpan.textContent = totals.tax.toFixed(2);
+        this.totalSpan.textContent = Math.max(0, totals.total).toFixed(2);
+      }
+
+      addItemToOrder(item) {
+        if (!this.order.orderType) {
+          this.showAlert('Please select "Dine In" or "Take Away" before adding items.', 'Order Type Required');
+          return;
+        }
+        this.order.addItem(item);
+        this.renderOrder();
+      }
+
+      // Alerts
+      showAlert(message, title = 'Notification') {
+        this.modalTitle.textContent = title;
+        this.modalMessage.textContent = message;
+        this.modalOverlay.style.display = 'flex';
+      }
+      hideAlert() { this.modalOverlay.style.display = 'none'; }
+
+      // Order type
+      setOrderType(type, details = null) {
+        this.order.setOrderType(type, details);
+        this.dineInBtn.disabled = true;
+        this.takeAwayBtn.disabled = true;
+
+        if (type === 'Dine In') {
+          this.orderStatus.textContent = `Order for: Table ${this.order.selectedTable}`;
+          this.closeTablePopup();
+        } else {
+          const taLabel = this.order.selectedTable.replace('TA-', '');
+          this.orderStatus.textContent = `Order for: Take Away #${taLabel}`;
+        }
+      }
+
+      // Table popup
+      openTablePopup() {
+        const tables = StorageManager.getTables();
+        this.tableGrid.innerHTML = '';
+        if (tables.length) {
+          tables.forEach(tbl => {
+            const btn = document.createElement('button');
+            btn.textContent = tbl.name;
+            btn.className = 'p-4 bg-indigo-500 text-white font-bold rounded-lg hover:bg-indigo-600 transition';
+            btn.addEventListener('click', () => this.setOrderType('Dine In', tbl.name));
+            this.tableGrid.appendChild(btn);
+          });
+        } else {
+          this.tableGrid.innerHTML = '<p class="col-span-full text-slate-500">No tables configured in settings.</p>';
+        }
+        this.tablePopup.style.display = 'flex';
+      }
+      closeTablePopup() { this.tablePopup.style.display = 'none'; }
+
+      // Payment popup
+      openPaymentPopup() {
+        if (!this.order.items.length) {
+          this.showAlert('Cannot process payment for an empty order.', 'Error');
+          return;
+        }
+        this.paymentPopup.style.display = 'flex';
+      }
+      closePaymentPopup() { this.paymentPopup.style.display = 'none'; }
+
+      confirmPayment(method) {
+        this.order.paymentMethod = method;
+        const totals = this.order.calculateTotals();
+
+        // Save sale
+        StorageManager.saveSale(this.order.toSaleRecord(
+          totals.subtotal, totals.discount, totals.serviceCharge, totals.tax, totals.total
+        ));
+
+        // Print
+        this.printBill();
+
+        this.closePaymentPopup();
+        this.resetOrder();
+      }
+
+      // Save / recall
+      openSaveOrderPopup() {
+        if (!this.order.items.length) return this.showAlert('Cannot save an empty order.', 'Error');
+        this.saveOrderName.value = '';
+        this.saveOrderPopup.style.display = 'flex';
+      }
+      closeSaveOrderPopup() { this.saveOrderPopup.style.display = 'none'; }
+
+      handleSaveOrder() {
+        const name = (this.saveOrderName.value || '').trim();
+        if (!name) return this.showAlert('Please enter a reference name for the order.', 'Name Required');
+
+        StorageManager.saveHeldOrder({
+          name,
+          items: this.order.items,
+          orderType: this.order.orderType,
+          table: this.order.selectedTable,
+          discount: String(this.discountInput.value || '0'),
+          serviceCharge: String(this.serviceChargeInput.value || '0'),
+          discountType: this.discountTypeSelect.value,
+          serviceChargeType: this.serviceChargeTypeSelect.value,
+          timestamp: new Date().toISOString()
+        });
+
+        this.closeSaveOrderPopup();
+        this.showAlert(`Order "${name}" has been saved.`, 'Success');
+        this.resetOrder();
+      }
+
+      openRecallOrderPopup() {
+        const held = StorageManager.listHeldOrders();
+        this.heldOrdersList.innerHTML = '';
+
+        if (!held.length) {
+          this.heldOrdersList.innerHTML = '<p class="text-slate-500 text-center p-4">No orders are currently on hold.</p>';
+        } else {
+          held.forEach((order, index) => {
+            const div = document.createElement('div');
+            div.className = 'flex justify-between items-center bg-slate-100 p-3 rounded-lg';
+            div.innerHTML = `
+              <span class="font-semibold text-slate-800">${order.name}</span>
+              <div class="flex gap-2">
+                <button class="load-held bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" data-index="${index}">Load</button>
+                <button class="delete-held bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600" data-index="${index}">Delete</button>
+              </div>
+            `;
+            this.heldOrdersList.appendChild(div);
+          });
+        }
+        this.recallOrderPopup.style.display = 'flex';
+      }
+      closeRecallOrderPopup() { this.recallOrderPopup.style.display = 'none'; }
+
+      handleHeldOrdersClick(e) {
+        const loadBtn = e.target.closest('.load-held');
+        const delBtn = e.target.closest('.delete-held');
+        if (loadBtn) {
+          const idx = parseInt(loadBtn.dataset.index);
+          const order = StorageManager.popHeldOrder(idx);
+          if (order) {
+            this.order.items = order.items || [];
+            this.order.orderType = order.orderType || null;
+            this.order.selectedTable = order.table || null;
+            this.discountInput.value = order.discount || 0;
+            this.serviceChargeInput.value = order.serviceCharge || 0;
+            if (order.discountType) this.discountTypeSelect.value = order.discountType;
+            if (order.serviceChargeType) this.serviceChargeTypeSelect.value = order.serviceChargeType;
+
+            // Update order type UI (re-disable buttons etc.)
+            if (this.order.orderType === 'Dine In') this.setOrderType('Dine In', this.order.selectedTable);
+            else if (this.order.orderType === 'Take Away') this.setOrderType('Take Away');
+
+            this.renderOrder();
+            this.closeRecallOrderPopup();
+          }
+        } else if (delBtn) {
+          const idx = parseInt(delBtn.dataset.index);
+          if (confirm('Delete this held order?')) {
+            StorageManager.deleteHeldOrder(idx);
+            this.openRecallOrderPopup(); // refresh list
+          }
+        }
+      }
+
+      // Place order (KOT)
+      placeOrder() {
+        if (!this.order.items.length) return this.showAlert('No items in order!', 'Error');
+        window.open('kot.html', '_blank');
+        this.showAlert('Order placed and KOT sent to kitchen!', 'Success');
+      }
+
+      // Print bill
+      printBill() {
+        const totals = this.order.calculateTotals();
+        const orderData = this.order.toPrintOrder(totals);
+        StorageManager.setCurrentPrintOrder(orderData);
+        const printerSize = StorageManager.getPrinterSize();
+        window.open(printerSize === '80' ? 'receipt-80mm.html' : 'receipt-57mm.html', '_blank');
+      }
+
+      // Reset
+      resetOrder() { this.initializeOrderScreen(); }
+    }
+
+    class App {
+      constructor() {
+        this.orderManager = new OrderManager(0.05);
+        this.ui = new UIManager(this.orderManager);
+
+        // Enable adding menu items by clicking cards (already bound in UIManager)
+        // Additional app-wide wiring can go here if needed.
+      }
+    }
+
+    // Bootstrap
+    document.addEventListener('DOMContentLoaded', () => {
+      new App();
     });
-</script>
+  </script>
 </body>
 </html>
