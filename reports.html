@@ -7,99 +7,90 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body { font-family: 'Inter', sans-serif; }
-    .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #94a3b8; border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
   </style>
 </head>
 <body class="bg-slate-100">
 
-<header class="bg-white shadow-md">
-  <div class="max-w-7xl mx-auto py-6 px-4 flex justify-between items-center">
-    <h1 class="text-3xl font-bold text-slate-900">Sales Reports</h1>
-    <button onclick="window.location.href='pos.html'" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition">
+<!-- Header -->
+<header class="bg-white shadow-sm border-b border-slate-200">
+  <div class="max-w-6xl mx-auto py-4 px-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold text-slate-800">Sales Reports</h1>
+    <button onclick="window.location.href='pos.html'" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 px-4 rounded">
       <i class="fas fa-arrow-left mr-2"></i>Back to POS
     </button>
   </div>
 </header>
 
-<main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+<main class="max-w-6xl mx-auto py-6 px-4">
 
-  <!-- 🔹 Filters + Export -->
-  <div class="bg-white p-4 rounded-lg shadow-md flex flex-wrap gap-4 mb-6 items-end">
+  <!-- Filters + Export -->
+  <div class="bg-white p-4 rounded-lg shadow-sm flex flex-wrap gap-4 mb-6 items-end border border-slate-200">
     <div>
       <label class="text-sm text-slate-600">Start Date</label>
-      <input type="date" id="startDate" class="border rounded px-2 py-1">
+      <input type="date" id="startDate" class="border rounded px-2 py-1 text-sm">
     </div>
     <div>
       <label class="text-sm text-slate-600">End Date</label>
-      <input type="date" id="endDate" class="border rounded px-2 py-1">
+      <input type="date" id="endDate" class="border rounded px-2 py-1 text-sm">
     </div>
-    <button id="filterBtn" class="bg-indigo-600 text-white px-4 rounded h-9">Filter</button>
-    <button id="exportCsvBtn" class="bg-green-600 text-white px-4 rounded h-9 ml-auto"><i class="fas fa-file-csv mr-1"></i> CSV</button>
-    <button id="exportPdfBtn" class="bg-red-600 text-white px-4 rounded h-9"><i class="fas fa-file-pdf mr-1"></i> PDF</button>
-  </div>
+    <button id="filterBtn" class="bg-indigo-600 text-white px-4 rounded h-9 text-sm">Filter</button>
+    <button id="resetFilterBtn" class="bg-gray-400 text-white px-4 rounded h-9 text-sm">Reset</button>
 
-  <!-- 🔹 Summary Cards -->
-  <div id="summaryCards" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"></div>
-
-  <!-- 🔹 Charts -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-    <div class="bg-white p-4 rounded-lg shadow-md">
-      <h3 class="font-bold text-slate-800 mb-2">Revenue Over Time</h3>
-      <canvas id="revenueChart"></canvas>
-    </div>
-    <div class="bg-white p-4 rounded-lg shadow-md">
-      <h3 class="font-bold text-slate-800 mb-2">Payment Methods</h3>
-      <canvas id="paymentChart"></canvas>
+    <div class="ml-auto flex gap-2">
+      <button id="exportCsvBtn" class="bg-green-600 text-white px-3 rounded h-9 text-sm"><i class="fas fa-file-csv mr-1"></i> CSV</button>
+      <button id="exportPdfBtn" class="bg-red-600 text-white px-3 rounded h-9 text-sm"><i class="fas fa-file-pdf mr-1"></i> PDF</button>
     </div>
   </div>
 
-  <!-- 🔹 Top Items -->
-  <div id="topItems" class="bg-white p-4 rounded-lg shadow-md mb-8">
-    <h3 class="font-bold text-slate-800 mb-2">Top Selling Items</h3>
-    <ul id="topItemsList" class="list-disc pl-5 text-slate-700"></ul>
+  <!-- Summary Cards -->
+  <div id="summaryCards" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"></div>
+
+  <!-- Top Items -->
+  <div id="topItems" class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 mb-8">
+    <h3 class="font-semibold text-slate-800 mb-2">Top Selling Items</h3>
+    <ul id="topItemsList" class="text-slate-700 text-sm list-disc pl-5"></ul>
   </div>
 
-  <!-- 🔹 Bill History -->
-  <div id="billHistory" class="bg-white rounded-lg shadow-md overflow-hidden">
-    <div class="p-6 border-b border-slate-200">
-      <h2 class="text-2xl font-bold text-slate-800">Bill History</h2>
+  <!-- Bill History -->
+  <div id="billHistory" class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+    <div class="p-4 border-b border-slate-200">
+      <h2 class="text-lg font-semibold text-slate-800">Bill History</h2>
     </div>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-slate-200">
-        <thead class="bg-slate-50">
+      <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50 text-slate-600">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Order ID</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Date</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Type</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Payment</th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase">Total</th>
+            <th class="px-6 py-3 text-left font-medium">Order ID</th>
+            <th class="px-6 py-3 text-left font-medium">Date</th>
+            <th class="px-6 py-3 text-left font-medium">Type</th>
+            <th class="px-6 py-3 text-left font-medium">Payment</th>
+            <th class="px-6 py-3 text-right font-medium">Total</th>
           </tr>
         </thead>
-        <tbody id="historyTableBody" class="bg-white divide-y divide-slate-200"></tbody>
+        <tbody id="historyTableBody" class="bg-white divide-y divide-slate-100"></tbody>
       </table>
     </div>
   </div>
 
 </main>
 
-<!-- 🔹 Bill Details Popup -->
+<!-- Bill Details Popup -->
 <div id="billDetailPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20">
-  <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
-    <div class="text-center mb-4 border-b pb-4">
-      <h2 class="text-2xl font-bold text-slate-800">Bill Details</h2>
+  <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+    <div class="mb-4 border-b pb-3">
+      <h2 class="text-lg font-semibold text-slate-800">Invoice Details</h2>
       <p id="billDetailOrderId" class="text-sm text-slate-500"></p>
     </div>
-    <div id="billDetailContent" class="text-left text-slate-700 max-h-96 overflow-y-auto custom-scrollbar"></div>
+    <div id="billDetailContent" class="text-sm text-slate-700 max-h-96 overflow-y-auto custom-scrollbar"></div>
     <div class="flex justify-between gap-4 mt-6 pt-4 border-t">
-      <button id="closePopupBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full">Close</button>
-      <button id="reprintBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg w-full">
-        <i class="fas fa-print mr-2"></i>Reprint Bill
+      <button id="closePopupBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 text-sm font-medium py-2 px-4 rounded w-full">Close</button>
+      <button id="reprintBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded w-full">
+        <i class="fas fa-print mr-2"></i>Reprint
       </button>
     </div>
   </div>
@@ -113,28 +104,44 @@ document.addEventListener('DOMContentLoaded', () => {
   const summaryCardsContainer = document.getElementById('summaryCards');
   const tableBody = document.getElementById('historyTableBody');
   const topItemsList = document.getElementById('topItemsList');
-  const revenueChartCtx = document.getElementById('revenueChart').getContext('2d');
-  const paymentChartCtx = document.getElementById('paymentChart').getContext('2d');
   const billDetailPopup = document.getElementById('billDetailPopup');
   const billDetailContent = document.getElementById('billDetailContent');
   const billDetailOrderId = document.getElementById('billDetailOrderId');
   const reprintBtn = document.getElementById('reprintBtn');
   const closePopupBtn = document.getElementById('closePopupBtn');
 
-  let revenueChart, paymentChart;
-
   const formatCurrency = amt => new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR'}).format(amt);
-  const formatDate = iso => new Date(iso).toLocaleDateString();
   const formatDateTime = iso => new Date(iso).toLocaleString();
 
-  // --- Filters ---
+  // --- Filter ---
   document.getElementById('filterBtn').addEventListener('click', () => {
-    const start = document.getElementById('startDate').value ? new Date(document.getElementById('startDate').value) : null;
-    const end = document.getElementById('endDate').value ? new Date(document.getElementById('endDate').value) : null;
-    filteredSales = sales.filter(s => {
-      const d = new Date(s.date);
-      return (!start || d >= start) && (!end || d <= end);
+    const startInput = document.getElementById('startDate').value;
+    const endInput = document.getElementById('endDate').value;
+
+    if (!startInput) {
+      alert("Please select a date");
+      return;
+    }
+
+    const startDate = new Date(startInput);
+    const endDate = endInput ? new Date(endInput) : new Date(startInput);
+
+    startDate.setHours(0,0,0,0);
+    endDate.setHours(23,59,59,999);
+
+    filteredSales = sales.filter(sale => {
+      const saleDate = new Date(sale.date);
+      return saleDate >= startDate && saleDate <= endDate;
     });
+
+    renderDashboard();
+  });
+
+  // --- Reset Filter ---
+  document.getElementById('resetFilterBtn').addEventListener('click', () => {
+    document.getElementById('startDate').value = '';
+    document.getElementById('endDate').value = '';
+    filteredSales = [...sales];
     renderDashboard();
   });
 
@@ -149,95 +156,69 @@ document.addEventListener('DOMContentLoaded', () => {
     const a = document.createElement('a'); a.href = url; a.download = 'sales-report.csv'; a.click();
   });
 
-  // --- Export PDF (Professional Report) ---
-document.getElementById('exportPdfBtn').addEventListener('click', () => {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF("p", "mm", "a4");
+  // --- Export PDF ---
+  document.getElementById('exportPdfBtn').addEventListener('click', () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("p", "mm", "a4");
 
-  // --- Header ---
-  doc.setFontSize(18);
-  doc.text("Sales Report", 105, 20, { align: "center" });
+    doc.setFontSize(16);
+    doc.text("Sales Report", 105, 20, { align: "center" });
 
-  // Date range (from filter)
-  let rangeText = "All Dates";
-  if (startDate.value && endDate.value) {
-    rangeText = `${startDate.value} to ${endDate.value}`;
-  }
-  doc.setFontSize(11);
-  doc.text(`Date Range: ${rangeText}`, 105, 28, { align: "center" });
-
-  // --- Table Header ---
-  doc.setFontSize(12);
-  let y = 40;
-  doc.text("Invoice", 14, y);
-  doc.text("Date", 50, y);
-  doc.text("Type", 100, y);
-  doc.text("Payment", 140, y);
-  doc.text("Total", 195, y, { align: "right" });
-
-  doc.setLineWidth(0.4);
-  doc.line(14, y + 2, 200, y + 2);
-
-  // --- Table Rows ---
-  y += 10;
-  filteredSales.forEach(s => {
-    doc.setFontSize(10);
-    doc.text(s.orderId.toString(), 14, y);
-    doc.text(formatDateTime(s.date), 50, y);
-    doc.text(s.orderType || "N/A", 100, y);
-    doc.text(s.paymentMethod || "N/A", 140, y);
-    doc.text(formatCurrency(s.total), 195, y, { align: "right" });
-
-    y += 8;
-    if (y > 270) { 
-      doc.addPage();
-      y = 20;
+    const startInput = document.getElementById('startDate').value;
+    const endInput = document.getElementById('endDate').value;
+    let rangeText = "All Dates";
+    if (startInput) {
+      rangeText = endInput ? `${startInput} to ${endInput}` : startInput;
     }
+    doc.setFontSize(11);
+    doc.text(`Date Range: ${rangeText}`, 105, 28, { align: "center" });
+
+    let y = 40;
+    doc.setFontSize(12);
+    doc.text("Invoice", 14, y);
+    doc.text("Date", 50, y);
+    doc.text("Type", 100, y);
+    doc.text("Payment", 140, y);
+    doc.text("Total", 195, y, { align: "right" });
+
+    doc.line(14, y+2, 200, y+2);
+    y += 10;
+
+    filteredSales.forEach(s => {
+      doc.setFontSize(10);
+      doc.text(s.orderId.toString(), 14, y);
+      doc.text(formatDateTime(s.date), 50, y);
+      doc.text(s.orderType || "N/A", 100, y);
+      doc.text(s.paymentMethod || "N/A", 140, y);
+      doc.text(formatCurrency(s.total), 195, y, { align: "right" });
+      y += 7;
+      if (y > 270) { doc.addPage(); y = 20; }
+    });
+
+    const totalRevenue = filteredSales.reduce((sum, s) => sum + s.total, 0);
+    const totalOrders = filteredSales.length;
+    const avgOrder = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    y += 15;
+    if (y > 250) { doc.addPage(); y = 20; }
+
+    doc.setFontSize(13);
+    doc.text("Summary", 14, y);
+    y += 8;
+    doc.setFontSize(11);
+    doc.text(`Total Orders: ${totalOrders}`, 14, y);
+    y += 6;
+    doc.text(`Total Revenue: ${formatCurrency(totalRevenue)}`, 14, y);
+    y += 6;
+    doc.text(`Average Order Value: ${formatCurrency(avgOrder)}`, 14, y);
+
+    doc.save("sales-report.pdf");
   });
 
-  // --- Summary Section ---
-  const totalRevenue = filteredSales.reduce((sum, s) => sum + s.total, 0);
-  const totalOrders = filteredSales.length;
-  const avgOrder = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-
-  y += 15;
-  if (y > 250) { doc.addPage(); y = 20; }
-
-  doc.setFontSize(14);
-  doc.text("Summary", 14, y);
-  doc.setLineWidth(0.2);
-  doc.line(14, y + 2, 200, y + 2);
-
-  y += 10;
-  doc.setFontSize(11);
-  doc.text(`Total Orders: ${totalOrders}`, 14, y);
-  y += 7;
-  doc.text(`Total Revenue: ${formatCurrency(totalRevenue)}`, 14, y);
-  y += 7;
-  doc.text(`Average Order Value: ${formatCurrency(avgOrder)}`, 14, y);
-
-  // Optional Profit if tracked in sales data
-  const totalProfit = filteredSales.reduce((sum, sale) => {
-    const totalCost = sale.items.reduce((costSum, item) => {
-      const cost = item.purchase || 0;
-      return costSum + (cost * item.qty);
-    }, 0);
-    return sum + (sale.total - totalCost);
-  }, 0);
-
-  y += 7;
-  doc.text(`Total Profit: ${formatCurrency(totalProfit)}`, 14, y);
-
-  // --- Save file ---
-  doc.save("sales-report.pdf");
-});
-
-
-  // --- Dashboard ---
+  // --- Dashboard Rendering ---
   function renderDashboard() {
     renderSummary();
     renderHistory();
-    renderCharts();
     renderTopItems();
   }
 
@@ -250,9 +231,18 @@ document.getElementById('exportPdfBtn').addEventListener('click', () => {
     },0);
 
     summaryCardsContainer.innerHTML = `
-      <div class="bg-white p-6 rounded-lg shadow-md"><p class="text-sm text-slate-500">Revenue</p><p class="text-2xl font-bold">${formatCurrency(revenue)}</p></div>
-      <div class="bg-white p-6 rounded-lg shadow-md"><p class="text-sm text-slate-500">Profit</p><p class="text-2xl font-bold">${formatCurrency(profit)}</p></div>
-      <div class="bg-white p-6 rounded-lg shadow-md"><p class="text-sm text-slate-500">Orders</p><p class="text-2xl font-bold">${orders}</p></div>`;
+      <div class="bg-white p-4 rounded-lg border border-slate-200">
+        <p class="text-xs text-slate-500">Revenue</p>
+        <p class="text-xl font-semibold">${formatCurrency(revenue)}</p>
+      </div>
+      <div class="bg-white p-4 rounded-lg border border-slate-200">
+        <p class="text-xs text-slate-500">Profit</p>
+        <p class="text-xl font-semibold">${formatCurrency(profit)}</p>
+      </div>
+      <div class="bg-white p-4 rounded-lg border border-slate-200">
+        <p class="text-xs text-slate-500">Orders</p>
+        <p class="text-xl font-semibold">${orders}</p>
+      </div>`;
   }
 
   function renderHistory() {
@@ -265,34 +255,13 @@ document.getElementById('exportPdfBtn').addEventListener('click', () => {
       const row = document.createElement('tr');
       row.className = 'hover:bg-slate-50 cursor-pointer';
       row.innerHTML = `
-        <td class="px-6 py-4">${s.orderId}</td>
-        <td class="px-6 py-4">${formatDateTime(s.date)}</td>
-        <td class="px-6 py-4">${s.orderType || ''}</td>
-        <td class="px-6 py-4">${s.paymentMethod}</td>
-        <td class="px-6 py-4 text-right font-bold">${formatCurrency(s.total)}</td>`;
+        <td class="px-6 py-3">${s.orderId}</td>
+        <td class="px-6 py-3">${formatDateTime(s.date)}</td>
+        <td class="px-6 py-3">${s.orderType || ''}</td>
+        <td class="px-6 py-3">${s.paymentMethod}</td>
+        <td class="px-6 py-3 text-right font-semibold">${formatCurrency(s.total)}</td>`;
       row.addEventListener('click', () => showBillDetails(s));
       tableBody.appendChild(row);
-    });
-  }
-
-  function renderCharts() {
-    const daily = {}, payments = {};
-    filteredSales.forEach(s => {
-      const d = formatDate(s.date);
-      daily[d] = (daily[d]||0)+s.total;
-      payments[s.paymentMethod] = (payments[s.paymentMethod]||0)+s.total;
-    });
-
-    if (revenueChart) revenueChart.destroy();
-    revenueChart = new Chart(revenueChartCtx, {
-      type:'line',
-      data:{ labels:Object.keys(daily), datasets:[{ label:'Revenue', data:Object.values(daily), borderColor:'#4f46e5', fill:false }] }
-    });
-
-    if (paymentChart) paymentChart.destroy();
-    paymentChart = new Chart(paymentChartCtx, {
-      type:'pie',
-      data:{ labels:Object.keys(payments), datasets:[{ data:Object.values(payments), backgroundColor:['#10b981','#f59e0b','#3b82f6','#ef4444'] }] }
     });
   }
 
@@ -306,14 +275,18 @@ document.getElementById('exportPdfBtn').addEventListener('click', () => {
   // --- Bill Details ---
   function showBillDetails(sale) {
     billDetailOrderId.textContent = `Order ID: ${sale.orderId}`;
-    let itemsHtml = sale.items.map(i => `<div class="flex justify-between"><span>${i.name} (x${i.qty})</span><span>${formatCurrency(i.sales * i.qty)}</span></div>`).join('');
+    let itemsHtml = sale.items.map(i => `
+      <div class="flex justify-between py-1">
+        <span>${i.name} (x${i.qty})</span>
+        <span>${formatCurrency(i.sales * i.qty)}</span>
+      </div>`).join('');
     billDetailContent.innerHTML = `
-      <div class="font-semibold mb-2">Items:</div>${itemsHtml}
+      <div class="font-medium mb-2">Items</div>${itemsHtml}
       <div class="border-t pt-2 mt-2">
         <div class="flex justify-between"><span>Subtotal:</span><span>${formatCurrency(sale.subtotal)}</span></div>
-        <div class="flex justify-between"><span>Discount:</span><span>-${formatCurrency(sale.discount)}</span></div>
+        <div class="flex justify-between"><span>Discount:</span><span>- ${formatCurrency(sale.discount)}</span></div>
         <div class="flex justify-between"><span>Tax:</span><span>${formatCurrency(sale.tax)}</span></div>
-        <div class="flex justify-between font-bold text-lg"><span>Total:</span><span>${formatCurrency(sale.total)}</span></div>
+        <div class="flex justify-between font-semibold text-base mt-1"><span>Total:</span><span>${formatCurrency(sale.total)}</span></div>
       </div>`;
     reprintBtn.dataset.saleData = JSON.stringify(sale);
     billDetailPopup.style.display = 'flex';
@@ -334,5 +307,6 @@ document.getElementById('exportPdfBtn').addEventListener('click', () => {
   renderDashboard();
 });
 </script>
+
 </body>
 </html>
