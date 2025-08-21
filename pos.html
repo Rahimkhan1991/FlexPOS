@@ -115,17 +115,20 @@
         </main>
 
         <aside class="order-summary section-panel">
-            <h3 class="text-2xl font-bold text-slate-800 mb-4">Order Summary</h3>
-            <div class="mb-4">
-              <label for="tableSelect">Select Table:</label>
-              <select id="tableSelect" class="border rounded px-2 py-1"></select>
-  
-            </div>
-         
+    <h3 class="text-2xl font-bold text-slate-800 mb-4">Order Summary</h3>
+    <div class="mb-4">
+        <label for="tableSelect">Select Table:</label>
+        <select id="tableSelect" class="border rounded px-2 py-1"></select>
+    </div>
 
-            <div id="orderItems" class="flex-grow overflow-y-auto custom-scrollbar mb-4 border-y border-slate-200 py-4">
-                <div class="text-slate-500 text-center">No items added yet.</div>
-            </div>
+    <div class="flex justify-between items-center text-xs font-bold text-slate-500 uppercase px-3 pb-2 border-b border-slate-200">
+        <span class="w-3/6">Item</span>
+        <span class="w-2/6 text-center">Qty</span>
+        <span class="w-1/6 text-right">Total</span>
+    </div>
+    <div id="orderItems" class="flex-grow overflow-y-auto custom-scrollbar pt-2">
+        <div class="text-slate-500 text-center py-4">No items added yet.</div>
+    </div>
             <div class="space-y-3 text-slate-700">
                 <div class="flex justify-between items-center font-semibold text-lg">
                     <span>Subtotal:</span>
