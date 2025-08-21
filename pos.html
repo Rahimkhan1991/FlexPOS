@@ -80,13 +80,7 @@
              </section>
 
         <main class="section-panel relative">
-            <div id="menuOverlay" class="absolute inset-0 bg-white bg-opacity-75 z-10 flex items-center justify-center rounded-lg">
-                <div class="text-center p-4">
-                    <i class="fas fa-arrow-up text-3xl text-indigo-500 mb-2"></i>
-                    <h3 class="text-xl font-bold text-slate-700">Select an Order Type to Begin</h3>
-                    <p class="text-slate-500">Please choose 'Dine In' or 'Take Away' above.</p>
-                </div>
-            </div>
+           
 
             <h3 class="text-2xl font-bold text-slate-800 mb-4">Menu</h3>
             <div id="itemsList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto custom-scrollbar flex-grow">
@@ -242,17 +236,23 @@
 
         // --- WORKFLOW FUNCTIONS ---
         function initializeOrderScreen() {
-            orderType = null;
-            selectedTable = null;
-            orderStatus.textContent = '';
-            currentOrderItems = [];
-            discountInput.value = 0;
-            serviceChargeInput.value = 0;
-            menuOverlay.style.display = 'flex';
-            dineInBtn.disabled = false;
-            takeAwayBtn.disabled = false;
-            renderOrder();
-        }
+    // Reset state variables
+    orderType = null;
+    selectedTable = null;
+    orderStatus.textContent = '';
+    
+    // Clear the order items list
+    currentOrderItems = [];
+    discountInput.value = 0;
+    serviceChargeInput.value = 0;
+    
+    // Ensure the Dine In and Take Away buttons are enabled for a new order
+    dineInBtn.disabled = false;
+    takeAwayBtn.disabled = false;
+    
+    // Render the empty order list
+    renderOrder(); 
+}
 
         function setOrderType(type, details = null) {
             orderType = type;
@@ -410,19 +410,23 @@
         }
 
         // --- LOGIC FUNCTIONS ---
-        function addItemToOrder(item) {
-            if (!orderType) {
-                showAlert('Please select "Dine In" or "Take Away" first to start an order.', 'Order Type Required');
-                return;
-            }
-            const existingItem = currentOrderItems.find(o => o.id === item.id);
-            if (existingItem) {
-                existingItem.qty++;
-            } else {
-                currentOrderItems.push({ ...item, qty: 1 });
-            }
-            renderOrder();
-        }
+       function addItemToOrder(item) {
+    // Check if an order type has been selected
+    if (!orderType) {
+        // If not, show an alert and stop the function
+        showAlert('Please select "Dine In" or "Take Away" before adding items.', 'Order Type Required');
+        return; // This prevents the item from being added
+    }
+    
+    // If an order type is already set, the function continues as normal
+    const existingItem = currentOrderItems.find(o => o.id === item.id);
+    if (existingItem) {
+        existingItem.qty++;
+    } else {
+        currentOrderItems.push({ ...item, qty: 1 });
+    }
+    renderOrder();
+}
 
         function updateTotals() {
             const subtotal = currentOrderItems.reduce((sum, item) => sum + parseFloat(item.sales) * item.qty, 0);
