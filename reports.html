@@ -96,7 +96,7 @@
             const todaysProfit = todaysSales.reduce((profitSum, sale) => {
                 const totalCost = sale.items.reduce((costSum, item) => {
                     // Use purchase_price or default to 0 if not present
-                    const cost = item.purchase_price || 0;
+                    const cost = item.purchase || 0;
                     return costSum + (cost * item.qty);
                 }, 0);
                 const saleProfit = sale.total - totalCost;

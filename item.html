@@ -129,8 +129,18 @@
       }
     });
 
-    function saveItem(name, category, kitchen, sales, purchase, image, index) {
-      const itemData = { name, category, kitchen, sales, purchase, image };
+ // In item.html, inside the saveItem function
+function saveItem(name, category, kitchen, sales, purchase, image, index) {
+    // By using parseFloat, we ensure prices are numbers
+    const itemData = { 
+        name, 
+        category, 
+        kitchen, 
+        sales: parseFloat(sales) || 0, 
+        purchase: parseFloat(purchase) || 0, 
+        image 
+    };
+    // ... rest of the function
 
       if (index !== '' && items[index]) {
         // This is an update, so we preserve the existing ID
