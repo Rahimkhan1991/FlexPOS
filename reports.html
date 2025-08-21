@@ -1,224 +1,272 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sales Reports</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2s+lHh1p7n5K24Jq4i+c6A5aJ6K6O4f3T2X6Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: #94a3b8;
-            border-radius: 10px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sales Reports</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #94a3b8; border-radius: 10px; }
+  </style>
 </head>
 <body class="bg-slate-100">
 
-    <header class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <h1 class="text-3xl font-bold text-slate-900">
-                Sales Reports
-            </h1>
-            <button onclick="window.location.href='pos.html'" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition">
-                <i class="fas fa-arrow-left mr-2"></i>Back to POS
-            </button>
-        </div>
-    </header>
+<header class="bg-white shadow-md">
+  <div class="max-w-7xl mx-auto py-6 px-4 flex justify-between items-center">
+    <h1 class="text-3xl font-bold text-slate-900">Sales Reports</h1>
+    <button onclick="window.location.href='pos.html'" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition">
+      <i class="fas fa-arrow-left mr-2"></i>Back to POS
+    </button>
+  </div>
+</header>
 
-    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        
-        <div id="summaryCards" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            </div>
+<main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
 
-        <div id="billHistory" class="bg-white rounded-lg shadow-md overflow-hidden">
-            <div class="p-6 border-b border-slate-200">
-                <h2 class="text-2xl font-bold text-slate-800">Bill History</h2>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Order ID</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date & Time</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Payment</th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyTableBody" class="bg-white divide-y divide-slate-200">
-                        </tbody>
-                </table>
-            </div>
-        </div>
+  <!-- 🔹 Filters + Export -->
+  <div class="bg-white p-4 rounded-lg shadow-md flex flex-wrap gap-4 mb-6 items-end">
+    <div>
+      <label class="text-sm text-slate-600">Start Date</label>
+      <input type="date" id="startDate" class="border rounded px-2 py-1">
+    </div>
+    <div>
+      <label class="text-sm text-slate-600">End Date</label>
+      <input type="date" id="endDate" class="border rounded px-2 py-1">
+    </div>
+    <button id="filterBtn" class="bg-indigo-600 text-white px-4 rounded h-9">Filter</button>
+    <button id="exportCsvBtn" class="bg-green-600 text-white px-4 rounded h-9 ml-auto"><i class="fas fa-file-csv mr-1"></i> CSV</button>
+    <button id="exportPdfBtn" class="bg-red-600 text-white px-4 rounded h-9"><i class="fas fa-file-pdf mr-1"></i> PDF</button>
+  </div>
 
-    </main>
+  <!-- 🔹 Summary Cards -->
+  <div id="summaryCards" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"></div>
+
+  <!-- 🔹 Charts -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white p-4 rounded-lg shadow-md">
+      <h3 class="font-bold text-slate-800 mb-2">Revenue Over Time</h3>
+      <canvas id="revenueChart"></canvas>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow-md">
+      <h3 class="font-bold text-slate-800 mb-2">Payment Methods</h3>
+      <canvas id="paymentChart"></canvas>
+    </div>
+  </div>
+
+  <!-- 🔹 Top Items -->
+  <div id="topItems" class="bg-white p-4 rounded-lg shadow-md mb-8">
+    <h3 class="font-bold text-slate-800 mb-2">Top Selling Items</h3>
+    <ul id="topItemsList" class="list-disc pl-5 text-slate-700"></ul>
+  </div>
+
+  <!-- 🔹 Bill History -->
+  <div id="billHistory" class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="p-6 border-b border-slate-200">
+      <h2 class="text-2xl font-bold text-slate-800">Bill History</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200">
+        <thead class="bg-slate-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Order ID</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Type</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Payment</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase">Total</th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody" class="bg-white divide-y divide-slate-200"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- 🔹 Bill Details Popup -->
+<div id="billDetailPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20">
+  <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
+    <div class="text-center mb-4 border-b pb-4">
+      <h2 class="text-2xl font-bold text-slate-800">Bill Details</h2>
+      <p id="billDetailOrderId" class="text-sm text-slate-500"></p>
+    </div>
+    <div id="billDetailContent" class="text-left text-slate-700 max-h-96 overflow-y-auto custom-scrollbar"></div>
+    <div class="flex justify-between gap-4 mt-6 pt-4 border-t">
+      <button id="closePopupBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full">Close</button>
+      <button id="reprintBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg w-full">
+        <i class="fas fa-print mr-2"></i>Reprint Bill
+      </button>
+    </div>
+  </div>
+</div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- ELEMENT REFERENCES ---
-        const summaryCardsContainer = document.getElementById('summaryCards');
-        const tableBody = document.getElementById('historyTableBody');
-        const billDetailPopup = document.getElementById('billDetailPopup');
-        const billDetailContent = document.getElementById('billDetailContent');
-        const billDetailOrderId = document.getElementById('billDetailOrderId');
-        const reprintBtn = document.getElementById('reprintBtn');
-        const closePopupBtn = document.getElementById('closePopupBtn');
-        
-        // Safely load all sales data from localStorage
-        const sales = JSON.parse(localStorage.getItem('sales')) || [];
+document.addEventListener('DOMContentLoaded', () => {
+  const sales = JSON.parse(localStorage.getItem('sales')) || [];
+  let filteredSales = [...sales];
 
-        // --- HELPER FUNCTIONS ---
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
-        }
+  const summaryCardsContainer = document.getElementById('summaryCards');
+  const tableBody = document.getElementById('historyTableBody');
+  const topItemsList = document.getElementById('topItemsList');
+  const revenueChartCtx = document.getElementById('revenueChart').getContext('2d');
+  const paymentChartCtx = document.getElementById('paymentChart').getContext('2d');
+  const billDetailPopup = document.getElementById('billDetailPopup');
+  const billDetailContent = document.getElementById('billDetailContent');
+  const billDetailOrderId = document.getElementById('billDetailOrderId');
+  const reprintBtn = document.getElementById('reprintBtn');
+  const closePopupBtn = document.getElementById('closePopupBtn');
 
-        function formatDateTime(isoString) {
-            if (!isoString) return 'N/A';
-            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
-            return new Date(isoString).toLocaleString('en-US', options);
-        }
-        
-        // --- SUMMARY CARD LOGIC ---
-        function displaySummaryCards() {
-            const today = new Date().toDateString();
-            const todaysSales = sales.filter(sale => new Date(sale.date).toDateString() === today);
-            const todaysRevenue = todaysSales.reduce((sum, sale) => sum + sale.total, 0);
-            const todaysOrders = todaysSales.length;
-            const todaysProfit = todaysSales.reduce((profitSum, sale) => {
-                const totalCost = sale.items.reduce((costSum, item) => {
-                    const cost = item.purchase || 0;
-                    return costSum + (cost * item.qty);
-                }, 0);
-                return profitSum + (sale.total - totalCost);
-            }, 0);
+  let revenueChart, paymentChart;
 
-            summaryCardsContainer.innerHTML = `
-                <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
-                    <div class="bg-green-100 rounded-full p-3 mr-4"><i class="fas fa-wallet text-2xl text-green-600"></i></div>
-                    <div><p class="text-sm font-medium text-slate-500">Today's Revenue</p><p class="text-3xl font-bold text-slate-900">${formatCurrency(todaysRevenue)}</p></div>
-                </div>
-                <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
-                    <div class="bg-yellow-100 rounded-full p-3 mr-4"><i class="fas fa-piggy-bank text-2xl text-yellow-600"></i></div>
-                    <div><p class="text-sm font-medium text-slate-500">Today's Profit</p><p class="text-3xl font-bold text-slate-900">${formatCurrency(todaysProfit)}</p></div>
-                </div>
-                <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
-                    <div class="bg-blue-100 rounded-full p-3 mr-4"><i class="fas fa-receipt text-2xl text-blue-600"></i></div>
-                    <div><p class="text-sm font-medium text-slate-500">Today's Orders</p><p class="text-3xl font-bold text-slate-900">${todaysOrders}</p></div>
-                </div>`;
-        }
+  const formatCurrency = amt => new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR'}).format(amt);
+  const formatDate = iso => new Date(iso).toLocaleDateString();
+  const formatDateTime = iso => new Date(iso).toLocaleString();
 
-        // --- BILL HISTORY TABLE LOGIC ---
-        function displayBillHistory() {
-            tableBody.innerHTML = '';
-            if (sales.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-slate-500">No sales records found.</td></tr>`;
-                return;
-            }
-
-            sales.slice().reverse().forEach(sale => {
-                const row = document.createElement('tr');
-                // Make the row hoverable and clickable
-                row.className = 'hover:bg-slate-50 cursor-pointer';
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${sale.orderId}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${formatDateTime(sale.date)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${sale.orderType || 'N/A'} - ${sale.table || ''}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${sale.paymentMethod}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800 text-right">${formatCurrency(sale.total)}</td>
-                `;
-                // Add click event to show the details
-                row.addEventListener('click', () => showBillDetails(sale));
-                tableBody.appendChild(row);
-            });
-        }
-        
-        // --- NEW FUNCTIONS FOR BILL DETAIL & REPRINT ---
-        
-        function showBillDetails(sale) {
-            billDetailOrderId.textContent = `Order ID: ${sale.orderId}`;
-            
-            let itemsHtml = sale.items.map(item => `
-                <div class="flex justify-between items-center mb-1">
-                    <span>${item.name} (x${item.qty})</span>
-                    <span>${formatCurrency(item.sales * item.qty)}</span>
-                </div>
-            `).join('');
-            
-            const detailsHtml = `
-                <div class="font-semibold mb-2">Items:</div>
-                ${itemsHtml}
-                <div class="border-t pt-2 mt-2 space-y-1">
-                    <div class="flex justify-between"><span>Subtotal:</span><span>${formatCurrency(sale.subtotal)}</span></div>
-                    <div class="flex justify-between"><span>Discount:</span><span>-${formatCurrency(sale.discount)}</span></div>
-                    <div class="flex justify-between"><span>Tax:</span><span>${formatCurrency(sale.tax)}</span></div>
-                    <div class="flex justify-between font-bold text-lg"><span>Total:</span><span>${formatCurrency(sale.total)}</span></div>
-                </div>
-            `;
-            
-            billDetailContent.innerHTML = detailsHtml;
-            
-            // Store the sale data on the reprint button
-            reprintBtn.dataset.saleData = JSON.stringify(sale);
-            
-            billDetailPopup.style.display = 'flex';
-        }
-
-        function handleReprint() {
-            const saleDataString = reprintBtn.dataset.saleData;
-            if (!saleDataString) return;
-            
-            const saleToReprint = JSON.parse(saleDataString);
-            
-            // Prepare data in the format expected by the receipt page
-            const printData = {
-                ...saleToReprint,
-                date: new Date(saleToReprint.date).toLocaleDateString(),
-                time: new Date(saleToReprint.date).toLocaleTimeString(),
-            };
-            
-            localStorage.setItem('currentPrintOrder', JSON.stringify(printData));
-            
-            const printerSize = localStorage.getItem('printerSize') || '80';
-            window.open(printerSize === '80' ? 'receipt-80mm.html' : 'receipt-57mm.html', '_blank');
-        }
-
-        // --- EVENT LISTENERS ---
-        closePopupBtn.addEventListener('click', () => billDetailPopup.style.display = 'none');
-        reprintBtn.addEventListener('click', handleReprint);
-
-        // --- INITIALIZE THE DASHBOARD ---
-        displaySummaryCards();
-        displayBillHistory();
+  // --- Filters ---
+  document.getElementById('filterBtn').addEventListener('click', () => {
+    const start = document.getElementById('startDate').value ? new Date(document.getElementById('startDate').value) : null;
+    const end = document.getElementById('endDate').value ? new Date(document.getElementById('endDate').value) : null;
+    filteredSales = sales.filter(s => {
+      const d = new Date(s.date);
+      return (!start || d >= start) && (!end || d <= end);
     });
+    renderDashboard();
+  });
+
+  // --- Export CSV ---
+  document.getElementById('exportCsvBtn').addEventListener('click', () => {
+    let csv = "Order ID,Date,Type,Payment,Total\n";
+    filteredSales.forEach(s => {
+      csv += `${s.orderId},${formatDateTime(s.date)},${s.orderType},${s.paymentMethod},${s.total}\n`;
+    });
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'sales-report.csv'; a.click();
+  });
+
+  // --- Export PDF ---
+  document.getElementById('exportPdfBtn').addEventListener('click', () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("Sales Report", 14, 20);
+
+    let y = 30;
+    doc.setFontSize(10);
+    filteredSales.forEach(s => {
+      doc.text(`${s.orderId} | ${formatDateTime(s.date)} | ${s.orderType} | ${s.paymentMethod} | ${formatCurrency(s.total)}`, 14, y);
+      y += 7;
+      if (y > 270) { doc.addPage(); y = 20; }
+    });
+
+    doc.save("sales-report.pdf");
+  });
+
+  // --- Dashboard ---
+  function renderDashboard() {
+    renderSummary();
+    renderHistory();
+    renderCharts();
+    renderTopItems();
+  }
+
+  function renderSummary() {
+    const revenue = filteredSales.reduce((s, x) => s + x.total, 0);
+    const orders = filteredSales.length;
+    const profit = filteredSales.reduce((p, s) => {
+      const cost = s.items.reduce((c,i)=>c+(i.purchase||0)*i.qty,0);
+      return p + (s.total - cost);
+    },0);
+
+    summaryCardsContainer.innerHTML = `
+      <div class="bg-white p-6 rounded-lg shadow-md"><p class="text-sm text-slate-500">Revenue</p><p class="text-2xl font-bold">${formatCurrency(revenue)}</p></div>
+      <div class="bg-white p-6 rounded-lg shadow-md"><p class="text-sm text-slate-500">Profit</p><p class="text-2xl font-bold">${formatCurrency(profit)}</p></div>
+      <div class="bg-white p-6 rounded-lg shadow-md"><p class="text-sm text-slate-500">Orders</p><p class="text-2xl font-bold">${orders}</p></div>`;
+  }
+
+  function renderHistory() {
+    tableBody.innerHTML = '';
+    if (filteredSales.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-slate-500">No records found.</td></tr>`;
+      return;
+    }
+    filteredSales.slice().reverse().forEach(s => {
+      const row = document.createElement('tr');
+      row.className = 'hover:bg-slate-50 cursor-pointer';
+      row.innerHTML = `
+        <td class="px-6 py-4">${s.orderId}</td>
+        <td class="px-6 py-4">${formatDateTime(s.date)}</td>
+        <td class="px-6 py-4">${s.orderType || ''}</td>
+        <td class="px-6 py-4">${s.paymentMethod}</td>
+        <td class="px-6 py-4 text-right font-bold">${formatCurrency(s.total)}</td>`;
+      row.addEventListener('click', () => showBillDetails(s));
+      tableBody.appendChild(row);
+    });
+  }
+
+  function renderCharts() {
+    const daily = {}, payments = {};
+    filteredSales.forEach(s => {
+      const d = formatDate(s.date);
+      daily[d] = (daily[d]||0)+s.total;
+      payments[s.paymentMethod] = (payments[s.paymentMethod]||0)+s.total;
+    });
+
+    if (revenueChart) revenueChart.destroy();
+    revenueChart = new Chart(revenueChartCtx, {
+      type:'line',
+      data:{ labels:Object.keys(daily), datasets:[{ label:'Revenue', data:Object.values(daily), borderColor:'#4f46e5', fill:false }] }
+    });
+
+    if (paymentChart) paymentChart.destroy();
+    paymentChart = new Chart(paymentChartCtx, {
+      type:'pie',
+      data:{ labels:Object.keys(payments), datasets:[{ data:Object.values(payments), backgroundColor:['#10b981','#f59e0b','#3b82f6','#ef4444'] }] }
+    });
+  }
+
+  function renderTopItems() {
+    const counts = {};
+    filteredSales.forEach(s => s.items.forEach(i => counts[i.name] = (counts[i.name]||0)+i.qty));
+    const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    topItemsList.innerHTML = sorted.map(([name,qty])=>`<li>${name} (${qty} sold)</li>`).join('');
+  }
+
+  // --- Bill Details ---
+  function showBillDetails(sale) {
+    billDetailOrderId.textContent = `Order ID: ${sale.orderId}`;
+    let itemsHtml = sale.items.map(i => `<div class="flex justify-between"><span>${i.name} (x${i.qty})</span><span>${formatCurrency(i.sales * i.qty)}</span></div>`).join('');
+    billDetailContent.innerHTML = `
+      <div class="font-semibold mb-2">Items:</div>${itemsHtml}
+      <div class="border-t pt-2 mt-2">
+        <div class="flex justify-between"><span>Subtotal:</span><span>${formatCurrency(sale.subtotal)}</span></div>
+        <div class="flex justify-between"><span>Discount:</span><span>-${formatCurrency(sale.discount)}</span></div>
+        <div class="flex justify-between"><span>Tax:</span><span>${formatCurrency(sale.tax)}</span></div>
+        <div class="flex justify-between font-bold text-lg"><span>Total:</span><span>${formatCurrency(sale.total)}</span></div>
+      </div>`;
+    reprintBtn.dataset.saleData = JSON.stringify(sale);
+    billDetailPopup.style.display = 'flex';
+  }
+
+  function handleReprint() {
+    const sale = JSON.parse(reprintBtn.dataset.saleData || "{}");
+    if (!sale.orderId) return;
+    const printData = {...sale, date: new Date(sale.date).toLocaleDateString(), time: new Date(sale.date).toLocaleTimeString()};
+    localStorage.setItem('currentPrintOrder', JSON.stringify(printData));
+    const printerSize = localStorage.getItem('printerSize') || '80';
+    window.open(printerSize === '80' ? 'receipt-80mm.html' : 'receipt-57mm.html', '_blank');
+  }
+
+  closePopupBtn.addEventListener('click', () => billDetailPopup.style.display = 'none');
+  reprintBtn.addEventListener('click', handleReprint);
+
+  renderDashboard();
+});
 </script>
-<div id="billDetailPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
-        <div class="text-center mb-4 border-b pb-4">
-            <h2 class="text-2xl font-bold text-slate-800">Bill Details</h2>
-            <p id="billDetailOrderId" class="text-sm text-slate-500"></p>
-        </div>
-        
-        <div id="billDetailContent" class="text-left text-slate-700 max-h-96 overflow-y-auto custom-scrollbar">
-        </div>
-        
-        <div class="flex justify-between gap-4 mt-6 pt-4 border-t">
-            <button id="closePopupBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full">Close</button>
-            <button id="reprintBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg w-full">
-                <i class="fas fa-print mr-2"></i>Reprint Bill
-            </button>
-        </div>
-    </div>
-</div>
 </body>
 </html>
