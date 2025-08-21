@@ -186,347 +186,333 @@
         </div>
     </div>
 
-    <script>
-        // --- FETCH DATA FROM LOCALSTORAGE ---
-        let categories = JSON.parse(localStorage.getItem('categories')) || [];
-        let allItems = JSON.parse(localStorage.getItem('items')) || [];
+   <script>
+    // --- FETCH DATA FROM LOCALSTORAGE ---
+    let categories = JSON.parse(localStorage.getItem('categories')) || [];
+    let allItems = JSON.parse(localStorage.getItem('items')) || [];
 
-        // --- STATE & DATA ---
-        let currentOrderItems = [];
-        let currentCategory = categories.length > 0 ? categories[0].name : '';
-        const taxRate = 0.05;
-        let paymentMethod = 'Cash';
-        let orderType = null;
-        let selectedTable = null;
-        let takeAwayOrderNumber = parseInt(localStorage.getItem('takeAwayOrderNumber')) || 101;
+    // --- STATE & DATA ---
+    let currentOrderItems = [];
+    let currentCategory = categories.length > 0 ? categories[0].name : '';
+    const taxRate = 0.05;
+    let paymentMethod = 'Cash';
+    let orderType = null;
+    let selectedTable = null;
+    let takeAwayOrderNumber = parseInt(localStorage.getItem('takeAwayOrderNumber')) || 101;
 
-        // --- ELEMENTS ---
-        const categoryButtonsDiv = document.getElementById('categoryButtons');
-        const itemsListDiv = document.getElementById('itemsList');
-        const orderItemsDiv = document.getElementById('orderItems');
-        const subtotalSpan = document.getElementById('subtotal');
-        const taxSpan = document.getElementById('tax');
-        const totalSpan = document.getElementById('total');
-        const discountTypeSelect = document.getElementById('discountTypeSelect');
-        const discountInput = document.getElementById('discountInput');
-        const serviceChargeTypeSelect = document.getElementById('serviceChargeTypeSelect');
-        const serviceChargeInput = document.getElementById('serviceChargeInput');
-        const modalOverlay = document.getElementById('modalOverlay');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalMessage = document.getElementById('modalMessage');
-        const modalCloseBtn = document.getElementById('modalCloseBtn');
-        const placeOrderBtn = document.getElementById('placeOrderBtn');
-        const saveOrderBtn = document.getElementById('saveOrderBtn');
-        const printBillBtn = document.getElementById('printBillBtn');
-        const resetOrderBtn = document.getElementById('resetOrderBtn');
-        const itemSearchInput = document.getElementById('itemSearch');
-        const dineInBtn = document.getElementById('dineInBtn');
-        const takeAwayBtn = document.getElementById('takeAwayBtn');
-        const menuOverlay = document.getElementById('menuOverlay');
-        const tablePopup = document.getElementById('tablePopup');
-        const tableGrid = document.getElementById('tableGrid');
-        const orderStatus = document.getElementById('orderStatus');
+    // --- ELEMENTS ---
+    const categoryButtonsDiv = document.getElementById('categoryButtons');
+    const itemsListDiv = document.getElementById('itemsList');
+    const orderItemsDiv = document.getElementById('orderItems');
+    const subtotalSpan = document.getElementById('subtotal');
+    const taxSpan = document.getElementById('tax');
+    const totalSpan = document.getElementById('total');
+    const discountTypeSelect = document.getElementById('discountTypeSelect');
+    const discountInput = document.getElementById('discountInput');
+    const serviceChargeTypeSelect = document.getElementById('serviceChargeTypeSelect');
+    const serviceChargeInput = document.getElementById('serviceChargeInput');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+    const saveOrderBtn = document.getElementById('saveOrderBtn');
+    const printBillBtn = document.getElementById('printBillBtn');
+    const resetOrderBtn = document.getElementById('resetOrderBtn');
+    const itemSearchInput = document.getElementById('itemSearch');
+    const dineInBtn = document.getElementById('dineInBtn');
+    const takeAwayBtn = document.getElementById('takeAwayBtn');
+    const tablePopup = document.getElementById('tablePopup');
+    const tableGrid = document.getElementById('tableGrid');
+    const orderStatus = document.getElementById('orderStatus');
 
-        // --- UTILITY FUNCTIONS ---
-        function showAlert(message, title = 'Notification') {
-            modalTitle.textContent = title;
-            modalMessage.textContent = message;
-            modalOverlay.style.display = 'flex';
-        }
+    // --- UTILITY FUNCTIONS ---
+    function showAlert(message, title = 'Notification') {
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+        modalOverlay.style.display = 'flex';
+    }
 
-        // --- WORKFLOW FUNCTIONS ---
-        function initializeOrderScreen() {
-    // Reset state variables
-    orderType = null;
-    selectedTable = null;
-    orderStatus.textContent = '';
-    
-    // Clear the order items list
-    currentOrderItems = [];
-    discountInput.value = 0;
-    serviceChargeInput.value = 0;
-    
-    // Ensure the Dine In and Take Away buttons are enabled for a new order
-    dineInBtn.disabled = false;
-    takeAwayBtn.disabled = false;
-    
-    // Render the empty order list
-    renderOrder(); 
-}
-
-        function setOrderType(type, details = null) {
-            orderType = type;
-            menuOverlay.style.display = 'none';
-            dineInBtn.disabled = true;
-            takeAwayBtn.disabled = true;
-
-            if (type === 'Dine In') {
-                selectedTable = details;
-                orderStatus.textContent = `Order for: Table ${selectedTable}`;
-                closeTablePopup();
-            } else if (type === 'Take Away') {
-                selectedTable = `TA-${takeAwayOrderNumber}`;
-                orderStatus.textContent = `Order for: Take Away #${takeAwayOrderNumber}`;
-                localStorage.setItem('takeAwayOrderNumber', takeAwayOrderNumber + 1);
-                takeAwayOrderNumber++;
-            }
-        }
-
-        function openTablePopup() {
-            const tables = JSON.parse(localStorage.getItem('tables')) || [];
-            tableGrid.innerHTML = '';
-            if (tables.length > 0) {
-                tables.forEach(tbl => {
-                    const btn = document.createElement('button');
-                    btn.textContent = tbl.name;
-                    btn.className = 'p-4 bg-indigo-500 text-white font-bold rounded-lg hover:bg-indigo-600 transition';
-                    btn.onclick = () => setOrderType('Dine In', tbl.name);
-                    tableGrid.appendChild(btn);
-                });
-            } else {
-                tableGrid.innerHTML = '<p class="col-span-full text-slate-500">No tables configured in settings.</p>';
-            }
-            tablePopup.style.display = 'flex';
-        }
-
-        function closeTablePopup() {
-            tablePopup.style.display = 'none';
-        }
+    // --- WORKFLOW FUNCTIONS ---
+    function initializeOrderScreen() {
+        orderType = null;
+        selectedTable = null;
+        orderStatus.textContent = '';
+        currentOrderItems = [];
+        discountInput.value = 0;
+        serviceChargeInput.value = 0;
         
-        function openPaymentPopup() {
-            if (currentOrderItems.length === 0) {
-                return showAlert('Cannot process payment for an empty order.', 'Error');
-            }
-            document.getElementById('paymentPopup').style.display = 'flex';
+        // Ensure the Dine In and Take Away buttons are ENABLED for a new order
+        dineInBtn.disabled = false;
+        takeAwayBtn.disabled = false;
+        
+        renderOrder();
+    }
+
+    function setOrderType(type, details = null) {
+        orderType = type;
+        
+        // Disable the order type buttons after a choice is made
+        dineInBtn.disabled = true;
+        takeAwayBtn.disabled = true;
+
+        if (type === 'Dine In') {
+            selectedTable = details;
+            orderStatus.textContent = `Order for: Table ${selectedTable}`;
+            closeTablePopup(); // This will now close the popup automatically
+        } else if (type === 'Take Away') {
+            selectedTable = `TA-${takeAwayOrderNumber}`;
+            orderStatus.textContent = `Order for: Take Away #${takeAwayOrderNumber}`;
+            localStorage.setItem('takeAwayOrderNumber', takeAwayOrderNumber + 1);
+            takeAwayOrderNumber++;
         }
+    }
 
-        function closePaymentPopup() {
-            document.getElementById('paymentPopup').style.display = 'none';
-        }
-
-        function confirmPayment(method) {
-            paymentMethod = method;
-            const sales = JSON.parse(localStorage.getItem('sales')) || [];
-            const newSale = {
-                orderId: Date.now(),
-                date: new Date().toISOString(),
-                items: currentOrderItems,
-                subtotal: parseFloat(subtotalSpan.textContent),
-                discount: parseFloat(discountInput.value),
-                serviceCharge: parseFloat(serviceChargeInput.value),
-                tax: parseFloat(taxSpan.textContent),
-                total: parseFloat(totalSpan.textContent),
-                paymentMethod: paymentMethod,
-                orderType: orderType,
-                table: selectedTable
-            };
-            sales.push(newSale);
-            localStorage.setItem('sales', JSON.stringify(sales));
-            
-            printBill();
-            closePaymentPopup();
-            initializeOrderScreen();
-        }
-
-
-        // --- RENDER FUNCTIONS ---
-        function renderCategories() {
-            categoryButtonsDiv.innerHTML = '';
-            categories.forEach(cat => {
+    function openTablePopup() {
+        const tables = JSON.parse(localStorage.getItem('tables')) || [];
+        tableGrid.innerHTML = '';
+        if (tables.length > 0) {
+            tables.forEach(tbl => {
                 const btn = document.createElement('button');
-                btn.textContent = cat.name;
-                btn.className = `w-full text-left py-3 px-4 mb-2 font-bold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105 focus:outline-none ${cat.name === currentCategory ? 'bg-indigo-600 text-white scale-105 shadow-lg' : 'bg-white text-slate-700 hover:bg-indigo-100'}`;
-                btn.addEventListener('click', () => {
-                    currentCategory = cat.name;
-                    renderCategories();
-                    renderItems();
-                });
-                categoryButtonsDiv.appendChild(btn);
+                btn.textContent = tbl.name;
+                btn.className = 'p-4 bg-indigo-500 text-white font-bold rounded-lg hover:bg-indigo-600 transition';
+                // This onclick will now work correctly
+                btn.onclick = () => setOrderType('Dine In', tbl.name);
+                tableGrid.appendChild(btn);
             });
-            const dashboardBtn = document.createElement('button');
-            dashboardBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i> Dashboard';
-            dashboardBtn.onclick = () => window.location.href = 'dashboard.html';
-            dashboardBtn.className = 'mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105';
-            categoryButtonsDiv.appendChild(dashboardBtn);
+        } else {
+            tableGrid.innerHTML = '<p class="col-span-full text-slate-500">No tables configured in settings.</p>';
         }
+        tablePopup.style.display = 'flex';
+    }
 
-        function renderOrder() {
-            orderItemsDiv.innerHTML = '';
-            if (currentOrderItems.length === 0) {
-                orderItemsDiv.innerHTML = '<div class="text-slate-500 text-center py-4">No items added yet.</div>';
-            } else {
-                currentOrderItems.forEach(item => {
-                    const itemTotal = parseFloat(item.sales || 0) * item.qty;
-                    const div = document.createElement('div');
-                    const uniqueId = item.id || item.name;
-                    div.className = 'flex items-center justify-between bg-slate-50 rounded-lg p-3 mb-2 shadow-sm';
-                    div.innerHTML = `
-                        <div class="flex-1">
-                            <span class="font-semibold text-slate-800">${item.name}</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button data-id="${uniqueId}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">-</button>
-                            <span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span>
-                            <button data-id="${uniqueId}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">+</button>
-                            <span class="font-semibold text-green-600 w-20 text-right">₹${itemTotal.toFixed(2)}</span>
-                            <button data-id="${uniqueId}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110" aria-label="Remove ${item.name}">×</button>
-                        </div>`;
-                    orderItemsDiv.appendChild(div);
-                });
-            }
-            updateTotals();
-        }
-
-        function renderItems() {
-            let itemsToDisplay = [...allItems];
-            const searchQuery = itemSearchInput.value.toLowerCase();
-            if (searchQuery) {
-                itemsToDisplay = itemsToDisplay.filter(item => item.name.toLowerCase().includes(searchQuery));
-            } else if (currentCategory) {
-                itemsToDisplay = itemsToDisplay.filter(item => item.category === currentCategory);
-            }
-            itemsListDiv.innerHTML = '';
-            if (itemsToDisplay.length === 0) {
-                let message = 'No items found.';
-                if (searchQuery) {
-                    message = `No items match your search for "${searchQuery}".`;
-                } else if (currentCategory) {
-                    message = `No items found in the "${currentCategory}" category.`;
-                }
-                itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">${message}</p>`;
-                return;
-            }
-            itemsToDisplay.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'item-card bg-white hover:shadow-xl rounded-xl p-3 shadow-md transition-all duration-200 transform hover:-translate-y-1 cursor-pointer flex flex-col items-center justify-between text-center';
-                const imageUrl = item.image || 'https://placehold.co/400x300?text=No+Image';
-                card.innerHTML = `
-                    <img src="${imageUrl}" alt="${item.name}" class="w-full h-32 object-cover rounded-lg mb-2">
-                    <div class="font-bold text-slate-800 text-sm overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div>
-                    <div class="font-semibold text-green-600 text-md mt-1">₹${parseFloat(item.sales || 0).toFixed(2)}</div>`;
-                card.addEventListener('click', () => addItemToOrder(item));
-                itemsListDiv.appendChild(card);
-            });
-        }
-
-        // --- LOGIC FUNCTIONS ---
-       function addItemToOrder(item) {
-    // Check if an order type has been selected
-    if (!orderType) {
-        // If not, show an alert and stop the function
-        showAlert('Please select "Dine In" or "Take Away" before adding items.', 'Order Type Required');
-        return; // This prevents the item from being added
+    function closeTablePopup() {
+        tablePopup.style.display = 'none';
     }
     
-    // If an order type is already set, the function continues as normal
-    const existingItem = currentOrderItems.find(o => o.id === item.id);
-    if (existingItem) {
-        existingItem.qty++;
-    } else {
-        currentOrderItems.push({ ...item, qty: 1 });
+    function openPaymentPopup() {
+        if (currentOrderItems.length === 0) {
+            return showAlert('Cannot process payment for an empty order.', 'Error');
+        }
+        document.getElementById('paymentPopup').style.display = 'flex';
     }
-    renderOrder();
-}
 
-        function updateTotals() {
-            const subtotal = currentOrderItems.reduce((sum, item) => sum + parseFloat(item.sales) * item.qty, 0);
-            const discountValue = parseFloat(discountInput.value) || 0;
-            const serviceChargeValue = parseFloat(serviceChargeInput.value) || 0;
-            const isDiscountPercent = discountTypeSelect.value === 'percentage';
-            const isServiceChargePercent = serviceChargeTypeSelect.value === 'percentage';
-            const discountAmount = isDiscountPercent ? subtotal * (discountValue / 100) : discountValue;
-            const serviceChargeAmount = isServiceChargePercent ? subtotal * (serviceChargeValue / 100) : serviceChargeValue;
-            const taxableAmount = subtotal - discountAmount + serviceChargeAmount;
-            const taxAmount = taxableAmount * taxRate;
-            const totalAmount = taxableAmount + taxAmount;
-            subtotalSpan.textContent = subtotal.toFixed(2);
-            taxSpan.textContent = taxAmount.toFixed(2);
-            totalSpan.textContent = Math.max(0, totalAmount).toFixed(2);
-        }
+    function closePaymentPopup() {
+        document.getElementById('paymentPopup').style.display = 'none';
+    }
 
-        function placeOrder() {
-            if (currentOrderItems.length === 0) return showAlert("No items in order!", 'Error');
-            window.open('kot.html', '_blank');
-            showAlert('Order placed and KOT sent to kitchen!', 'Success');
-        }
-
-        function resetOrder() {
-            initializeOrderScreen();
-        }
-
-        function saveOrder() {
-             if (currentOrderItems.length === 0) return showAlert("Cannot save an empty order.", 'Error');
-            showAlert('Order saved successfully!', 'Saved');
-        }
-
-        function printBill() {
-            if (currentOrderItems.length === 0) return;
-            const orderData = {
-                items: currentOrderItems,
-                subtotal: parseFloat(subtotalSpan.textContent),
-                discount: parseFloat(discountInput.value),
-                serviceCharge: parseFloat(serviceChargeInput.value),
-                tax: parseFloat(taxSpan.textContent),
-                total: parseFloat(totalSpan.textContent),
-                paymentMethod: paymentMethod,
-                orderType: orderType,
-                table: selectedTable,
-                date: new Date().toLocaleDateString(),
-                time: new Date().toLocaleTimeString(),
-            };
-            localStorage.setItem('currentPrintOrder', JSON.stringify(orderData));
-            const printerSize = localStorage.getItem('printerSize') || '80';
-            window.open(printerSize === '80' ? 'receipt-80mm.html' : 'receipt-57mm.html', '_blank');
-        }
+    function confirmPayment(method) {
+        paymentMethod = method;
+        const sales = JSON.parse(localStorage.getItem('sales')) || [];
+        const newSale = {
+            orderId: Date.now(),
+            date: new Date().toISOString(),
+            items: currentOrderItems,
+            subtotal: parseFloat(subtotalSpan.textContent),
+            discount: parseFloat(discountInput.value),
+            serviceCharge: parseFloat(serviceChargeInput.value),
+            tax: parseFloat(taxSpan.textContent),
+            total: parseFloat(totalSpan.textContent),
+            paymentMethod: paymentMethod,
+            orderType: orderType,
+            table: selectedTable
+        };
+        sales.push(newSale);
+        localStorage.setItem('sales', JSON.stringify(sales));
         
-        // --- EVENT LISTENERS ---
-        modalCloseBtn.addEventListener('click', () => modalOverlay.style.display = 'none');
-        placeOrderBtn.addEventListener('click', placeOrder);
-        resetOrderBtn.addEventListener('click', resetOrder);
-        saveOrderBtn.addEventListener('click', saveOrder);
-        printBillBtn.addEventListener('click', openPaymentPopup);
-        itemSearchInput.addEventListener('input', renderItems);
-        dineInBtn.addEventListener('click', openTablePopup);
-        takeAwayBtn.addEventListener('click', () => setOrderType('Take Away'));
+        printBill();
+        closePaymentPopup();
+        // initializeOrderScreen will be called by resetOrder
+        resetOrder();
+    }
 
-        orderItemsDiv.addEventListener('click', (event) => {
-            const target = event.target;
-            const qtyBtn = target.closest('.qty-btn');
-            const removeBtn = target.closest('.remove-btn');
-            if (qtyBtn) {
-                const id = qtyBtn.dataset.id;
-                const action = qtyBtn.dataset.action;
-                const item = currentOrderItems.find(o => (o.id == id) || (o.name == id));
-                if (item) {
-                    if (action === 'increment') {
-                        item.qty++;
-                    } else if (action === 'decrement' && item.qty > 1) {
-                        item.qty--;
-                    } else if (action === 'decrement' && item.qty === 1) {
-                        currentOrderItems = currentOrderItems.filter(i => (i.id || i.name) != id);
-                    }
-                    renderOrder();
-                }
-            } else if (removeBtn) {
-                const id = removeBtn.dataset.id;
-                currentOrderItems = currentOrderItems.filter(i => (i.id || i.name) != id);
+    // --- RENDER FUNCTIONS ---
+    function renderCategories() {
+        categoryButtonsDiv.innerHTML = '';
+        categories.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.textContent = cat.name;
+            btn.className = `w-full text-left py-3 px-4 mb-2 font-bold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105 focus:outline-none ${cat.name === currentCategory ? 'bg-indigo-600 text-white scale-105 shadow-lg' : 'bg-white text-slate-700 hover:bg-indigo-100'}`;
+            btn.addEventListener('click', () => {
+                currentCategory = cat.name;
+                renderCategories();
+                renderItems();
+            });
+            categoryButtonsDiv.appendChild(btn);
+        });
+        const dashboardBtn = document.createElement('button');
+        dashboardBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i> Dashboard';
+        dashboardBtn.onclick = () => window.location.href = 'dashboard.html';
+        dashboardBtn.className = 'mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105';
+        categoryButtonsDiv.appendChild(dashboardBtn);
+    }
+
+    function renderOrder() {
+        orderItemsDiv.innerHTML = '';
+        if (currentOrderItems.length === 0) {
+            orderItemsDiv.innerHTML = '<div class="text-slate-500 text-center py-4">No items added yet.</div>';
+        } else {
+            currentOrderItems.forEach(item => {
+                const itemTotal = parseFloat(item.sales || 0) * item.qty;
+                const div = document.createElement('div');
+                const uniqueId = item.id || item.name;
+                div.className = 'flex items-center justify-between bg-slate-50 rounded-lg p-3 mb-2 shadow-sm';
+                div.innerHTML = `
+                    <div class="flex-1">
+                        <span class="font-semibold text-slate-800">${item.name}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button data-id="${uniqueId}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">-</button>
+                        <span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span>
+                        <button data-id="${uniqueId}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">+</button>
+                        <span class="font-semibold text-green-600 w-20 text-right">₹${itemTotal.toFixed(2)}</span>
+                        <button data-id="${uniqueId}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110" aria-label="Remove ${item.name}">×</button>
+                    </div>`;
+                orderItemsDiv.appendChild(div);
+            });
+        }
+        updateTotals();
+    }
+
+    function renderItems() {
+        let itemsToDisplay = [...allItems];
+        const searchQuery = itemSearchInput.value.toLowerCase();
+        if (searchQuery) {
+            itemsToDisplay = itemsToDisplay.filter(item => item.name.toLowerCase().includes(searchQuery));
+        } else if (currentCategory) {
+            itemsToDisplay = itemsToDisplay.filter(item => item.category === currentCategory);
+        }
+        itemsListDiv.innerHTML = '';
+        if (itemsToDisplay.length === 0) {
+            let message = 'No items found.';
+            if (searchQuery) message = `No items match your search for "${searchQuery}".`;
+            else if (currentCategory) message = `No items found in the "${currentCategory}" category.`;
+            itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">${message}</p>`;
+            return;
+        }
+        itemsToDisplay.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'item-card bg-white hover:shadow-xl rounded-xl p-3 shadow-md transition-all duration-200 transform hover:-translate-y-1 cursor-pointer flex flex-col items-center justify-between text-center';
+            const imageUrl = item.image || 'https://placehold.co/400x300?text=No+Image';
+            card.innerHTML = `
+                <img src="${imageUrl}" alt="${item.name}" class="w-full h-32 object-cover rounded-lg mb-2">
+                <div class="font-bold text-slate-800 text-sm overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div>
+                <div class="font-semibold text-green-600 text-md mt-1">₹${parseFloat(item.sales || 0).toFixed(2)}</div>`;
+            card.addEventListener('click', () => addItemToOrder(item));
+            itemsListDiv.appendChild(card);
+        });
+    }
+
+    // --- LOGIC FUNCTIONS ---
+    function addItemToOrder(item) {
+        if (!orderType) {
+            showAlert('Please select "Dine In" or "Take Away" before adding items.', 'Order Type Required');
+            return;
+        }
+        const existingItem = currentOrderItems.find(o => o.id === item.id);
+        if (existingItem) {
+            existingItem.qty++;
+        } else {
+            currentOrderItems.push({ ...item, qty: 1 });
+        }
+        renderOrder();
+    }
+
+    function updateTotals() {
+        const subtotal = currentOrderItems.reduce((sum, item) => sum + parseFloat(item.sales) * item.qty, 0);
+        const discountValue = parseFloat(discountInput.value) || 0;
+        const serviceChargeValue = parseFloat(serviceChargeInput.value) || 0;
+        const isDiscountPercent = discountTypeSelect.value === 'percentage';
+        const isServiceChargePercent = serviceChargeTypeSelect.value === 'percentage';
+        const discountAmount = isDiscountPercent ? subtotal * (discountValue / 100) : discountValue;
+        const serviceChargeAmount = isServiceChargePercent ? subtotal * (serviceChargeValue / 100) : serviceChargeValue;
+        const taxableAmount = subtotal - discountAmount + serviceChargeAmount;
+        const taxAmount = taxableAmount * taxRate;
+        const totalAmount = taxableAmount + taxAmount;
+        subtotalSpan.textContent = subtotal.toFixed(2);
+        taxSpan.textContent = taxAmount.toFixed(2);
+        totalSpan.textContent = Math.max(0, totalAmount).toFixed(2);
+    }
+
+    function placeOrder() {
+        if (currentOrderItems.length === 0) return showAlert("No items in order!", 'Error');
+        window.open('kot.html', '_blank');
+        showAlert('Order placed and KOT sent to kitchen!', 'Success');
+    }
+
+    function resetOrder() {
+        initializeOrderScreen();
+    }
+
+    function saveOrder() {
+        if (currentOrderItems.length === 0) return showAlert("Cannot save an empty order.", 'Error');
+        showAlert('Order saved successfully!', 'Saved');
+    }
+
+    function printBill() {
+        if (currentOrderItems.length === 0) return;
+        const orderData = {
+            items: currentOrderItems,
+            subtotal: parseFloat(subtotalSpan.textContent),
+            discount: parseFloat(discountInput.value),
+            serviceCharge: parseFloat(serviceChargeInput.value),
+            tax: parseFloat(taxSpan.textContent),
+            total: parseFloat(totalSpan.textContent),
+            paymentMethod: paymentMethod,
+            orderType: orderType,
+            table: selectedTable,
+            date: new Date().toLocaleDateString(),
+            time: new Date().toLocaleTimeString(),
+        };
+        localStorage.setItem('currentPrintOrder', JSON.stringify(orderData));
+        const printerSize = localStorage.getItem('printerSize') || '80';
+        window.open(printerSize === '80' ? 'receipt-80mm.html' : 'receipt-57mm.html', '_blank');
+    }
+    
+    // --- EVENT LISTENERS ---
+    modalCloseBtn.addEventListener('click', () => modalOverlay.style.display = 'none');
+    placeOrderBtn.addEventListener('click', placeOrder);
+    resetOrderBtn.addEventListener('click', resetOrder);
+    saveOrderBtn.addEventListener('click', saveOrder);
+    printBillBtn.addEventListener('click', openPaymentPopup);
+    itemSearchInput.addEventListener('input', renderItems);
+    dineInBtn.addEventListener('click', openTablePopup);
+    takeAwayBtn.addEventListener('click', () => setOrderType('Take Away'));
+
+    orderItemsDiv.addEventListener('click', (event) => {
+        const target = event.target;
+        const qtyBtn = target.closest('.qty-btn');
+        const removeBtn = target.closest('.remove-btn');
+        if (qtyBtn) {
+            const id = qtyBtn.dataset.id;
+            const action = qtyBtn.dataset.action;
+            const item = currentOrderItems.find(o => (o.id == id) || (o.name == id));
+            if (item) {
+                if (action === 'increment') item.qty++;
+                else if (action === 'decrement' && item.qty > 1) item.qty--;
+                else if (action === 'decrement' && item.qty === 1) currentOrderItems = currentOrderItems.filter(i => (i.id || i.name) != id);
                 renderOrder();
             }
-        });
-        [discountInput, discountTypeSelect, serviceChargeInput, serviceChargeTypeSelect].forEach(el => {
-            el.addEventListener('input', updateTotals);
-        });
+        } else if (removeBtn) {
+            const id = removeBtn.dataset.id;
+            currentOrderItems = currentOrderItems.filter(i => (i.id || i.name) != id);
+            renderOrder();
+        }
+    });
+    [discountInput, discountTypeSelect, serviceChargeInput, serviceChargeTypeSelect].forEach(el => {
+        el.addEventListener('input', updateTotals);
+    });
 
-        // --- INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const shopName = localStorage.getItem('shopName');
-            if (shopName) {
-                document.getElementById('shopNameHeader').textContent = shopName;
-            }
-            renderCategories();
-            renderItems();
-            initializeOrderScreen();
-        });
-    </script>
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const shopName = localStorage.getItem('shopName');
+        if (shopName) {
+            document.getElementById('shopNameHeader').textContent = shopName;
+        }
+        renderCategories();
+        renderItems();
+        initializeOrderScreen();
+    });
+</script>
 </body>
 </html>
