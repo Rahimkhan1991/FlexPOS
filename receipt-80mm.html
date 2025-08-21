@@ -22,12 +22,8 @@
     .qr { margin-top: 10px; text-align: center; }
     .footer { margin-top: 8px; font-size: 12px; text-align: center; }
     .logo { max-width: 200px; max-height: 80px; display: block; margin: 0 auto 5px; object-fit: contain; }
-    .charges { display: flex; justify-content: space-between; }
-    .charges .label { text-align: left; }
-    .charges .amount { text-align: right; }
+    .charges { display: flex; justify-content: space-between; font-size: 14px; }
     .separator { border-top: 1px dashed #000; margin: 5px 0; }
-.charges { display: flex; justify-content: space-between; font-size: 14px; }
-
 </style>
 </head>
 <body>
@@ -56,14 +52,14 @@
     </table>
     <hr>
     <div class="charges"><span class="label">Subtotal:</span> <span class="amount" id="subTotal"></span></div>
-<div class="charges"><span class="label">Tax:</span> <span class="amount" id="tax"></span></div>
-<div class="charges"><span class="label">Service Charge:</span> <span class="amount" id="serviceCharge"></span></div>
-<div class="charges"><span class="label">Discount:</span> <span class="amount" id="discount"></span></div>
-<div class="separator"></div>
-<div class="charges"><strong class="label">Total:</strong> <strong class="amount" id="totalAmount"></strong></div>
-<div class="separator"></div>
-<div class="charges"><span class="label">Cash Received:</span> <span class="amount" id="cashReceived"></span></div>
-<div class="charges"><span class="label">Change:</span> <span class="amount" id="change"></span></div>
+    <div class="charges"><span class="label">Tax:</span> <span class="amount" id="tax"></span></div>
+    <div class="charges"><span class="label">Service Charge:</span> <span class="amount" id="serviceCharge"></span></div>
+    <div class="charges"><span class="label">Discount:</span> <span class="amount" id="discount"></span></div>
+    <div class="separator"></div>
+    <div class="charges"><strong class="label">Total:</strong> <strong class="amount" id="totalAmount"></strong></div>
+    <div class="separator"></div>
+    <div class="charges"><span class="label">Cash Received:</span> <span class="amount" id="cashReceived"></span></div>
+    <div class="charges"><span class="label">Change:</span> <span class="amount" id="change"></span></div>
     <hr>
     <div class="center" id="footerText">Thank you for visiting!</div>
 </div>
@@ -130,7 +126,6 @@ document.getElementById('discount').innerText = discount.toFixed(2);
 document.getElementById('totalAmount').innerText = totalAmount.toFixed(2);
 document.getElementById('cashReceived').innerText = cashReceived.toFixed(2);
 document.getElementById('change').innerText = change.toFixed(2);
-
 
 // --- Footer and shop info ---
 document.getElementById('shopName').innerText = localStorage.getItem('shopName') || 'My Shop Name';

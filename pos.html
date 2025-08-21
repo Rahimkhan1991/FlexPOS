@@ -408,24 +408,34 @@ function renderItems() {
         }
         
         function placeOrder() {
-            if (currentOrderItems.length === 0) {
-                return showAlert('Please add items to the order first.');
-            }
-            const order = {
-                table: tableSelect.value,
-                items: currentOrderItems,
-                paymentMethod: paymentMethod,
-                date: new Date().toISOString().split('T')[0],
-                time: new Date().toLocaleTimeString(),
-                total: parseFloat(totalSpan.textContent)
-            };
-            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-            orders.push(order);
-            localStorage.setItem('orders', JSON.stringify(orders));
-            showAlert(`Order for Table ${tableSelect.value} has been placed.`, 'Order Placed');
-            resetOrder();
-        }
-        
+    const tableSelect = document.getElementById('tableSelect');
+    const selectedTable = tableSelect.value;
+
+    if (!selectedTable) {
+        alert("Please select a table!");
+        return;
+    }
+
+    if (currentOrderItems.length === 0) {
+        alert("No items in order!");
+        return;
+    }
+
+    // Prepare order object
+    const order = {
+        table: selectedTable,
+        items: currentOrderItems,
+        total: currentOrderItems.reduce((sum, item) => sum + (item.price * item.qty), 0),
+        timestamp: new Date().toLocaleString()
+    };
+
+    // Save to localStorage
+    localStorage.setItem("currentReceipt", JSON.stringify(order));
+
+    // Redirect to receipt page
+    window.location.href = "receipt.html";
+}
+
         function resetOrder() {
             currentOrderItems = [];
             discountInput.value = 0;
