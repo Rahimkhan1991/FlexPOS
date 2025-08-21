@@ -550,10 +550,7 @@ function deleteHeldOrder(index) {
         initializeOrderScreen();
     }
 
-    function saveOrder() {
-        if (currentOrderItems.length === 0) return showAlert("Cannot save an empty order.", 'Error');
-        showAlert('Order saved successfully!', 'Saved');
-    }
+
 
     function printBill() {
         if (currentOrderItems.length === 0) return;
