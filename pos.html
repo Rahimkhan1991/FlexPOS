@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -119,6 +120,14 @@
               <label for="tableSelect">Select Table:</label>
               <select id="tableSelect" class="border rounded px-2 py-1"></select>
   
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Payment Method:</label>
+                <div class="flex gap-2">
+                    <button id="cashBtn" data-method="Cash" class="payment-btn active">Cash</button>
+                    <button id="cardBtn" data-method="Card" class="payment-btn">Card</button>
+                </div>
+            </div>
 
             <div id="orderItems" class="flex-grow overflow-y-auto custom-scrollbar mb-4 border-y border-slate-200 py-4">
                 <div class="text-slate-500 text-center">No items added yet.</div>
@@ -160,19 +169,19 @@
                 </div>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-3 mt-4">
-                <button id="placeOrderBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                    <i class="fas fa-check mr-2"></i> Place Order
-                </button>
-                <button id="saveOrderBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                    <i class="fas fa-save mr-2"></i> Save
-                </button>
-                <button onclick="openPaymentPopup()" class="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-500">Print Bill</button>
-                   
-                <button id="resetOrderBtn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                    <i class="fas fa-trash-alt mr-2"></i> Clear Order
-                </button>
-                
-            </div>
+    <button id="placeOrderBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+        <i class="fas fa-check mr-2"></i> <strong>Place Order & KOT</strong>
+    </button>
+    <button id="saveOrderBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+        <i class="fas fa-save mr-2"></i> Save
+    </button>
+    <button id="printBillBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+        <i class="fas fa-print mr-2"></i> Print Bill
+    </button>
+    <button id="resetOrderBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+        <i class="fas fa-trash-alt mr-2"></i> Clear Order
+    </button>
+</div>
         </aside>
     </div>
     <div id="modalOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-[1000] hidden items-center justify-center">
@@ -184,21 +193,6 @@
             </button>
         </div>
     </div>
-        <!-- Payment Method Popup -->
-<div id="paymentPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
-  <div class="bg-white rounded-lg shadow-lg p-6 w-80 text-center">
-    <h2 class="text-lg font-semibold mb-4">Select Payment Method</h2>
-    <div class="flex justify-around mb-6">
-      <button onclick="confirmPayment('Cash')" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
-        Cash
-      </button>
-      <button onclick="confirmPayment('Card')" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-        Card
-      </button>
-    </div>
-    <button onclick="closePaymentPopup()" class="text-red-500">Cancel</button>
-  </div>
-</div>
     <script>
 // --- FETCH DATA FROM LOCALSTORAGE ---
 let categories = JSON.parse(localStorage.getItem('categories')) || [];
@@ -411,7 +405,8 @@ function renderItems() {
             categoryButtonsDiv.classList.toggle('flex');
         }
         
-        function placeOrder() {
+      // New, combined placeOrder function
+function placeOrder() {
     const tableSelect = document.getElementById('tableSelect');
     const selectedTable = tableSelect.value;
 
@@ -419,6 +414,29 @@ function renderItems() {
         alert("Please select a table!");
         return;
     }
+
+    if (currentOrderItems.length === 0) {
+        alert("No items in order!");
+        return;
+    }
+
+    // ⭐ THIS IS THE NEW PART: It opens the KOT in a new tab first.
+    window.open('kot.html', '_blank');
+
+    // Prepare order object
+    const order = {
+        table: selectedTable,
+        items: currentOrderItems,
+        total: currentOrderItems.reduce((sum, item) => sum + (item.price * item.qty), 0),
+        timestamp: new Date().toLocaleString()
+    };
+
+    // Save to localStorage for the receipt page
+    localStorage.setItem("currentReceipt", JSON.stringify(order));
+
+    // Redirect to receipt page as before
+    window.location.href = "receipt.html";
+}
 
     if (currentOrderItems.length === 0) {
         alert("No items in order!");
@@ -565,28 +583,7 @@ orderItemsDiv.addEventListener('click', (event) => {
             renderOrder();
               renderTableDropdown(); // ✅ load tables from localStorage
         });
-        function openPaymentPopup() {
-    document.getElementById("paymentPopup").classList.remove("hidden");
-}
-
-function closePaymentPopup() {
-    document.getElementById("paymentPopup").classList.add("hidden");
-}
-
-function confirmPayment(method) {
-    // Add payment method to bill
-    currentOrder.paymentMethod = method;
-
-    // Call your existing printBill() logic (modify it if needed)
-    printBill();
-
-    // Auto clear order after printing
-    clearOrder();
-
-    // Close popup
-    closePaymentPopup();
-}
-
     </script>
+    
 </body>
 </html>
