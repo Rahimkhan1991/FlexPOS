@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sales Reports</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2s+lHh1p7n5K24Jq4i+c6A5aJ6K6O4f3T2X6Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #94a3b8;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-slate-100">
+
+    <header class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-slate-900">
+                Sales Reports
+            </h1>
+            <button onclick="window.location.href='pos.html'" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition">
+                <i class="fas fa-arrow-left mr-2"></i>Back to POS
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        
+        <div id="summaryCards" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            </div>
+
+        <div id="billHistory" class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="p-6 border-b border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-800">Bill History</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Order ID</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date & Time</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Payment</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody" class="bg-white divide-y divide-slate-200">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Safely load all sales data from localStorage
+        const sales = JSON.parse(localStorage.getItem('sales')) || [];
+
+        // --- HELPER FUNCTIONS for formatting ---
+        
+        // Formats a number into Indian Rupee currency format (e.g., 1234.5 -> ₹1,234.50)
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR'
+            }).format(amount);
+        }
+
+        // Formats an ISO date string into a more readable local format
+        function formatDateTime(isoString) {
+            if (!isoString) return 'N/A';
+            const options = {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            };
+            return new Date(isoString).toLocaleString('en-US', options);
+        }
+        
+        // --- MAIN DISPLAY FUNCTIONS ---
+
+        function displaySummaryCards() {
+            const summaryCardsContainer = document.getElementById('summaryCards');
+
+            // Get today's date in a comparable format
+            const today = new Date().toDateString();
+
+            // Filter sales records for today's date
+            const todaysSales = sales.filter(sale => {
+                const saleDate = new Date(sale.date).toDateString();
+                return saleDate === today;
+            });
+
+            // Calculate today's total revenue
+            const todaysRevenue = todaysSales.reduce((sum, sale) => sum + sale.total, 0);
+            
+            // Calculate total revenue from all time
+            const totalRevenue = sales.reduce((sum, sale) => sum + sale.total, 0);
+
+            // Create the HTML for the summary cards
+            const cardsHTML = `
+                <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
+                    <div class="bg-green-100 rounded-full p-3 mr-4">
+                        <i class="fas fa-wallet text-2xl text-green-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-500">Today's Revenue</p>
+                        <p class="text-3xl font-bold text-slate-900">${formatCurrency(todaysRevenue)}</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
+                    <div class="bg-blue-100 rounded-full p-3 mr-4">
+                        <i class="fas fa-receipt text-2xl text-blue-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-500">Today's Orders</p>
+                        <p class="text-3xl font-bold text-slate-900">${todaysSales.length}</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
+                    <div class="bg-indigo-100 rounded-full p-3 mr-4">
+                        <i class="fas fa-chart-line text-2xl text-indigo-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-500">Total Revenue (All Time)</p>
+                        <p class="text-3xl font-bold text-slate-900">${formatCurrency(totalRevenue)}</p>
+                    </div>
+                </div>
+            `;
+
+            summaryCardsContainer.innerHTML = cardsHTML;
+        }
+
+        function displayBillHistory() {
+            const tableBody = document.getElementById('historyTableBody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            if (sales.length === 0) {
+                // Display a message if no sales records exist
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-10 text-slate-500">
+                            No sales records found.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Reverse the array to show the most recent sales first
+            sales.slice().reverse().forEach(sale => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-50';
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${sale.orderId}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${formatDateTime(sale.date)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${sale.orderType || 'N/A'} - ${sale.table || ''}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${sale.paymentMethod}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800 text-right">${formatCurrency(sale.total)}</td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        // --- INITIALIZE THE DASHBOARD ---
+        displaySummaryCards();
+        displayBillHistory();
+    });
+</script>
+
+</body>
+</html>
