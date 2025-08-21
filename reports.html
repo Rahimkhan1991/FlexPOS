@@ -149,23 +149,89 @@ document.addEventListener('DOMContentLoaded', () => {
     const a = document.createElement('a'); a.href = url; a.download = 'sales-report.csv'; a.click();
   });
 
-  // --- Export PDF ---
-  document.getElementById('exportPdfBtn').addEventListener('click', () => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text("Sales Report", 14, 20);
+  // --- Export PDF (Professional Report) ---
+document.getElementById('exportPdfBtn').addEventListener('click', () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("p", "mm", "a4");
 
-    let y = 30;
+  // --- Header ---
+  doc.setFontSize(18);
+  doc.text("Sales Report", 105, 20, { align: "center" });
+
+  // Date range (from filter)
+  let rangeText = "All Dates";
+  if (startDate.value && endDate.value) {
+    rangeText = `${startDate.value} to ${endDate.value}`;
+  }
+  doc.setFontSize(11);
+  doc.text(`Date Range: ${rangeText}`, 105, 28, { align: "center" });
+
+  // --- Table Header ---
+  doc.setFontSize(12);
+  let y = 40;
+  doc.text("Invoice", 14, y);
+  doc.text("Date", 50, y);
+  doc.text("Type", 100, y);
+  doc.text("Payment", 140, y);
+  doc.text("Total", 195, y, { align: "right" });
+
+  doc.setLineWidth(0.4);
+  doc.line(14, y + 2, 200, y + 2);
+
+  // --- Table Rows ---
+  y += 10;
+  filteredSales.forEach(s => {
     doc.setFontSize(10);
-    filteredSales.forEach(s => {
-      doc.text(`${s.orderId} | ${formatDateTime(s.date)} | ${s.orderType} | ${s.paymentMethod} | ${formatCurrency(s.total)}`, 14, y);
-      y += 7;
-      if (y > 270) { doc.addPage(); y = 20; }
-    });
+    doc.text(s.orderId.toString(), 14, y);
+    doc.text(formatDateTime(s.date), 50, y);
+    doc.text(s.orderType || "N/A", 100, y);
+    doc.text(s.paymentMethod || "N/A", 140, y);
+    doc.text(formatCurrency(s.total), 195, y, { align: "right" });
 
-    doc.save("sales-report.pdf");
+    y += 8;
+    if (y > 270) { 
+      doc.addPage();
+      y = 20;
+    }
   });
+
+  // --- Summary Section ---
+  const totalRevenue = filteredSales.reduce((sum, s) => sum + s.total, 0);
+  const totalOrders = filteredSales.length;
+  const avgOrder = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+  y += 15;
+  if (y > 250) { doc.addPage(); y = 20; }
+
+  doc.setFontSize(14);
+  doc.text("Summary", 14, y);
+  doc.setLineWidth(0.2);
+  doc.line(14, y + 2, 200, y + 2);
+
+  y += 10;
+  doc.setFontSize(11);
+  doc.text(`Total Orders: ${totalOrders}`, 14, y);
+  y += 7;
+  doc.text(`Total Revenue: ${formatCurrency(totalRevenue)}`, 14, y);
+  y += 7;
+  doc.text(`Average Order Value: ${formatCurrency(avgOrder)}`, 14, y);
+
+  // Optional Profit if tracked in sales data
+  const totalProfit = filteredSales.reduce((sum, sale) => {
+    const totalCost = sale.items.reduce((costSum, item) => {
+      const cost = item.purchase || 0;
+      return costSum + (cost * item.qty);
+    }, 0);
+    return sum + (sale.total - totalCost);
+  }, 0);
+
+  y += 7;
+  doc.text(`Total Profit: ${formatCurrency(totalProfit)}`, 14, y);
+
+  // --- Save file ---
+  doc.save("sales-report.pdf");
+});
+
 
   // --- Dashboard ---
   function renderDashboard() {
