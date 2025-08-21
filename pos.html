@@ -229,7 +229,6 @@ let items = [...allItems];
         const placeOrderBtn = document.getElementById('placeOrderBtn');
         const saveOrderBtn = document.getElementById('saveOrderBtn');
         const printBillBtn = document.getElementById('printBillBtn');
-        const printKotBtn = document.getElementById('printKotBtn');
         const resetOrderBtn = document.getElementById('resetOrderBtn');
         const itemSearchInput = document.getElementById('itemSearch');
         const cashBtn = document.getElementById('cashBtn');
@@ -498,17 +497,7 @@ function placeOrder() {
 }
 
 
-        function printKot() {
-    showAlert('Printing Kitchen Order Ticket...', 'Printing');
-
-    // Optional: store any temporary KOT data in localStorage
-    // e.g., current order items and table number
-    // localStorage.setItem('kotOrder', JSON.stringify(currentOrderItems));
-    // localStorage.setItem('kotTable', currentTableNo);
-
-    // Open the KOT HTML template
-    window.open('kot.html', '_blank');
-}
+  
 
         
         // --- EVENT LISTENERS ---
@@ -517,7 +506,6 @@ function placeOrder() {
         resetOrderBtn.addEventListener('click', resetOrder);
         saveOrderBtn.addEventListener('click', saveOrder);
         printBillBtn.addEventListener('click', printBill);
-        printKotBtn.addEventListener('click', printKot);
         
        // This is the corrected event listener
 itemSearchInput.addEventListener('input', () => {
