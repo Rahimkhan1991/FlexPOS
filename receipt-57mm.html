@@ -11,23 +11,21 @@
         display: inline-block; 
         text-align: left; 
         border: 1px dashed #000; 
-        padding: 6px; 
-        width: 180px; 
+        padding: 4px; 
+        width: 160px;   /* 🔥 narrower for 57mm */
     }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
     th, td { padding: 1px 0; }
     th { border-bottom: 1px dashed #000; }
     .right { text-align: right; }
     .center { text-align: center; }
-    .qr { margin-top: 6px; text-align: center; }
-    .footer { margin-top: 4px; font-size: 10px; text-align: center; }
-    .logo { max-width: 150px; max-height: 60px; display: block; margin: 0 auto 5px; object-fit: contain; }
-    .charges { display: flex; justify-content: space-between; font-size: 12px; }
+    .qr { margin-top: 4px; text-align: center; }
+    .footer { margin-top: 4px; font-size: 9px; text-align: center; }
+    .logo { max-width: 120px; max-height: 50px; display: block; margin: 0 auto 4px; object-fit: contain; }
+    .charges { display: flex; justify-content: space-between; font-size: 11px; }
     .charges .label { text-align: left; }
     .charges .amount { text-align: right; }
-    .separator { border-top: 1px dashed #000; margin: 5px 0; }
-.charges { display: flex; justify-content: space-between; font-size: 14px; }
-
+    .separator { border-top: 1px dashed #000; margin: 4px 0; }
 </style>
 </head>
 <body>
@@ -55,12 +53,12 @@
     <hr>
     <div class="charges"><span class="label">Subtotal:</span> <span class="amount" id="subTotal"></span></div>
     <div class="charges"><span class="label">Tax:</span> <span class="amount" id="tax"></span></div>
-    <div class="charges"><span class="label">Service Charge:</span> <span class="amount" id="serviceCharge"></span></div>
+    <div class="charges"><span class="label">Service:</span> <span class="amount" id="serviceCharge"></span></div>
     <div class="charges"><span class="label">Discount:</span> <span class="amount" id="discount"></span></div>
     <div class="separator"></div>
     <div class="charges"><strong class="label">Total:</strong> <strong class="amount" id="totalAmount"></strong></div>
     <div class="separator"></div>
-    <div class="charges"><span class="label">Cash Received:</span> <span class="amount" id="cashReceived"></span></div>
+    <div class="charges"><span class="label">Cash:</span> <span class="amount" id="cashReceived"></span></div>
     <div class="charges"><span class="label">Change:</span> <span class="amount" id="change"></span></div>
     <hr>
     <div class="center" id="footerText">Thank you for visiting!</div>
@@ -69,7 +67,7 @@
 <div class="qr">
     <canvas id="qrcode"></canvas>
     <div id="qrAmount"></div>
-    <div>Linked to QRIS (BRI)</div>
+    <div style="font-size:10px;">Linked to QRIS (BRI)</div>
 </div>
 
 <div class="footer">
@@ -159,7 +157,7 @@ if(localStorage.getItem('enableQRIS') === "true") {
     const crc = crc16(payloadNoCRC);
     const finalQRIS = payloadNoCRC + crc;
 
-    QRCode.toCanvas(document.getElementById("qrcode"), finalQRIS, { width: 100 }, function (error) {
+    QRCode.toCanvas(document.getElementById("qrcode"), finalQRIS, { width: 90 }, function (error) {
         if (error) console.error(error);
     });
 
@@ -172,3 +170,4 @@ if(localStorage.getItem('enableQRIS') === "true") {
 
 </body>
 </html>
+003

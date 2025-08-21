@@ -119,14 +119,6 @@
               <label for="tableSelect">Select Table:</label>
               <select id="tableSelect" class="border rounded px-2 py-1"></select>
   
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-semibold text-slate-700 mb-1">Payment Method:</label>
-                <div class="flex gap-2">
-                    <button id="cashBtn" data-method="Cash" class="payment-btn active">Cash</button>
-                    <button id="cardBtn" data-method="Card" class="payment-btn">Card</button>
-                </div>
-            </div>
 
             <div id="orderItems" class="flex-grow overflow-y-auto custom-scrollbar mb-4 border-y border-slate-200 py-4">
                 <div class="text-slate-500 text-center">No items added yet.</div>
@@ -174,15 +166,12 @@
                 <button id="saveOrderBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
                     <i class="fas fa-save mr-2"></i> Save
                 </button>
-                <button id="printBillBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                    <i class="fas fa-print mr-2"></i> Print Bill
-                </button>
-                <button id="printKotBtn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                    <i class="fas fa-ticket-alt mr-2"></i> Print KOT
-                </button>
-                <button id="resetOrderBtn" class="col-span-2 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                <button onclick="openPaymentPopup()" class="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-500">Print Bill</button>
+                   
+                <button id="resetOrderBtn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
                     <i class="fas fa-trash-alt mr-2"></i> Clear Order
                 </button>
+                
             </div>
         </aside>
     </div>
@@ -562,5 +551,21 @@ orderItemsDiv.addEventListener('click', (event) => {
               renderTableDropdown(); // ✅ load tables from localStorage
         });
     </script>
+    <!-- Payment Method Popup -->
+<div id="paymentPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+  <div class="bg-white rounded-lg shadow-lg p-6 w-80 text-center">
+    <h2 class="text-lg font-semibold mb-4">Select Payment Method</h2>
+    <div class="flex justify-around mb-6">
+      <button onclick="confirmPayment('Cash')" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+        Cash
+      </button>
+      <button onclick="confirmPayment('Card')" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+        Card
+      </button>
+    </div>
+    <button onclick="closePaymentPopup()" class="text-red-500">Cancel</button>
+  </div>
+</div>
+
 </body>
 </html>
