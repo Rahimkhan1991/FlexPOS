@@ -63,161 +63,184 @@
     <div id="itemsList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
   </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- ELEMENT REFERENCES ---
-        const summaryCardsContainer = document.getElementById('summaryCards');
-        const tableBody = document.getElementById('historyTableBody');
-        const billDetailPopup = document.getElementById('billDetailPopup');
-        const billDetailContent = document.getElementById('billDetailContent');
-        const billDetailOrderId = document.getElementById('billDetailOrderId');
-        const reprintBtn = document.getElementById('reprintBtn');
-        const closePopupBtn = document.getElementById('closePopupBtn');
-        
-        // Safely load all sales data from localStorage
-        const sales = JSON.parse(localStorage.getItem('sales')) || [];
+ <script>
+    let items = JSON.parse(localStorage.getItem('items')) || [];
 
-        // --- HELPER FUNCTIONS ---
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
-        }
+    // Fetch categories and kitchens from localStorage
+    let categories = JSON.parse(localStorage.getItem('categories')) || [];
+    let kitchens = JSON.parse(localStorage.getItem('kitchens')) || [];
 
-        function formatDateTime(isoString) {
-            if (!isoString) return 'N/A';
-            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
-            return new Date(isoString).toLocaleString('en-US', options);
-        }
-        
-        // --- SUMMARY CARD LOGIC ---
-        function displaySummaryCards() {
-            const today = new Date().toDateString();
-            const todaysSales = sales.filter(sale => new Date(sale.date).toDateString() === today);
-            const todaysRevenue = todaysSales.reduce((sum, sale) => sum + sale.total, 0);
-            const todaysOrders = todaysSales.length;
-            const todaysProfit = todaysSales.reduce((profitSum, sale) => {
-                const totalCost = sale.items.reduce((costSum, item) => {
-                    const cost = item.purchase || 0;
-                    return costSum + (cost * item.qty);
-                }, 0);
-                return profitSum + (sale.total - totalCost);
-            }, 0);
-
-            summaryCardsContainer.innerHTML = `
-                <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
-                    <div class="bg-green-100 rounded-full p-3 mr-4"><i class="fas fa-wallet text-2xl text-green-600"></i></div>
-                    <div><p class="text-sm font-medium text-slate-500">Today's Revenue</p><p class="text-3xl font-bold text-slate-900">${formatCurrency(todaysRevenue)}</p></div>
-                </div>
-                <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
-                    <div class="bg-yellow-100 rounded-full p-3 mr-4"><i class="fas fa-piggy-bank text-2xl text-yellow-600"></i></div>
-                    <div><p class="text-sm font-medium text-slate-500">Today's Profit</p><p class="text-3xl font-bold text-slate-900">${formatCurrency(todaysProfit)}</p></div>
-                </div>
-                <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
-                    <div class="bg-blue-100 rounded-full p-3 mr-4"><i class="fas fa-receipt text-2xl text-blue-600"></i></div>
-                    <div><p class="text-sm font-medium text-slate-500">Today's Orders</p><p class="text-3xl font-bold text-slate-900">${todaysOrders}</p></div>
-                </div>`;
-        }
-
-        // --- BILL HISTORY TABLE LOGIC ---
-        function displayBillHistory() {
-            tableBody.innerHTML = '';
-            if (sales.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-slate-500">No sales records found.</td></tr>`;
-                return;
-            }
-
-            sales.slice().reverse().forEach(sale => {
-                const row = document.createElement('tr');
-                // Make the row hoverable and clickable
-                row.className = 'hover:bg-slate-50 cursor-pointer';
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${sale.orderId}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${formatDateTime(sale.date)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${sale.orderType || 'N/A'} - ${sale.table || ''}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${sale.paymentMethod}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800 text-right">${formatCurrency(sale.total)}</td>
-                `;
-                // Add click event to show the details
-                row.addEventListener('click', () => showBillDetails(sale));
-                tableBody.appendChild(row);
-            });
-        }
-        
-        // --- NEW FUNCTIONS FOR BILL DETAIL & REPRINT ---
-        
-        function showBillDetails(sale) {
-            billDetailOrderId.textContent = `Order ID: ${sale.orderId}`;
-            
-            let itemsHtml = sale.items.map(item => `
-                <div class="flex justify-between items-center mb-1">
-                    <span>${item.name} (x${item.qty})</span>
-                    <span>${formatCurrency(item.sales * item.qty)}</span>
-                </div>
-            `).join('');
-            
-            const detailsHtml = `
-                <div class="font-semibold mb-2">Items:</div>
-                ${itemsHtml}
-                <div class="border-t pt-2 mt-2 space-y-1">
-                    <div class="flex justify-between"><span>Subtotal:</span><span>${formatCurrency(sale.subtotal)}</span></div>
-                    <div class="flex justify-between"><span>Discount:</span><span>-${formatCurrency(sale.discount)}</span></div>
-                    <div class="flex justify-between"><span>Tax:</span><span>${formatCurrency(sale.tax)}</span></div>
-                    <div class="flex justify-between font-bold text-lg"><span>Total:</span><span>${formatCurrency(sale.total)}</span></div>
-                </div>
-            `;
-            
-            billDetailContent.innerHTML = detailsHtml;
-            
-            // Store the sale data on the reprint button
-            reprintBtn.dataset.saleData = JSON.stringify(sale);
-            
-            billDetailPopup.style.display = 'flex';
-        }
-
-        function handleReprint() {
-            const saleDataString = reprintBtn.dataset.saleData;
-            if (!saleDataString) return;
-            
-            const saleToReprint = JSON.parse(saleDataString);
-            
-            // Prepare data in the format expected by the receipt page
-            const printData = {
-                ...saleToReprint,
-                date: new Date(saleToReprint.date).toLocaleDateString(),
-                time: new Date(saleToReprint.date).toLocaleTimeString(),
-            };
-            
-            localStorage.setItem('currentPrintOrder', JSON.stringify(printData));
-            
-            const printerSize = localStorage.getItem('printerSize') || '80';
-            window.open(printerSize === '80' ? 'receipt-80mm.html' : 'receipt-57mm.html', '_blank');
-        }
-
-        // --- EVENT LISTENERS ---
-        closePopupBtn.addEventListener('click', () => billDetailPopup.style.display = 'none');
-        reprintBtn.addEventListener('click', handleReprint);
-
-        // --- INITIALIZE THE DASHBOARD ---
-        displaySummaryCards();
-        displayBillHistory();
+    // Populate Category select
+    const categorySelect = document.getElementById('itemCategory');
+    categorySelect.innerHTML = '<option>Select Category</option>';
+    categories.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat.name;
+      option.textContent = cat.name;
+      categorySelect.appendChild(option);
     });
+
+    // Populate Kitchen select
+    const kitchenSelect = document.getElementById('itemKitchen');
+    kitchenSelect.innerHTML = '<option>Select Kitchen</option>';
+    kitchens.forEach(k => {
+      const option = document.createElement('option');
+      option.value = k.name;
+      option.textContent = k.name;
+      kitchenSelect.appendChild(option);
+    });
+
+    // Image Preview
+    const itemImage = document.getElementById('itemImage');
+    const preview = document.getElementById('preview');
+    itemImage.addEventListener('change', function () {
+      preview.innerHTML = '';
+      const file = this.files[0];
+      if (file) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.className = "w-32 h-32 object-cover rounded-xl shadow-md border";
+        preview.appendChild(img);
+      }
+    });
+
+    // Save or Update Item
+    document.getElementById('itemForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const itemName = document.getElementById('itemName').value;
+      const itemCategory = document.getElementById('itemCategory').value;
+      const itemKitchen = document.getElementById('itemKitchen').value;
+      const salesPrice = document.getElementById('salesPrice').value;
+      const purchasePrice = document.getElementById('purchasePrice').value;
+      const imageFile = document.getElementById('itemImage').files[0];
+      const editIndex = document.getElementById('editIndex').value;
+
+      if (imageFile) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          saveItem(itemName, itemCategory, itemKitchen, salesPrice, purchasePrice, event.target.result, editIndex);
+        };
+        reader.readAsDataURL(imageFile);
+      } 
+      else {
+        const existingImage = (editIndex !== '' && items[editIndex]) ? items[editIndex].image : null;
+        saveItem(itemName, itemCategory, itemKitchen, salesPrice, purchasePrice, existingImage, editIndex);
+      }
+    });
+
+ // In item.html, inside the saveItem function
+function saveItem(name, category, kitchen, sales, purchase, image, index) {
+    // By using parseFloat, we ensure prices are numbers
+    const itemData = { 
+        name, 
+        category, 
+        kitchen, 
+        sales: parseFloat(sales) || 0, 
+        purchase: parseFloat(purchase) || 0, 
+        image 
+    };
+    // ... rest of the function
+
+      if (index !== '' && items[index]) {
+        // This is an update, so we preserve the existing ID
+        items[index] = Object.assign(items[index], itemData);
+      } 
+      else {
+        // This is a new item, so we add a unique ID
+        itemData.id = Date.now(); 
+        items.push(itemData);
+      }
+
+      localStorage.setItem('items', JSON.stringify(items));
+      document.getElementById('itemForm').reset();
+      document.getElementById('editIndex').value = '';
+      preview.innerHTML = '';
+      renderItems();
+    }
+
+    // Render Items
+    function renderItems() {
+      const listDiv = document.getElementById('itemsList');
+      listDiv.innerHTML = '';
+
+      if (items.length === 0) {
+        listDiv.innerHTML = '<p class="text-gray-500 col-span-full text-center">No items created yet.</p>';
+        return;
+      }
+
+      items.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'border rounded-xl shadow p-4 flex flex-col items-center text-center bg-gray-50';
+
+        if (item.image) {
+          const img = document.createElement('img');
+          img.src = item.image;
+          img.className = 'w-24 h-24 object-cover rounded-lg mb-3';
+          card.appendChild(img);
+        } else {
+          card.innerHTML += '<div class="w-24 h-24 bg-gray-200 rounded-lg mb-3 flex items-center justify-center text-gray-500">No Image</div>';
+        }
+
+        card.innerHTML += `
+          <h3 class="font-bold text-lg">${item.name}</h3>
+          <p class="text-sm text-gray-600">${item.category} • ${item.kitchen}</p>
+          <p class="text-sm">Sales: $${item.sales} | Purchase: $${item.purchase}</p>
+        `;
+
+        const btnDiv = document.createElement('div');
+        btnDiv.className = 'flex gap-2 mt-3';
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600';
+        editBtn.textContent = 'Edit';
+        editBtn.onclick = () => editItem(index);
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600';
+        delBtn.textContent = 'Delete';
+        delBtn.onclick = () => deleteItem(index);
+
+        btnDiv.appendChild(editBtn);
+        btnDiv.appendChild(delBtn);
+        card.appendChild(btnDiv);
+        listDiv.appendChild(card);
+      });
+    }
+
+    // Edit Item
+    function editItem(index) {
+      const item = items[index];
+      document.getElementById('itemName').value = item.name;
+      document.getElementById('itemCategory').value = item.category;
+      document.getElementById('itemKitchen').value = item.kitchen;
+      document.getElementById('salesPrice').value = item.sales;
+      document.getElementById('purchasePrice').value = item.purchase;
+      document.getElementById('editIndex').value = index;
+      
+      preview.innerHTML = '';
+      if (item.image) {
+        const img = document.createElement('img');
+        img.src = item.image;
+        img.className = "w-32 h-32 object-cover rounded-xl shadow-md border";
+        preview.appendChild(img);
+      }
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Delete Item
+    function deleteItem(index) {
+      if (confirm('Are you sure you want to delete this item?')) {
+        items.splice(index, 1);
+        localStorage.setItem('items', JSON.stringify(items));
+        renderItems();
+      }
+    }
+
+    // Initial render
+    renderItems();
 </script>
-<div id="billDetailPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
-        <div class="text-center mb-4 border-b pb-4">
-            <h2 class="text-2xl font-bold text-slate-800">Bill Details</h2>
-            <p id="billDetailOrderId" class="text-sm text-slate-500"></p>
-        </div>
-        
-        <div id="billDetailContent" class="text-left text-slate-700 max-h-96 overflow-y-auto custom-scrollbar">
-        </div>
-        
-        <div class="flex justify-between gap-4 mt-6 pt-4 border-t">
-            <button id="closePopupBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full">Close</button>
-            <button id="reprintBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg w-full">
-                <i class="fas fa-print mr-2"></i>Reprint Bill
-            </button>
-        </div>
-    </div>
-</div>
+
 </body>
 </html>
