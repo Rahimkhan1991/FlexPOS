@@ -550,6 +550,28 @@ orderItemsDiv.addEventListener('click', (event) => {
             renderOrder();
               renderTableDropdown(); // ✅ load tables from localStorage
         });
+        function openPaymentPopup() {
+    document.getElementById("paymentPopup").classList.remove("hidden");
+}
+
+function closePaymentPopup() {
+    document.getElementById("paymentPopup").classList.add("hidden");
+}
+
+function confirmPayment(method) {
+    // Add payment method to bill
+    currentOrder.paymentMethod = method;
+
+    // Call your existing printBill() logic (modify it if needed)
+    printBill();
+
+    // Auto clear order after printing
+    clearOrder();
+
+    // Close popup
+    closePaymentPopup();
+}
+
     </script>
     <!-- Payment Method Popup -->
 <div id="paymentPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
