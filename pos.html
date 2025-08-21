@@ -70,6 +70,9 @@
             <div class="flex items-center gap-3">
                 <button id="dineInBtn" class="bg-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-blue-600 transition disabled:bg-slate-300 disabled:cursor-not-allowed">Dine In</button>
                 <button id="takeAwayBtn" class="bg-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-green-600 transition disabled:bg-slate-300 disabled:cursor-not-allowed">Take Away</button>
+                <button id="savedOrdersBtn" class="bg-yellow-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-yellow-600 transition">
+        Saved Orders
+    </button>
             </div>
         </div>
         <div id="orderStatus" class="text-center font-semibold text-indigo-600 mt-2 h-6"></div>
@@ -225,6 +228,10 @@
     const tablePopup = document.getElementById('tablePopup');
     const tableGrid = document.getElementById('tableGrid');
     const orderStatus = document.getElementById('orderStatus');
+    const savedOrdersBtn = document.getElementById('savedOrdersBtn');
+const saveOrderPopup = document.getElementById('saveOrderPopup');
+const recallOrderPopup = document.getElementById('recallOrderPopup');
+const heldOrdersList = document.getElementById('heldOrdersList');
 
     // --- UTILITY FUNCTIONS ---
     function showAlert(message, title = 'Notification') {
@@ -232,6 +239,104 @@
         modalMessage.textContent = message;
         modalOverlay.style.display = 'flex';
     }
+    // --- HOLD & RECALL FUNCTIONS (NEW) ---
+
+function openSaveOrderPopup() {
+    if (currentOrderItems.length === 0) {
+        return showAlert("Cannot save an empty order.", 'Error');
+    }
+    document.getElementById('saveOrderName').value = ''; // Clear previous input
+    saveOrderPopup.style.display = 'flex';
+}
+
+function closeSaveOrderPopup() {
+    saveOrderPopup.style.display = 'none';
+}
+
+function handleSaveOrder() {
+    const orderName = document.getElementById('saveOrderName').value;
+    if (!orderName) {
+        return showAlert("Please enter a reference name for the order.", "Name Required");
+    }
+
+    let heldOrders = JSON.parse(localStorage.getItem('heldOrders')) || [];
+    const orderToHold = {
+        name: orderName,
+        items: currentOrderItems,
+        orderType: orderType,
+        table: selectedTable,
+        discount: document.getElementById('discountInput').value,
+        serviceCharge: document.getElementById('serviceChargeInput').value,
+        timestamp: new Date().toISOString()
+    };
+    
+    heldOrders.push(orderToHold);
+    localStorage.setItem('heldOrders', JSON.stringify(heldOrders));
+    
+    closeSaveOrderPopup();
+    showAlert(`Order "${orderName}" has been saved.`, 'Success');
+    resetOrder(); // Clear the screen for the next customer
+}
+
+function openRecallOrderPopup() {
+    let heldOrders = JSON.parse(localStorage.getItem('heldOrders')) || [];
+    heldOrdersList.innerHTML = ''; // Clear the list
+
+    if (heldOrders.length === 0) {
+        heldOrdersList.innerHTML = '<p class="text-slate-500 text-center p-4">No orders are currently on hold.</p>';
+    } else {
+        heldOrders.forEach((order, index) => {
+            const orderDiv = document.createElement('div');
+            orderDiv.className = 'flex justify-between items-center bg-slate-100 p-3 rounded-lg';
+            orderDiv.innerHTML = `
+                <span class="font-semibold text-slate-800">${order.name}</span>
+                <div class="flex gap-2">
+                    <button onclick="loadHeldOrder(${index})" class="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600">Load</button>
+                    <button onclick="deleteHeldOrder(${index})" class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600">Delete</button>
+                </div>
+            `;
+            heldOrdersList.appendChild(orderDiv);
+        });
+    }
+    recallOrderPopup.style.display = 'flex';
+}
+
+function closeRecallOrderPopup() {
+    recallOrderPopup.style.display = 'none';
+}
+
+function loadHeldOrder(index) {
+    let heldOrders = JSON.parse(localStorage.getItem('heldOrders')) || [];
+    const orderToLoad = heldOrders[index];
+
+    if (orderToLoad) {
+        // Restore the order state
+        currentOrderItems = orderToLoad.items;
+        orderType = orderToLoad.orderType;
+        selectedTable = orderToLoad.table;
+        document.getElementById('discountInput').value = orderToLoad.discount;
+        document.getElementById('serviceChargeInput').value = orderToLoad.serviceCharge;
+
+        // Update UI
+        setOrderType(orderType, selectedTable);
+        renderOrder();
+        
+        // Remove the order from the held list
+        heldOrders.splice(index, 1);
+        localStorage.setItem('heldOrders', JSON.stringify(heldOrders));
+        
+        closeRecallOrderPopup();
+    }
+}
+
+function deleteHeldOrder(index) {
+    let heldOrders = JSON.parse(localStorage.getItem('heldOrders')) || [];
+    if (confirm(`Are you sure you want to delete the order "${heldOrders[index].name}"?`)) {
+        heldOrders.splice(index, 1);
+        localStorage.setItem('heldOrders', JSON.stringify(heldOrders));
+        openRecallOrderPopup(); // Refresh the list
+    }
+}
 
     // --- WORKFLOW FUNCTIONS ---
     function initializeOrderScreen() {
@@ -474,12 +579,14 @@
     modalCloseBtn.addEventListener('click', () => modalOverlay.style.display = 'none');
     placeOrderBtn.addEventListener('click', placeOrder);
     resetOrderBtn.addEventListener('click', resetOrder);
-    saveOrderBtn.addEventListener('click', saveOrder);
+    saveOrderBtn.addEventListener('click', openSaveOrderPopup);
+    savedOrdersBtn.addEventListener('click', openRecallOrderPopup);
     printBillBtn.addEventListener('click', openPaymentPopup);
     itemSearchInput.addEventListener('input', renderItems);
     dineInBtn.addEventListener('click', openTablePopup);
     takeAwayBtn.addEventListener('click', () => setOrderType('Take Away'));
 
+    
     orderItemsDiv.addEventListener('click', (event) => {
         const target = event.target;
         const qtyBtn = target.closest('.qty-btn');
@@ -515,5 +622,27 @@
         initializeOrderScreen();
     });
 </script>
+<div id="saveOrderPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center">
+        <h2 class="text-2xl font-bold text-slate-800 mb-4">Save Order As</h2>
+        <p class="text-slate-600 mb-6">Enter a reference name for this order (e.g., "Table 5" or "John Doe").</p>
+        <input type="text" id="saveOrderName" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:outline-none mb-4" placeholder="Reference Name">
+        <div class="flex justify-between gap-4">
+            <button onclick="closeSaveOrderPopup()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full">Cancel</button>
+            <button onclick="handleSaveOrder()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg w-full">Save Order</button>
+        </div>
+    </div>
+</div>
+
+<div id="recallOrderPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+        <h2 class="text-2xl font-bold text-slate-800 mb-4 text-center">Recall a Saved Order</h2>
+        <div id="heldOrdersList" class="max-h-96 overflow-y-auto custom-scrollbar space-y-2">
+            </div>
+        <div class="flex justify-center mt-6">
+             <button onclick="closeRecallOrderPopup()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full max-w-xs">Close</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
