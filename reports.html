@@ -64,32 +64,19 @@
 
     </main>
 
-  <script>
+<script>
     document.addEventListener('DOMContentLoaded', () => {
         // Safely load all sales data from localStorage
         const sales = JSON.parse(localStorage.getItem('sales')) || [];
 
         // --- HELPER FUNCTIONS for formatting ---
-        
-        // Formats a number into Indian Rupee currency format (e.g., 1234.5 -> ₹1,234.50)
         function formatCurrency(amount) {
-            return new Intl.NumberFormat('en-IN', {
-                style: 'currency',
-                currency: 'INR'
-            }).format(amount);
+            return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
         }
 
-        // Formats an ISO date string into a more readable local format
         function formatDateTime(isoString) {
             if (!isoString) return 'N/A';
-            const options = {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-            };
+            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
             return new Date(isoString).toLocaleString('en-US', options);
         }
         
@@ -97,28 +84,29 @@
 
         function displaySummaryCards() {
             const summaryCardsContainer = document.getElementById('summaryCards');
-
-            // Get today's date in a comparable format
             const today = new Date().toDateString();
 
-            // Filter sales records for today's date
-            const todaysSales = sales.filter(sale => {
-                const saleDate = new Date(sale.date).toDateString();
-                return saleDate === today;
-            });
+            const todaysSales = sales.filter(sale => new Date(sale.date).toDateString() === today);
 
-            // Calculate today's total revenue
+            // --- CALCULATIONS ---
             const todaysRevenue = todaysSales.reduce((sum, sale) => sum + sale.total, 0);
-            
-            // Calculate total revenue from all time
-            const totalRevenue = sales.reduce((sum, sale) => sum + sale.total, 0);
+            const todaysOrders = todaysSales.length;
 
-            // Create the HTML for the summary cards
+            // ⭐ NEW PROFIT CALCULATION
+            const todaysProfit = todaysSales.reduce((profitSum, sale) => {
+                const totalCost = sale.items.reduce((costSum, item) => {
+                    // Use purchase_price or default to 0 if not present
+                    const cost = item.purchase_price || 0;
+                    return costSum + (cost * item.qty);
+                }, 0);
+                const saleProfit = sale.total - totalCost;
+                return profitSum + saleProfit;
+            }, 0);
+            // ⭐ END OF NEW CALCULATION
+
             const cardsHTML = `
                 <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
-                    <div class="bg-green-100 rounded-full p-3 mr-4">
-                        <i class="fas fa-wallet text-2xl text-green-600"></i>
-                    </div>
+                    <div class="bg-green-100 rounded-full p-3 mr-4"><i class="fas fa-wallet text-2xl text-green-600"></i></div>
                     <div>
                         <p class="text-sm font-medium text-slate-500">Today's Revenue</p>
                         <p class="text-3xl font-bold text-slate-900">${formatCurrency(todaysRevenue)}</p>
@@ -126,50 +114,36 @@
                 </div>
 
                 <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
-                    <div class="bg-blue-100 rounded-full p-3 mr-4">
-                        <i class="fas fa-receipt text-2xl text-blue-600"></i>
-                    </div>
+                    <div class="bg-yellow-100 rounded-full p-3 mr-4"><i class="fas fa-piggy-bank text-2xl text-yellow-600"></i></div>
                     <div>
-                        <p class="text-sm font-medium text-slate-500">Today's Orders</p>
-                        <p class="text-3xl font-bold text-slate-900">${todaysSales.length}</p>
+                        <p class="text-sm font-medium text-slate-500">Today's Profit</p>
+                        <p class="text-3xl font-bold text-slate-900">${formatCurrency(todaysProfit)}</p>
                     </div>
                 </div>
-                
+
                 <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
-                    <div class="bg-indigo-100 rounded-full p-3 mr-4">
-                        <i class="fas fa-chart-line text-2xl text-indigo-600"></i>
-                    </div>
+                    <div class="bg-blue-100 rounded-full p-3 mr-4"><i class="fas fa-receipt text-2xl text-blue-600"></i></div>
                     <div>
-                        <p class="text-sm font-medium text-slate-500">Total Revenue (All Time)</p>
-                        <p class="text-3xl font-bold text-slate-900">${formatCurrency(totalRevenue)}</p>
+                        <p class="text-sm font-medium text-slate-500">Today's Orders</p>
+                        <p class="text-3xl font-bold text-slate-900">${todaysOrders}</p>
                     </div>
                 </div>
             `;
-
             summaryCardsContainer.innerHTML = cardsHTML;
         }
 
         function displayBillHistory() {
             const tableBody = document.getElementById('historyTableBody');
-            tableBody.innerHTML = ''; // Clear existing rows
+            tableBody.innerHTML = '';
 
             if (sales.length === 0) {
-                // Display a message if no sales records exist
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="text-center py-10 text-slate-500">
-                            No sales records found.
-                        </td>
-                    </tr>
-                `;
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-slate-500">No sales records found.</td></tr>`;
                 return;
             }
 
-            // Reverse the array to show the most recent sales first
             sales.slice().reverse().forEach(sale => {
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-slate-50';
-                
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${sale.orderId}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${formatDateTime(sale.date)}</td>
@@ -177,7 +151,6 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${sale.paymentMethod}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800 text-right">${formatCurrency(sale.total)}</td>
                 `;
-
                 tableBody.appendChild(row);
             });
         }
