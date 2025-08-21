@@ -83,7 +83,7 @@
            
 
             <h3 class="text-2xl font-bold text-slate-800 mb-4">Menu</h3>
-            <div id="itemsList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto custom-scrollbar flex-grow">
+            <<div id="itemsList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto custom-scrollbar flex-grow">
                 </div>
         </main>
 
@@ -392,7 +392,8 @@
         }
         itemsToDisplay.forEach(item => {
             const card = document.createElement('div');
-            card.className = 'item-card bg-white hover:shadow-xl rounded-xl p-3 shadow-md transition-all duration-200 transform hover:-translate-y-1 cursor-pointer flex flex-col items-center justify-between text-center';
+           // THE CORRECT LINE FOR THE ITEM CARD
+card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 transform hover:scale-105 cursor-pointer flex flex-col items-center justify-between text-center aspect-square';
             const imageUrl = item.image || 'https://placehold.co/400x300?text=No+Image';
             card.innerHTML = `
                 <img src="${imageUrl}" alt="${item.name}" class="w-full h-32 object-cover rounded-lg mb-2">
