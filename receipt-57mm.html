@@ -75,97 +75,77 @@
 </div>
 
 <script>
-// --- Fetch Order Data ---
-const orderData = JSON.parse(localStorage.getItem('currentPrintOrder')) || {};
-const order = orderData.items || [];
-const cashier = orderData.cashier || 'Cashier';
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Get Data from localStorage ---
+        const orderData = JSON.parse(localStorage.getItem('currentPrintOrder')) || {};
+        const shopName = localStorage.getItem('shopName') || 'My Shop Name';
+        const shopAddress = localStorage.getItem('shopAddress') || 'Shop Address Here';
+        const shopPhone = localStorage.getItem('shopPhone') || '';
+        const footerText = localStorage.getItem('footerText') || 'Thank you for visiting!';
+        const logoSrc = localStorage.getItem('shopLogo');
 
-// --- Dynamic Invoice Number ---
-let invoiceStart = parseInt(localStorage.getItem('invoiceStart') || 1000);
-let lastInvoice = parseInt(localStorage.getItem('lastInvoice') || invoiceStart-1);
-const receiptNo = '#' + (lastInvoice + 1);
-localStorage.setItem('lastInvoice', lastInvoice + 1);
+        // --- Populate Shop Info ---
+        document.getElementById('shopName').innerText = shopName;
+        document.getElementById('shopAddress').innerText = shopAddress;
+        document.getElementById('shopPhone').innerText = shopPhone;
+        document.getElementById('footerText').innerText = footerText;
+        if (logoSrc) document.getElementById('shopLogo').src = logoSrc;
 
-// --- Charges ---
-const subTotal = order.reduce((sum, item) => sum + item.price * item.qty, 0);
-const tax = parseFloat(orderData.tax || 0);
-const serviceCharge = parseFloat(orderData.serviceCharge || 0);
-const discount = parseFloat(orderData.discount || 0);
-const totalAmount = subTotal + tax + serviceCharge - discount;
+        // --- Populate Order Info ---
+        document.getElementById('cashier').innerText = orderData.cashier || 'Cashier';
+        document.getElementById('receiptNo').innerText = orderData.orderId || new Date().getTime();
+        document.getElementById('dateTime').innerText = `${orderData.date || ''} ${orderData.time || ''}`;
 
-// --- Cash Received & Change ---
-let defaultCash = parseFloat(localStorage.getItem('defaultCash') || totalAmount);
-const cashReceived = parseFloat(orderData.cashReceived || defaultCash);
-const change = cashReceived - totalAmount;
-
-// --- Fill Receipt Items ---
-const receiptItems = document.getElementById('receiptItems');
-receiptItems.innerHTML = '';
-order.forEach(item => {
-    const total = (item.price * item.qty).toFixed(2);
-    const row = document.createElement('tr');
-    row.innerHTML = `
-        <td style="text-align:left;">${item.name}</td>
-        <td class="center">${item.qty}</td>
-        <td class="right">${total}</td>
-    `;
-    receiptItems.appendChild(row);
-});
-
-// --- Fill Charges ---
-document.getElementById('subTotal').innerText = subTotal.toFixed(2);
-document.getElementById('tax').innerText = tax.toFixed(2);
-document.getElementById('serviceCharge').innerText = serviceCharge.toFixed(2);
-document.getElementById('discount').innerText = discount.toFixed(2);
-document.getElementById('totalAmount').innerText = totalAmount.toFixed(2);
-document.getElementById('cashReceived').innerText = cashReceived.toFixed(2);
-document.getElementById('change').innerText = change.toFixed(2);
-
-// --- Fill Header Info ---
-document.getElementById('cashier').innerText = cashier;
-document.getElementById('receiptNo').innerText = receiptNo;
-document.getElementById('dateTime').innerText = new Date().toLocaleString();
-document.getElementById('shopName').innerText = localStorage.getItem('shopName') || 'My Shop Name';
-document.getElementById('shopAddress').innerText = localStorage.getItem('shopAddress') || 'Jalan Merdeka No.21';
-document.getElementById('shopPhone').innerText = localStorage.getItem('shopPhone') || '';
-document.getElementById('footerText').innerText = localStorage.getItem('footerText') || 'Thank you for visiting!';
-
-// --- Shop Logo ---
-const logoSrc = localStorage.getItem('shopLogo');
-if(logoSrc) document.getElementById('shopLogo').src = logoSrc;
-
-// --- QR Code ---
-if(localStorage.getItem('enableQRIS') === "true") {
-    let baseQRIS = "00020101021240580013ID.CO.BRI.WWW011893600002100425918802151175010018055365204482953033605802ID5913WAHYUSUBEKTI6011MALANGKOT.";
-    const amountStr = totalAmount.toFixed(2);
-    const amountField = "54" + (amountStr.length < 10 ? "0" : "") + amountStr.length + amountStr;
-    let payloadNoCRC = baseQRIS + amountField + "6304";
-
-    function crc16(str) {
-        let crc = 0xFFFF;
-        for (let c of str) {
-            crc ^= c.charCodeAt(0) << 8;
-            for (let i = 0; i < 8; i++) {
-                if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ 0x1021;
-                else crc = crc << 1;
-                crc &= 0xFFFF;
-            }
+        // --- Populate Items Table ---
+        const receiptItems = document.getElementById('receiptItems');
+        receiptItems.innerHTML = '';
+        if (orderData.items && orderData.items.length > 0) {
+            orderData.items.forEach(item => {
+                // ✅ FIX: Use item.sales, not item.price
+                const price = parseFloat(item.sales) || 0;
+                const qty = item.qty || 0;
+                const total = price * qty;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="text-align:left;">${item.name}</td>
+                    <td class="center">${qty}</td>
+                    <td class="right">${total.toFixed(2)}</td>
+                `;
+                receiptItems.appendChild(row);
+            });
         }
-        return crc.toString(16).toUpperCase().padStart(4, "0");
-    }
+        
+        // --- Populate Totals ---
+        // ✅ FIX: Use the totals directly from orderData, don't recalculate
+        const subTotal = parseFloat(orderData.subtotal) || 0;
+        const tax = parseFloat(orderData.tax) || 0;
+        const serviceCharge = parseFloat(orderData.serviceCharge) || 0;
+        const discount = parseFloat(orderData.discount) || 0;
+        const totalAmount = parseFloat(orderData.total) || 0;
 
-    const crc = crc16(payloadNoCRC);
-    const finalQRIS = payloadNoCRC + crc;
+        document.getElementById('subTotal').innerText = subTotal.toFixed(2);
+        document.getElementById('tax').innerText = tax.toFixed(2);
+        document.getElementById('serviceCharge').innerText = serviceCharge.toFixed(2);
+        document.getElementById('discount').innerText = `-${discount.toFixed(2)}`;
+        document.getElementById('totalAmount').innerText = totalAmount.toFixed(2);
 
-    QRCode.toCanvas(document.getElementById("qrcode"), finalQRIS, { width: 90 }, function (error) {
-        if (error) console.error(error);
+        // --- Handle Cash/Change Display ---
+        if (orderData.paymentMethod === 'Cash') {
+            const cashReceived = totalAmount; 
+            const change = cashReceived - totalAmount;
+            document.getElementById('cashReceived').innerText = cashReceived.toFixed(2);
+            document.getElementById('change').innerText = change.toFixed(2);
+        } else {
+            document.getElementById('cashReceived').closest('.charges').style.display = 'none';
+            document.getElementById('change').closest('.charges').style.display = 'none';
+        }
+        
+        // --- (Your QR Code logic can stay here if needed) ---
+        
+        // ⭐ NEW: Auto-print when the page loads
+        window.print();
     });
-
-    document.getElementById('qrAmount').innerText = `Scan to Pay: ${totalAmount.toFixed(2)}`;
-} else {
-    document.getElementById('qrcode').style.display = 'none';
-    document.getElementById('qrAmount').style.display = 'none';
-}
 </script>
 
 </body>
