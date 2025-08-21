@@ -390,24 +390,18 @@
             itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">${message}</p>`;
             return;
         }
-        itemsToDisplay.forEach(item => {
-    const card = document.createElement('div');
-    
-    // CHANGE 1: Updated classes for a cleaner background, better shape, and a modern "lift" hover effect.
-    card.className = 'item-card bg-white rounded-xl p-3 shadow-md transition-all duration-200 transform hover:shadow-xl hover:-translate-y-1 cursor-pointer flex flex-col';
-    
-    const imageUrl = item.image || 'https://placehold.co/400x300?text=No+Image';
-
-    // CHANGE 2: New HTML structure for better text alignment and spacing.
-    card.innerHTML = `
-        <img src="${imageUrl}" alt="${item.name}" class="w-full h-32 object-cover rounded-lg mb-3">
-        <div class="font-bold text-slate-800 text-sm">${item.name}</div>
-        <div class="font-semibold text-green-600 text-md mt-auto pt-2">₹${parseFloat(item.sales || 0).toFixed(2)}</div>
-    `;
-
-    card.addEventListener('click', () => addItemToOrder(item));
-    itemsListDiv.appendChild(card);
-});
+             itemsToDisplay.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 transform hover:scale-105 cursor-pointer flex flex-col items-center justify-between text-center aspect-square';
+            card.title = `${item.name}\nPrice: ₹${item.sales}`;
+            const imageUrl = item.image || 'https://placehold.co/400x300?text=No+Image';
+            card.innerHTML = `
+                <img src="${imageUrl}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2">
+                <div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div>
+                <div class="font-semibold text-green-600 text-lg mt-auto">₹${parseFloat(item.sales || 0).toFixed(2)}</div>`;
+            card.addEventListener('click', () => addItemToOrder(item));
+            itemsListDiv.appendChild(card);
+        });
     }
 
     // --- LOGIC FUNCTIONS ---
