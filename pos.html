@@ -287,17 +287,17 @@
             this.serviceCharge = { value: 0, type: 'manual' };
             this.paymentMethod = 'Cash';
             this.orderType = null;
-            this.selectedTable = null;
+            this.table = null;
             this.takeAwayOrderNumber = StorageManager.getTakeAwayNumber();
         }
 
         setOrderType(type, details = null) {
-            this.orderType = type;
-            if (type === 'Dine In') {
-                this.selectedTable = details;
-            } else if (type === 'Take Away') {
-                this.selectedTable = `TA-${this.takeAwayOrderNumber}`;
-                this.takeAwayOrderNumber = StorageManager.incrementTakeAwayNumber();
+           this.orderType = type;
+           if (type === 'Dine In') {
+           this.table = details;   
+           } else if (type === 'Take Away') {
+           this.table = `TA-${this.takeAwayOrderNumber}`;
+           this.takeAwayOrderNumber = StorageManager.incrementTakeAwayNumber();
             }
         }
 
@@ -325,7 +325,7 @@
             this.serviceCharge = { value: 0, type: 'manual' };
             this.paymentMethod = 'Cash';
             this.orderType = null;
-            this.selectedTable = null;
+            this.table = null;
         }
 
         _calcFromType(base, { value, type }) {
@@ -351,7 +351,7 @@
                 subtotal, discount, serviceCharge, tax, total,
                 paymentMethod: this.paymentMethod,
                 orderType: this.orderType,
-                table: this.selectedTable
+                table: this.table
             };
         }
 
@@ -365,7 +365,7 @@
                 total: totals.total,
                 paymentMethod: this.paymentMethod,
                 orderType: this.orderType,
-                table: this.selectedTable,
+                table: this.table,
                 date: new Date().toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta" }),
                 time: new Date().toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta" }),
                 orderId: Date.now()
@@ -628,7 +628,7 @@
             this.totalSpan.parentElement.innerHTML = `${this.settings.currency}<span id="total">${Math.max(0, totals.total).toFixed(2)}</span>`;
         }
         addItemToOrder(item) { if (!this.order.orderType) { return this.showAlert('Please select "Dine In" or "Take Away" before adding items.', 'Order Type Required'); } this.order.addItem(item); this.renderOrder(); }
-        setOrderType(type, details = null) { this.order.setOrderType(type, details); this.dineInBtn.disabled = true; this.takeAwayBtn.disabled = true; if (type === 'Dine In') { this.orderStatus.textContent = `Order for: Table ${this.order.selectedTable}`; this.closeTablePopup(); } else { const taLabel = this.order.selectedTable.replace('TA-', ''); this.orderStatus.textContent = `Order for: Take Away #${taLabel}`; } }
+        setOrderType(type, details = null) { this.order.setOrderType(type, details); this.dineInBtn.disabled = true; this.takeAwayBtn.disabled = true; if (type === 'Dine In') { this.orderStatus.textContent = `Order for: Table ${this.order.table}`; this.closeTablePopup(); } else { const taLabel = this.order.table.replace('TA-', ''); this.orderStatus.textContent = `Order for: Take Away #${taLabel}`; } }
         resetOrder() { this.initializeOrderScreen(); }
         showAlert(message, title = 'Notification') { this.modalTitle.textContent = title; this.modalMessage.textContent = message; this.modalOverlay.style.display = 'flex'; }
         hideAlert() { this.modalOverlay.style.display = 'none'; }
@@ -640,7 +640,7 @@
         closeTablePopup() { this.tablePopup.style.display = 'none'; }
         openSaveOrderPopup() { if (!this.order.items.length) return this.showAlert('Cannot save an empty order.', 'Error'); this.saveOrderName.value = ''; this.saveOrderPopup.style.display = 'flex'; }
         closeSaveOrderPopup() { this.saveOrderPopup.style.display = 'none'; }
-        handleSaveOrder() { const name = (this.saveOrderName.value || '').trim(); if (!name) return this.showAlert('Please enter a name.', 'Name Required'); StorageManager.saveHeldOrder({ name, items: this.order.items, orderType: this.order.orderType, table: this.order.selectedTable, discount: String(this.discountInput.value || '0'), serviceCharge: String(this.serviceChargeInput.value || '0'), discountType: this.discountTypeSelect.value, serviceChargeType: this.serviceChargeTypeSelect.value, timestamp: new Date().toISOString() }); this.closeSaveOrderPopup(); this.showAlert(`Order "${name}" saved.`, 'Success'); this.resetOrder(); }
+        handleSaveOrder() { const name = (this.saveOrderName.value || '').trim(); if (!name) return this.showAlert('Please enter a name.', 'Name Required'); StorageManager.saveHeldOrder({ name, items: this.order.items, orderType: this.order.orderType, table: this.order.table, discount: String(this.discountInput.value || '0'), serviceCharge: String(this.serviceChargeInput.value || '0'), discountType: this.discountTypeSelect.value, serviceChargeType: this.serviceChargeTypeSelect.value, timestamp: new Date().toISOString() }); this.closeSaveOrderPopup(); this.showAlert(`Order "${name}" saved.`, 'Success'); this.resetOrder(); }
         
         openRecallOrderPopup() {
             const held = StorageManager.listHeldOrders();
@@ -673,12 +673,12 @@
                 if (order) {
                     this.order.items = order.items || [];
                     this.order.orderType = order.orderType || null;
-                    this.order.selectedTable = order.table || null;
+                    this.order.table = order.table || null;
                     this.discountInput.value = order.discount || 0;
                     this.serviceChargeInput.value = order.serviceCharge || 0;
                     if (order.discountType) this.discountTypeSelect.value = order.discountType;
                     if (order.serviceChargeType) this.serviceChargeTypeSelect.value = order.serviceChargeType;
-                    if (this.order.orderType === 'Dine In') this.setOrderType('Dine In', this.order.selectedTable);
+                    if (this.order.orderType === 'Dine In') this.setOrderType('Dine In', this.order.table);
                     else if (this.order.orderType === 'Take Away') this.setOrderType('Take Away');
                     this.renderOrder();
                     this.closeRecallOrderPopup();
