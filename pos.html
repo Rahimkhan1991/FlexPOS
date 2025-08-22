@@ -192,637 +192,432 @@
 
   <!-- App Script -->
   <script type="module">
-    class StorageManager {
-      static getJSON(key, fallback) {
-        try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
-        catch { return fallback; }
-      }
-      static setJSON(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+   class StorageManager {
+        static getJSON(key, fallback) {
+            try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+            catch { return fallback; }
+        }
+        static setJSON(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
 
-      static getCategories() { return this.getJSON('categories', []); }
-      static getItems() { return this.getJSON('items', []); }
-      static getTables() { return this.getJSON('tables', []); }
-      static getShopName() { return localStorage.getItem('shopName') || 'POS Billing'; }
-      static getPrinterSize() { return localStorage.getItem('printerSize') || '80'; }
+        // --- Central settings getter ---
+        static getSystemSettings() {
+            const defaults = {
+                companyName: 'POS Billing',
+                currency: '₹',
+                tax: '5', // Default 5%
+                discount: '0',
+                printerSize: '80mm',
+                togglePaymentPopup: true,
+                toggleChangeCalc: true,
+            };
+            const saved = this.getJSON('systemSettings', {});
+            return { ...defaults, ...saved };
+        }
 
-      static getTakeAwayNumber() { return parseInt(localStorage.getItem('takeAwayOrderNumber')) || 101; }
-      static incrementTakeAwayNumber() {
-        const next = this.getTakeAwayNumber() + 1;
-        localStorage.setItem('takeAwayOrderNumber', String(next));
-        return next;
-      }
+        static getCategories() { return this.getJSON('categories', []); }
+        static getItems() { return this.getJSON('items', []); }
+        static getTables() { return this.getJSON('tables', []); }
+        
+        static getTakeAwayNumber() { return parseInt(localStorage.getItem('takeAwayOrderNumber')) || 101; }
+        static incrementTakeAwayNumber() {
+            const next = this.getTakeAwayNumber() + 1;
+            localStorage.setItem('takeAwayOrderNumber', String(next));
+            return next;
+        }
 
-      static saveSale(sale) {
-        const sales = this.getJSON('sales', []);
-        sales.push(sale);
-        this.setJSON('sales', sales);
-      }
+        static saveSale(sale) {
+            const sales = this.getJSON('sales', []);
+            sales.push(sale);
+            this.setJSON('sales', sales);
+        }
 
-      static saveHeldOrder(order) {
-        const held = this.getJSON('heldOrders', []);
-        held.push(order);
-        this.setJSON('heldOrders', held);
-      }
+        static saveHeldOrder(order) {
+            const held = this.getJSON('heldOrders', []);
+            held.push(order);
+            this.setJSON('heldOrders', held);
+        }
 
-      static listHeldOrders() { return this.getJSON('heldOrders', []); }
-      static deleteHeldOrder(index) {
-        const held = this.getJSON('heldOrders', []);
-        held.splice(index, 1);
-        this.setJSON('heldOrders', held);
-      }
-
-      static popHeldOrder(index) {
-        const held = this.getJSON('heldOrders', []);
-        const order = held.splice(index, 1)[0];
-        this.setJSON('heldOrders', held);
-        return order;
-      }
-
-      static setCurrentPrintOrder(orderData) { this.setJSON('currentPrintOrder', orderData); }
+        static listHeldOrders() { return this.getJSON('heldOrders', []); }
+        static deleteHeldOrder(index) {
+            const held = this.getJSON('heldOrders', []);
+            held.splice(index, 1);
+            this.setJSON('heldOrders', held);
+        }
+        static popHeldOrder(index) {
+            const held = this.getJSON('heldOrders', []);
+            const order = held.splice(index, 1)[0];
+            this.setJSON('heldOrders', held);
+            return order;
+        }
+        static setCurrentPrintOrder(orderData) { this.setJSON('currentPrintOrder', orderData); }
     }
 
     class OrderManager {
-      constructor(taxRate = 0.05) {
-        this.taxRate = taxRate;
-        this.items = [];
-        this.discount = { value: 0, type: 'manual' };     // manual | percentage
-        this.serviceCharge = { value: 0, type: 'manual' }; // manual | percentage
-        this.paymentMethod = 'Cash';
-        this.orderType = null; // 'Dine In' | 'Take Away'
-        this.selectedTable = null;
-        this.takeAwayOrderNumber = StorageManager.getTakeAwayNumber();
-      }
-
-      setOrderType(type, details = null) {
-        this.orderType = type;
-        if (type === 'Dine In') {
-          this.selectedTable = details;
-        } else if (type === 'Take Away') {
-          this.selectedTable = `TA-${this.takeAwayOrderNumber}`;
-          this.takeAwayOrderNumber = StorageManager.incrementTakeAwayNumber();
+        constructor(taxRate = 5) { // Default to 5 if nothing is passed
+            this.taxRate = parseFloat(taxRate) / 100 || 0;
+            this.items = [];
+            this.discount = { value: 0, type: 'manual' };
+            this.serviceCharge = { value: 0, type: 'manual' };
+            this.paymentMethod = 'Cash';
+            this.orderType = null;
+            this.selectedTable = null;
+            this.takeAwayOrderNumber = StorageManager.getTakeAwayNumber();
         }
-      }
 
-      addItem(item) {
-        const idKey = item.id ?? item.name; // fallback when id not present
-        const existing = this.items.find(i => (i.id ?? i.name) === idKey);
-        if (existing) existing.qty++;
-        else this.items.push({ ...item, qty: 1 });
-      }
-
-      updateQty(idKey, delta) {
-        const item = this.items.find(i => (i.id ?? i.name) == idKey);
-        if (!item) return;
-        item.qty += delta;
-        if (item.qty <= 0) this.removeItem(idKey);
-      }
-
-      removeItem(idKey) {
-        this.items = this.items.filter(i => (i.id ?? i.name) != idKey);
-      }
-
-      clear() {
-        this.items = [];
-        this.discount = { value: 0, type: 'manual' };
-        this.serviceCharge = { value: 0, type: 'manual' };
-        this.paymentMethod = 'Cash';
-        this.orderType = null;
-        this.selectedTable = null;
-      }
-
-      _calcFromType(base, { value, type }) {
-        const v = Math.max(0, parseFloat(value) || 0);
-        return type === 'percentage' ? base * (v / 100) : v;
-      }
-
-      calculateTotals() {
-        const subtotal = this.items.reduce((sum, i) => sum + (parseFloat(i.sales || 0) * i.qty), 0);
-        const discount = this._calcFromType(subtotal, this.discount);
-        const serviceCharge = this._calcFromType(subtotal, this.serviceCharge);
-        const taxable = Math.max(0, subtotal - discount + serviceCharge);
-        const tax = taxable * this.taxRate;
-        const total = taxable + tax;
-        return { subtotal, discount, serviceCharge, tax, total };
-      }
-
-      toSaleRecord(subtotal, discount, serviceCharge, tax, total) {
-        return {
-          orderId: Date.now(),
-          date: new Date().toISOString(),
-          items: this.items,
-          subtotal, discount, serviceCharge, tax, total,
-          paymentMethod: this.paymentMethod,
-          orderType: this.orderType,
-          table: this.selectedTable
-        };
-      }
-
-      toPrintOrder(totals) {
-        return {
-          items: this.items,
-          subtotal: totals.subtotal,
-          discount: this.discount.value,
-          serviceCharge: this.serviceCharge.value,
-          tax: totals.tax,
-          total: totals.total,
-          paymentMethod: this.paymentMethod,
-          orderType: this.orderType,
-          table: this.selectedTable,
-          date: new Date().toLocaleDateString(),
-          time: new Date().toLocaleTimeString(),
-        };
-      }
-    }
-
-  class UIManager {
-    constructor(orderManager) {
-        this.order = orderManager;
-
-        // Data
-        this.categories = StorageManager.getCategories();
-        this.allItems = StorageManager.getItems();
-        this.currentCategory = this.categories.length ? this.categories[0].name : '';
-
-        // Cache DOM elements
-        this.cacheDOM();
-
-        // Bind all event listeners
-        this.bindGlobalEvents();
-
-        // Initial render of the screen
-        this.initScreen();
-    }
-
-    cacheDOM() {
-        // Header / search
-        this.shopNameHeader = document.getElementById('shopNameHeader');
-        this.itemSearchInput = document.getElementById('itemSearch');
-        this.orderStatus = document.getElementById('orderStatus');
-
-        // Panels
-        this.categoryButtonsDiv = document.getElementById('categoryButtons');
-        this.itemsListDiv = document.getElementById('itemsList');
-        this.orderItemsDiv = document.getElementById('orderItems');
-
-        // Totals
-        this.subtotalSpan = document.getElementById('subtotal');
-        this.taxSpan = document.getElementById('tax');
-        this.totalSpan = document.getElementById('total');
-        this.discountTypeSelect = document.getElementById('discountTypeSelect');
-        this.discountInput = document.getElementById('discountInput');
-        this.serviceChargeTypeSelect = document.getElementById('serviceChargeTypeSelect');
-        this.serviceChargeInput = document.getElementById('serviceChargeInput');
-
-        // Buttons
-        this.placeOrderBtn = document.getElementById('placeOrderBtn');
-        this.saveOrderBtn = document.getElementById('saveOrderBtn');
-        this.printBillBtn = document.getElementById('printBillBtn');
-        this.resetOrderBtn = document.getElementById('resetOrderBtn');
-        this.dineInBtn = document.getElementById('dineInBtn');
-        this.takeAwayBtn = document.getElementById('takeAwayBtn');
-        this.savedOrdersBtn = document.getElementById('savedOrdersBtn');
-
-        // Modals / Popups
-        this.modalOverlay = document.getElementById('modalOverlay');
-        this.modalTitle = document.getElementById('modalTitle');
-        this.modalMessage = document.getElementById('modalMessage');
-        this.modalCloseBtn = document.getElementById('modalCloseBtn');
-
-        this.paymentPopup = document.getElementById('paymentPopup');
-        this.payCashBtn = document.getElementById('payCashBtn');
-        this.payCardBtn = document.getElementById('payCardBtn');
-        this.paymentCancelBtn = document.getElementById('paymentCancelBtn');
-
-        this.cashPopup = document.getElementById("cashPopup");
-        this.cashReceived = document.getElementById("cashReceived");
-        this.changeText = document.getElementById("changeText");
-        this.cashConfirmBtn = document.getElementById("cashConfirmBtn");
-        this.cashCancelBtn = document.getElementById("cashCancelBtn");
-
-        this.tablePopup = document.getElementById('tablePopup');
-        this.tableGrid = document.getElementById('tableGrid');
-        this.tableCancelBtn = document.getElementById('tableCancelBtn');
-
-        this.saveOrderPopup = document.getElementById('saveOrderPopup');
-        this.saveOrderName = document.getElementById('saveOrderName');
-        this.saveCancelBtn = document.getElementById('saveCancelBtn');
-        this.saveConfirmBtn = document.getElementById('saveConfirmBtn');
-
-        this.recallOrderPopup = document.getElementById('recallOrderPopup');
-        this.heldOrdersList = document.getElementById('heldOrdersList');
-        this.recallCloseBtn = document.getElementById('recallCloseBtn');
-    }
-
-    // ====================================================================
-    // == BILLING AND PAYMENT FLOW
-    // ====================================================================
-
-    // 1. Entry Point: Called when "Print Bill" is clicked
-    handlePrintBill() {
-        if (!this.order.items.length) {
-            return this.showAlert('Cannot process an empty order.', 'Error');
+        setOrderType(type, details = null) {
+            this.orderType = type;
+            if (type === 'Dine In') {
+                this.selectedTable = details;
+            } else if (type === 'Take Away') {
+                this.selectedTable = `TA-${this.takeAwayOrderNumber}`;
+                this.takeAwayOrderNumber = StorageManager.incrementTakeAwayNumber();
+            }
         }
-        const systemSettings = JSON.parse(localStorage.getItem("systemSettings") || "{}");
-        const paymentPopupEnabled = systemSettings.togglePaymentPopup === true;
 
-        if (paymentPopupEnabled) {
-            this.openPaymentPopup();
-        } else {
-            // If popup is disabled, process directly as cash without change calculation.
-            this.order.paymentMethod = 'Cash';
+        addItem(item) {
+            const idKey = item.id ?? item.name;
+            const existing = this.items.find(i => (i.id ?? i.name) === idKey);
+            if (existing) existing.qty++;
+            else this.items.push({ ...item, qty: 1 });
+        }
+
+        updateQty(idKey, delta) {
+            const item = this.items.find(i => (i.id ?? i.name) == idKey);
+            if (!item) return;
+            item.qty += delta;
+            if (item.qty <= 0) this.removeItem(idKey);
+        }
+
+        removeItem(idKey) {
+            this.items = this.items.filter(i => (i.id ?? i.name) != idKey);
+        }
+
+        clear() {
+            this.items = [];
+            this.discount = { value: 0, type: 'manual' };
+            this.serviceCharge = { value: 0, type: 'manual' };
+            this.paymentMethod = 'Cash';
+            this.orderType = null;
+            this.selectedTable = null;
+        }
+
+        _calcFromType(base, { value, type }) {
+            const v = Math.max(0, parseFloat(value) || 0);
+            return type === 'percentage' ? base * (v / 100) : v;
+        }
+
+        calculateTotals() {
+            const subtotal = this.items.reduce((sum, i) => sum + (parseFloat(i.sales || 0) * i.qty), 0);
+            const discount = this._calcFromType(subtotal, this.discount);
+            const serviceCharge = this._calcFromType(subtotal, this.serviceCharge);
+            const taxable = Math.max(0, subtotal - discount + serviceCharge);
+            const tax = taxable * this.taxRate;
+            const total = taxable + tax;
+            return { subtotal, discount, serviceCharge, tax, total };
+        }
+
+        toSaleRecord(subtotal, discount, serviceCharge, tax, total) {
+            return {
+                orderId: Date.now(),
+                date: new Date().toISOString(),
+                items: this.items,
+                subtotal, discount, serviceCharge, tax, total,
+                paymentMethod: this.paymentMethod,
+                orderType: this.orderType,
+                table: this.selectedTable
+            };
+        }
+
+        toPrintOrder(totals) {
+            return {
+                items: this.items,
+                subtotal: totals.subtotal,
+                discount: this.discount.value,
+                serviceCharge: this.serviceCharge.value,
+                tax: totals.tax,
+                total: totals.total,
+                paymentMethod: this.paymentMethod,
+                orderType: this.orderType,
+                table: this.selectedTable,
+                date: new Date().toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta" }), // Indonesian format
+                time: new Date().toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta" }),
+            };
+        }
+    }
+
+    class UIManager {
+        constructor(orderManager, settings) {
+            this.order = orderManager;
+            this.settings = settings;
+
+            this.categories = StorageManager.getCategories();
+            this.allItems = StorageManager.getItems();
+            this.currentCategory = this.categories.length ? this.categories[0].name : '';
+
+            this.cacheDOM();
+            this.bindGlobalEvents();
+            this.initScreen();
+        }
+
+        cacheDOM() {
+            this.shopNameHeader = document.getElementById('shopNameHeader');
+            this.itemSearchInput = document.getElementById('itemSearch');
+            this.orderStatus = document.getElementById('orderStatus');
+            this.categoryButtonsDiv = document.getElementById('categoryButtons');
+            this.itemsListDiv = document.getElementById('itemsList');
+            this.orderItemsDiv = document.getElementById('orderItems');
+            this.subtotalSpan = document.getElementById('subtotal');
+            this.taxSpan = document.getElementById('tax');
+            this.taxLabelSpan = document.querySelector('#tax').parentElement.previousElementSibling;
+            this.totalSpan = document.getElementById('total');
+            this.discountTypeSelect = document.getElementById('discountTypeSelect');
+            this.discountInput = document.getElementById('discountInput');
+            this.serviceChargeTypeSelect = document.getElementById('serviceChargeTypeSelect');
+            this.serviceChargeInput = document.getElementById('serviceChargeInput');
+            this.placeOrderBtn = document.getElementById('placeOrderBtn');
+            this.saveOrderBtn = document.getElementById('saveOrderBtn');
+            this.printBillBtn = document.getElementById('printBillBtn');
+            this.resetOrderBtn = document.getElementById('resetOrderBtn');
+            this.dineInBtn = document.getElementById('dineInBtn');
+            this.takeAwayBtn = document.getElementById('takeAwayBtn');
+            this.savedOrdersBtn = document.getElementById('savedOrdersBtn');
+            this.modalOverlay = document.getElementById('modalOverlay');
+            this.modalTitle = document.getElementById('modalTitle');
+            this.modalMessage = document.getElementById('modalMessage');
+            this.modalCloseBtn = document.getElementById('modalCloseBtn');
+            this.paymentPopup = document.getElementById('paymentPopup');
+            this.payCashBtn = document.getElementById('payCashBtn');
+            this.payCardBtn = document.getElementById('payCardBtn');
+            this.paymentCancelBtn = document.getElementById('paymentCancelBtn');
+            this.cashPopup = document.getElementById("cashPopup");
+            this.cashReceived = document.getElementById("cashReceived");
+            this.changeText = document.getElementById("changeText");
+            this.cashConfirmBtn = document.getElementById("cashConfirmBtn");
+            this.cashCancelBtn = document.getElementById("cashCancelBtn");
+            this.tablePopup = document.getElementById('tablePopup');
+            this.tableGrid = document.getElementById('tableGrid');
+            this.tableCancelBtn = document.getElementById('tableCancelBtn');
+            this.saveOrderPopup = document.getElementById('saveOrderPopup');
+            this.saveOrderName = document.getElementById('saveOrderName');
+            this.saveCancelBtn = document.getElementById('saveCancelBtn');
+            this.saveConfirmBtn = document.getElementById('saveConfirmBtn');
+            this.recallOrderPopup = document.getElementById('recallOrderPopup');
+            this.heldOrdersList = document.getElementById('heldOrdersList');
+            this.recallCloseBtn = document.getElementById('recallCloseBtn');
+        }
+
+        handlePrintBill() {
+            if (!this.order.items.length) { return this.showAlert('Cannot process an empty order.', 'Error'); }
+            const paymentPopupEnabled = this.settings.togglePaymentPopup === true;
+            if (paymentPopupEnabled) { this.openPaymentPopup(); } 
+            else { this.order.paymentMethod = 'Cash'; this.finalizeSaleAndPrint(); }
+        }
+        
+        confirmPayment(method) {
+            this.order.paymentMethod = method;
+            this.closePaymentPopup();
+            const changeCalcEnabled = this.settings.toggleChangeCalc === true;
+            if (method === "Cash" && changeCalcEnabled) {
+                const totals = this.order.calculateTotals();
+                this.openCashPopup(totals.total);
+            } else { this.finalizeSaleAndPrint(); }
+        }
+
+        handleCashConfirm() {
+            const billTotal = parseFloat(this.cashPopup.dataset.total);
+            const received = parseFloat(this.cashReceived.value);
+            if (isNaN(received) || received < billTotal) { return this.showAlert("Received amount is invalid or less than the total.", "Payment Error"); }
+            this.closeCashPopup();
             this.finalizeSaleAndPrint();
         }
-    }
 
-    // 2. Called from the Payment Popup (Cash/Card buttons)
-    confirmPayment(method) {
-        this.order.paymentMethod = method;
-        this.closePaymentPopup();
-        
-        const systemSettings = JSON.parse(localStorage.getItem("systemSettings") || "{}");
-        const changeCalcEnabled = systemSettings.toggleChangeCalc === true;
-
-        if (method === "Cash" && changeCalcEnabled) {
+        finalizeSaleAndPrint() {
             const totals = this.order.calculateTotals();
-            this.openCashPopup(totals.total);
-        } else {
-            // Process Card payments OR Cash payments where change calculation is off
-            this.finalizeSaleAndPrint();
-        }
-    }
-    
-    // 3. Called from the Cash Popup (Confirm button)
-    handleCashConfirm() {
-        const billTotal = parseFloat(this.cashPopup.dataset.total);
-        const received = parseFloat(this.cashReceived.value);
-
-        if (isNaN(received) || received < billTotal) {
-            this.showAlert("Received amount is invalid or less than the total.", "Payment Error");
-            return;
+            StorageManager.saveSale(this.order.toSaleRecord(totals.subtotal, totals.discount, totals.serviceCharge, totals.tax, totals.total));
+            const orderData = this.order.toPrintOrder(totals);
+            StorageManager.setCurrentPrintOrder(orderData);
+            window.open(this.settings.printerSize === '57mm' ? 'receipt-57mm.html' : 'receipt-80mm.html', '_blank');
+            this.showAlert('Order completed successfully!', 'Success');
+            this.resetOrder();
         }
         
-        this.closeCashPopup();
-        this.finalizeSaleAndPrint(); // All checks passed, finalize the sale
-    }
-
-    // 4. Final Step: Saves data, triggers print, and resets the UI
-    finalizeSaleAndPrint() {
-        const totals = this.order.calculateTotals();
-        
-        // a. Save the sale record to localStorage
-        StorageManager.saveSale(this.order.toSaleRecord(
-            totals.subtotal, totals.discount, totals.serviceCharge, totals.tax, totals.total
-        ));
-
-        // b. Prepare data for the receipt and open the print window
-        const orderData = this.order.toPrintOrder(totals);
-        StorageManager.setCurrentPrintOrder(orderData);
-        const printerSize = StorageManager.getPrinterSize();
-        window.open(printerSize === '80' ? 'receipt-80mm.html' : 'receipt-57mm.html', '_blank');
-        
-        // c. Show a success message and clear the screen for the next order
-        this.showAlert('Order completed successfully!', 'Success');
-        this.resetOrder();
-    }
-    
-    // ====================================================================
-    // == EVENT BINDING & UI RENDERING
-    // ====================================================================
-
-    bindGlobalEvents() {
-        // Header / search
-        this.itemSearchInput.addEventListener('input', () => this.renderItems());
-
-        // Order type
-        this.dineInBtn.addEventListener('click', () => this.openTablePopup());
-        this.takeAwayBtn.addEventListener('click', () => this.setOrderType('Take Away'));
-
-        // Order actions
-        this.placeOrderBtn.addEventListener('click', () => this.placeOrder());
-        this.resetOrderBtn.addEventListener('click', () => this.resetOrder());
-        this.saveOrderBtn.addEventListener('click', () => this.openSaveOrderPopup());
-        this.printBillBtn.addEventListener('click', () => this.handlePrintBill());
-        this.savedOrdersBtn.addEventListener('click', () => this.openRecallOrderPopup());
-
-        // Totals inputs
-        [this.discountInput, this.discountTypeSelect, this.serviceChargeInput, this.serviceChargeTypeSelect]
-        .forEach(el => el.addEventListener('input', () => this.updateTotalsFromInputs()));
-
-        // Modals
-        this.modalCloseBtn.addEventListener('click', () => this.hideAlert());
-
-        // Cash popup
-        this.cashConfirmBtn.addEventListener("click", () => this.handleCashConfirm());
-        this.cashCancelBtn.addEventListener("click", () => this.closeCashPopup());
-        this.cashReceived.addEventListener("input", () => {
-            const billTotal = parseFloat(this.cashPopup.dataset.total || 0);
-            const received = parseFloat(this.cashReceived.value) || 0;
-            const change = received - billTotal;
-            this.changeText.textContent = change >= 0 ? `Change Due: ₹${change.toFixed(2)}` : `Total: ₹${billTotal.toFixed(2)}`;
-        });
-
-        // Payment popup
-        this.payCashBtn.addEventListener('click', () => this.confirmPayment('Cash'));
-        this.payCardBtn.addEventListener('click', () => this.confirmPayment('Card'));
-        this.paymentCancelBtn.addEventListener('click', () => this.closePaymentPopup());
-
-        // Table popup
-        this.tableCancelBtn.addEventListener('click', () => this.closeTablePopup());
-
-        // Save popup
-        this.saveCancelBtn.addEventListener('click', () => this.closeSaveOrderPopup());
-        this.saveConfirmBtn.addEventListener('click', () => this.handleSaveOrder());
-
-        // Recall popup
-        this.recallCloseBtn.addEventListener('click', () => this.closeRecallOrderPopup());
-        this.heldOrdersList.addEventListener('click', (e) => this.handleHeldOrdersClick(e));
-
-        // Order items (delegation)
-        this.orderItemsDiv.addEventListener('click', (event) => {
-            const qtyBtn = event.target.closest('.qty-btn');
-            const removeBtn = event.target.closest('.remove-btn');
-            if (qtyBtn) {
-                const id = qtyBtn.dataset.id;
-                const action = qtyBtn.dataset.action;
-                this.order.updateQty(id, action === 'increment' ? 1 : -1);
-                this.renderOrder();
-            } else if (removeBtn) {
-                const id = removeBtn.dataset.id;
-                this.order.removeItem(id);
-                this.renderOrder();
-            }
-        });
-    }
-
-    initScreen() {
-        const shopName = StorageManager.getShopName();
-        this.shopNameHeader.textContent = shopName;
-        this.renderCategories();
-        this.renderItems();
-        this.initializeOrderScreen();
-    }
-
-    initializeOrderScreen() {
-        this.order.clear();
-        this.orderStatus.textContent = '';
-        this.discountInput.value = 0;
-        this.serviceChargeInput.value = 0;
-        this.discountTypeSelect.value = 'manual';
-        this.serviceChargeTypeSelect.value = 'manual';
-        this.dineInBtn.disabled = false;
-        this.takeAwayBtn.disabled = false;
-        this.renderOrder();
-    }
-
-    renderCategories() {
-        this.categoryButtonsDiv.innerHTML = '';
-        this.categories.forEach(cat => {
-            const btn = document.createElement('button');
-            btn.textContent = cat.name;
-            btn.className = `w-full text-left py-3 px-4 mb-2 font-bold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105 focus:outline-none ${cat.name === this.currentCategory ? 'bg-indigo-600 text-white scale-105 shadow-lg' : 'bg-white text-slate-700 hover:bg-indigo-100'}`;
-            btn.addEventListener('click', () => {
-                this.currentCategory = cat.name;
-                this.renderCategories();
-                this.renderItems();
+        bindGlobalEvents() {
+            this.itemSearchInput.addEventListener('input', () => this.renderItems());
+            this.dineInBtn.addEventListener('click', () => this.openTablePopup());
+            this.takeAwayBtn.addEventListener('click', () => this.setOrderType('Take Away'));
+            this.placeOrderBtn.addEventListener('click', () => this.placeOrder());
+            this.resetOrderBtn.addEventListener('click', () => this.resetOrder());
+            this.saveOrderBtn.addEventListener('click', () => this.openSaveOrderPopup());
+            this.printBillBtn.addEventListener('click', () => this.handlePrintBill());
+            this.savedOrdersBtn.addEventListener('click', () => this.openRecallOrderPopup());
+            [this.discountInput, this.discountTypeSelect, this.serviceChargeInput, this.serviceChargeTypeSelect].forEach(el => el.addEventListener('input', () => this.updateTotalsFromInputs()));
+            this.modalCloseBtn.addEventListener('click', () => this.hideAlert());
+            this.cashConfirmBtn.addEventListener("click", () => this.handleCashConfirm());
+            this.cashCancelBtn.addEventListener("click", () => this.closeCashPopup());
+            this.cashReceived.addEventListener("input", () => {
+                const billTotal = parseFloat(this.cashPopup.dataset.total || 0);
+                const received = parseFloat(this.cashReceived.value) || 0;
+                const change = received - billTotal;
+                this.changeText.textContent = change >= 0 ? `Change Due: ${this.settings.currency}${change.toFixed(2)}` : `Total: ${this.settings.currency}${billTotal.toFixed(2)}`;
             });
-            this.categoryButtonsDiv.appendChild(btn);
-        });
-        const dashboardBtn = document.createElement('button');
-        dashboardBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i> Dashboard';
-        dashboardBtn.className = 'mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105';
-        dashboardBtn.addEventListener('click', () => (window.location.href = 'dashboard.html'));
-        this.categoryButtonsDiv.appendChild(dashboardBtn);
-    }
-
-    renderItems() {
-        let itemsToDisplay = [...this.allItems];
-        const q = (this.itemSearchInput.value || '').toLowerCase();
-        if (q) itemsToDisplay = itemsToDisplay.filter(i => (i.name || '').toLowerCase().includes(q));
-        else if (this.currentCategory) itemsToDisplay = itemsToDisplay.filter(i => i.category === this.currentCategory);
-
-        this.itemsListDiv.innerHTML = '';
-        if (!itemsToDisplay.length) {
-            const message = q ? `No items match your search for "${q}".` : this.currentCategory ? `No items found in the "${this.currentCategory}" category.` : 'No items found.';
-            this.itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">${message}</p>`;
-            return;
-        }
-
-        itemsToDisplay.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 transform hover:scale-105 cursor-pointer flex flex-col items-center justify-between text-center aspect-square';
-            const img = item.image || 'https://placehold.co/400x300?text=No+Image';
-            card.title = `${item.name}\nPrice: ₹${item.sales}`;
-            card.innerHTML = `
-                <img src="${img}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2">
-                <div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div>
-                <div class="font-semibold text-green-600 text-lg mt-auto">₹${parseFloat(item.sales || 0).toFixed(2)}</div>
-            `;
-            card.addEventListener('click', () => this.addItemToOrder(item));
-            this.itemsListDiv.appendChild(card);
-        });
-    }
-
-    renderOrder() {
-        this.orderItemsDiv.innerHTML = '';
-        if (!this.order.items.length) {
-            this.orderItemsDiv.innerHTML = '<div class="text-slate-500 text-center py-4">No items added yet.</div>';
-        } else {
-            this.order.items.forEach(item => {
-                const itemTotal = parseFloat(item.sales || 0) * item.qty;
-                const uniqueId = item.id ?? item.name;
-                const div = document.createElement('div');
-                div.className = 'flex items-center justify-between bg-slate-50 rounded-lg p-3 mb-2 shadow-sm';
-                div.innerHTML = `
-                    <div class="flex-1"><span class="font-semibold text-slate-800">${item.name}</span></div>
-                    <div class="flex items-center gap-2">
-                        <button data-id="${uniqueId}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">-</button>
-                        <span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span>
-                        <button data-id="${uniqueId}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">+</button>
-                        <span class="font-semibold text-green-600 w-20 text-right">₹${itemTotal.toFixed(2)}</span>
-                        <button data-id="${uniqueId}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110" aria-label="Remove ${item.name}">×</button>
-                    </div>
-                `;
-                this.orderItemsDiv.appendChild(div);
+            this.payCashBtn.addEventListener('click', () => this.confirmPayment('Cash'));
+            this.payCardBtn.addEventListener('click', () => this.confirmPayment('Card'));
+            this.paymentCancelBtn.addEventListener('click', () => this.closePaymentPopup());
+            this.tableCancelBtn.addEventListener('click', () => this.closeTablePopup());
+            this.saveCancelBtn.addEventListener('click', () => this.closeSaveOrderPopup());
+            this.saveConfirmBtn.addEventListener('click', () => this.handleSaveOrder());
+            this.recallCloseBtn.addEventListener('click', () => this.closeRecallOrderPopup());
+            this.orderItemsDiv.addEventListener('click', (event) => {
+                const qtyBtn = event.target.closest('.qty-btn');
+                const removeBtn = event.target.closest('.remove-btn');
+                if (qtyBtn) {
+                    const id = qtyBtn.dataset.id;
+                    const action = qtyBtn.dataset.action;
+                    this.order.updateQty(id, action === 'increment' ? 1 : -1);
+                    this.renderOrder();
+                } else if (removeBtn) {
+                    const id = removeBtn.dataset.id;
+                    this.order.removeItem(id);
+                    this.renderOrder();
+                }
             });
         }
-        this.updateTotalsUI();
-    }
-    
-    // ====================================================================
-    // == HELPER METHODS
-    // ====================================================================
 
-    updateTotalsFromInputs() {
-        this.order.discount = { value: parseFloat(this.discountInput.value) || 0, type: this.discountTypeSelect.value };
-        this.order.serviceCharge = { value: parseFloat(this.serviceChargeInput.value) || 0, type: this.serviceChargeTypeSelect.value };
-        this.updateTotalsUI();
-    }
-
-    updateTotalsUI() {
-        const totals = this.order.calculateTotals();
-        this.subtotalSpan.textContent = totals.subtotal.toFixed(2);
-        this.taxSpan.textContent = totals.tax.toFixed(2);
-        this.totalSpan.textContent = Math.max(0, totals.total).toFixed(2);
-    }
-
-    addItemToOrder(item) {
-        if (!this.order.orderType) {
-            this.showAlert('Please select "Dine In" or "Take Away" before adding items.', 'Order Type Required');
-            return;
+        initScreen() {
+            this.shopNameHeader.textContent = this.settings.companyName;
+            this.taxLabelSpan.textContent = `Tax (${this.settings.tax}%):`;
+            this.renderCategories();
+            this.renderItems();
+            this.initializeOrderScreen();
         }
-        this.order.addItem(item);
-        this.renderOrder();
-    }
 
-    setOrderType(type, details = null) {
-        this.order.setOrderType(type, details);
-        this.dineInBtn.disabled = true;
-        this.takeAwayBtn.disabled = true;
-
-        if (type === 'Dine In') {
-            this.orderStatus.textContent = `Order for: Table ${this.order.selectedTable}`;
-            this.closeTablePopup();
-        } else {
-            const taLabel = this.order.selectedTable.replace('TA-', '');
-            this.orderStatus.textContent = `Order for: Take Away #${taLabel}`;
+        initializeOrderScreen() {
+            this.order.clear();
+            this.orderStatus.textContent = '';
+            this.discountInput.value = this.settings.discount || 0;
+            this.order.discount.value = this.settings.discount || 0;
+            this.serviceChargeInput.value = 0;
+            this.discountTypeSelect.value = 'percentage'; // Set default to percentage
+            this.order.discount.type = 'percentage';
+            this.serviceChargeTypeSelect.value = 'manual';
+            this.dineInBtn.disabled = false;
+            this.takeAwayBtn.disabled = false;
+            this.renderOrder();
         }
-    }
 
-    placeOrder() {
-        if (!this.order.items.length) return this.showAlert('No items in order!', 'Error');
-        window.open('kot.html', '_blank');
-        this.showAlert('Order placed and KOT sent to kitchen!', 'Success');
-    }
-
-    resetOrder() {
-        this.initializeOrderScreen();
-    }
-    
-    // --- Popups and Modals ---
-
-    showAlert(message, title = 'Notification') {
-        this.modalTitle.textContent = title;
-        this.modalMessage.textContent = message;
-        this.modalOverlay.style.display = 'flex';
-    }
-    hideAlert() { this.modalOverlay.style.display = 'none'; }
-
-    openPaymentPopup() { this.paymentPopup.style.display = 'flex'; }
-    closePaymentPopup() { this.paymentPopup.style.display = 'none'; }
-
-    openCashPopup(billTotal) {
-        this.cashPopup.classList.remove("hidden");
-        this.cashPopup.classList.add("flex");
-        this.cashPopup.dataset.total = billTotal;
-        this.cashReceived.value = "";
-        this.changeText.textContent = `Total: ₹${parseFloat(billTotal).toFixed(2)}`;
-        this.cashReceived.focus();
-    }
-    closeCashPopup() {
-        this.cashPopup.classList.add("hidden");
-        this.cashPopup.classList.remove("flex");
-    }
-
-    openTablePopup() {
-        const tables = StorageManager.getTables();
-        this.tableGrid.innerHTML = '';
-        if (tables.length) {
-            tables.forEach(tbl => {
+        renderCategories() {
+            this.categoryButtonsDiv.innerHTML = '';
+            this.categories.forEach(cat => {
                 const btn = document.createElement('button');
-                btn.textContent = tbl.name;
-                btn.className = 'p-4 bg-indigo-500 text-white font-bold rounded-lg hover:bg-indigo-600 transition';
-                btn.addEventListener('click', () => this.setOrderType('Dine In', tbl.name));
-                this.tableGrid.appendChild(btn);
+                btn.textContent = cat.name;
+                btn.className = `w-full text-left py-3 px-4 mb-2 font-bold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105 focus:outline-none ${cat.name === this.currentCategory ? 'bg-indigo-600 text-white scale-105 shadow-lg' : 'bg-white text-slate-700 hover:bg-indigo-100'}`;
+                btn.addEventListener('click', () => {
+                    this.currentCategory = cat.name;
+                    this.renderCategories();
+                    this.renderItems();
+                });
+                this.categoryButtonsDiv.appendChild(btn);
             });
-        } else {
-            this.tableGrid.innerHTML = '<p class="col-span-full text-slate-500">No tables configured in settings.</p>';
+            const dashboardBtn = document.createElement('button');
+            dashboardBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i> Dashboard';
+            dashboardBtn.className = 'mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105';
+            dashboardBtn.addEventListener('click', () => (window.location.href = 'dashboard.html'));
+            this.categoryButtonsDiv.appendChild(dashboardBtn);
         }
-        this.tablePopup.style.display = 'flex';
-    }
-    closeTablePopup() { this.tablePopup.style.display = 'none'; }
-    
-    // --- Save / Recall Order ---
 
-    openSaveOrderPopup() {
-        if (!this.order.items.length) return this.showAlert('Cannot save an empty order.', 'Error');
-        this.saveOrderName.value = '';
-        this.saveOrderPopup.style.display = 'flex';
-    }
-    closeSaveOrderPopup() { this.saveOrderPopup.style.display = 'none'; }
-
-    handleSaveOrder() {
-        const name = (this.saveOrderName.value || '').trim();
-        if (!name) return this.showAlert('Please enter a reference name for the order.', 'Name Required');
-        StorageManager.saveHeldOrder({ name, items: this.order.items, orderType: this.order.orderType, table: this.order.selectedTable, discount: String(this.discountInput.value || '0'), serviceCharge: String(this.serviceChargeInput.value || '0'), discountType: this.discountTypeSelect.value, serviceChargeType: this.serviceChargeTypeSelect.value, timestamp: new Date().toISOString() });
-        this.closeSaveOrderPopup();
-        this.showAlert(`Order "${name}" has been saved.`, 'Success');
-        this.resetOrder();
-    }
-
-    openRecallOrderPopup() {
-        const held = StorageManager.listHeldOrders();
-        this.heldOrdersList.innerHTML = '';
-        if (!held.length) {
-            this.heldOrdersList.innerHTML = '<p class="text-slate-500 text-center p-4">No orders are currently on hold.</p>';
-        } else {
-            held.forEach((order, index) => {
-                const div = document.createElement('div');
-                div.className = 'flex justify-between items-center bg-slate-100 p-3 rounded-lg';
-                div.innerHTML = `
-                    <span class="font-semibold text-slate-800">${order.name}</span>
-                    <div class="flex gap-2">
-                        <button class="load-held bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" data-index="${index}">Load</button>
-                        <button class="delete-held bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600" data-index="${index}">Delete</button>
-                    </div>`;
-                this.heldOrdersList.appendChild(div);
+        renderItems() {
+            let itemsToDisplay = [...this.allItems];
+            const q = (this.itemSearchInput.value || '').toLowerCase();
+            if (q) itemsToDisplay = itemsToDisplay.filter(i => (i.name || '').toLowerCase().includes(q));
+            else if (this.currentCategory) itemsToDisplay = itemsToDisplay.filter(i => i.category === this.currentCategory);
+            this.itemsListDiv.innerHTML = '';
+            if (!itemsToDisplay.length) {
+                const message = q ? `No items match for "${q}".` : `No items in "${this.currentCategory}".`;
+                this.itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">${message}</p>`;
+                return;
+            }
+            itemsToDisplay.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 transform hover:scale-105 cursor-pointer flex flex-col items-center justify-between text-center aspect-square';
+                const img = item.image || 'https://placehold.co/400x300?text=No+Image';
+                card.title = `${item.name}\nPrice: ${this.settings.currency}${item.sales}`;
+                card.innerHTML = `
+                    <img src="${img}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2">
+                    <div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div>
+                    <div class="font-semibold text-green-600 text-lg mt-auto">${this.settings.currency}${parseFloat(item.sales || 0).toFixed(2)}</div>`;
+                card.addEventListener('click', () => this.addItemToOrder(item));
+                this.itemsListDiv.appendChild(card);
             });
         }
-        this.recallOrderPopup.style.display = 'flex';
-    }
-    closeRecallOrderPopup() { this.recallOrderPopup.style.display = 'none'; }
 
-    handleHeldOrdersClick(e) {
-        const loadBtn = e.target.closest('.load-held');
-        const delBtn = e.target.closest('.delete-held');
-        if (loadBtn) {
-            const idx = parseInt(loadBtn.dataset.index);
-            const order = StorageManager.popHeldOrder(idx);
-            if (order) {
-                this.order.items = order.items || [];
-                this.order.orderType = order.orderType || null;
-                this.order.selectedTable = order.table || null;
-                this.discountInput.value = order.discount || 0;
-                this.serviceChargeInput.value = order.serviceCharge || 0;
-                if (order.discountType) this.discountTypeSelect.value = order.discountType;
-                if (order.serviceChargeType) this.serviceChargeTypeSelect.value = order.serviceChargeType;
-                if (this.order.orderType === 'Dine In') this.setOrderType('Dine In', this.order.selectedTable);
-                else if (this.order.orderType === 'Take Away') this.setOrderType('Take Away');
-                this.renderOrder();
-                this.closeRecallOrderPopup();
+        renderOrder() {
+            this.orderItemsDiv.innerHTML = '';
+            if (!this.order.items.length) {
+                this.orderItemsDiv.innerHTML = '<div class="text-slate-500 text-center py-4">No items added yet.</div>';
+            } else {
+                this.order.items.forEach(item => {
+                    const itemTotal = parseFloat(item.sales || 0) * item.qty;
+                    const uniqueId = item.id ?? item.name;
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between bg-slate-50 rounded-lg p-3 mb-2 shadow-sm';
+                    div.innerHTML = `
+                        <div class="flex-1"><span class="font-semibold text-slate-800">${item.name}</span></div>
+                        <div class="flex items-center gap-2">
+                            <button data-id="${uniqueId}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">-</button>
+                            <span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span>
+                            <button data-id="${uniqueId}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">+</button>
+                            <span class="font-semibold text-green-600 w-20 text-right">${this.settings.currency}${itemTotal.toFixed(2)}</span>
+                            <button data-id="${uniqueId}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110" aria-label="Remove ${item.name}">×</button>
+                        </div>`;
+                    this.orderItemsDiv.appendChild(div);
+                });
             }
-        } else if (delBtn) {
-            const idx = parseInt(delBtn.dataset.index);
-            if (confirm('Delete this held order?')) {
-                StorageManager.deleteHeldOrder(idx);
-                this.openRecallOrderPopup();
-            }
+            this.updateTotalsUI();
         }
+        
+        updateTotalsFromInputs() {
+            this.order.discount = { value: parseFloat(this.discountInput.value) || 0, type: this.discountTypeSelect.value };
+            this.order.serviceCharge = { value: parseFloat(this.serviceChargeInput.value) || 0, type: this.serviceChargeTypeSelect.value };
+            this.updateTotalsUI();
+        }
+
+        updateTotalsUI() {
+            const totals = this.order.calculateTotals();
+            this.subtotalSpan.parentElement.innerHTML = `${this.settings.currency}<span id="subtotal">${totals.subtotal.toFixed(2)}</span>`;
+            this.taxSpan.parentElement.innerHTML = `${this.settings.currency}<span id="tax">${totals.tax.toFixed(2)}</span>`;
+            this.totalSpan.parentElement.innerHTML = `${this.settings.currency}<span id="total">${Math.max(0, totals.total).toFixed(2)}</span>`;
+        }
+        
+        addItemToOrder(item) { if (!this.order.orderType) { return this.showAlert('Please select "Dine In" or "Take Away" before adding items.', 'Order Type Required'); } this.order.addItem(item); this.renderOrder(); }
+        setOrderType(type, details = null) { this.order.setOrderType(type, details); this.dineInBtn.disabled = true; this.takeAwayBtn.disabled = true; if (type === 'Dine In') { this.orderStatus.textContent = `Order for: Table ${this.order.selectedTable}`; this.closeTablePopup(); } else { const taLabel = this.order.selectedTable.replace('TA-', ''); this.orderStatus.textContent = `Order for: Take Away #${taLabel}`; } }
+        placeOrder() { if (!this.order.items.length) return this.showAlert('No items in order!', 'Error'); StorageManager.setCurrentPrintOrder(this.order.toPrintOrder(this.order.calculateTotals())); window.open('kot.html', '_blank'); this.showAlert('Order placed and KOT sent to kitchen!', 'Success'); }
+        resetOrder() { this.initializeOrderScreen(); }
+        showAlert(message, title = 'Notification') { this.modalTitle.textContent = title; this.modalMessage.textContent = message; this.modalOverlay.style.display = 'flex'; }
+        hideAlert() { this.modalOverlay.style.display = 'none'; }
+        openPaymentPopup() { this.paymentPopup.style.display = 'flex'; }
+        closePaymentPopup() { this.paymentPopup.style.display = 'none'; }
+        openCashPopup(billTotal) { this.cashPopup.classList.remove("hidden"); this.cashPopup.classList.add("flex"); this.cashPopup.dataset.total = billTotal; this.cashReceived.value = ""; this.changeText.textContent = `Total: ${this.settings.currency}${parseFloat(billTotal).toFixed(2)}`; this.cashReceived.focus(); }
+        closeCashPopup() { this.cashPopup.classList.add("hidden"); this.cashPopup.classList.remove("flex"); }
+        openTablePopup() { const tables = StorageManager.getTables(); this.tableGrid.innerHTML = ''; if (tables.length) { tables.forEach(tbl => { const btn = document.createElement('button'); btn.textContent = tbl.name; btn.className = 'p-4 bg-indigo-500 text-white font-bold rounded-lg hover:bg-indigo-600 transition'; btn.addEventListener('click', () => this.setOrderType('Dine In', tbl.name)); this.tableGrid.appendChild(btn); }); } else { this.tableGrid.innerHTML = '<p class="col-span-full text-slate-500">No tables configured.</p>'; } this.tablePopup.style.display = 'flex'; }
+        closeTablePopup() { this.tablePopup.style.display = 'none'; }
+        openSaveOrderPopup() { if (!this.order.items.length) return this.showAlert('Cannot save an empty order.', 'Error'); this.saveOrderName.value = ''; this.saveOrderPopup.style.display = 'flex'; }
+        closeSaveOrderPopup() { this.saveOrderPopup.style.display = 'none'; }
+        handleSaveOrder() { const name = (this.saveOrderName.value || '').trim(); if (!name) return this.showAlert('Please enter a name.', 'Name Required'); StorageManager.saveHeldOrder({ name, items: this.order.items, orderType: this.order.orderType, table: this.order.selectedTable, discount: String(this.discountInput.value || '0'), serviceCharge: String(this.serviceChargeInput.value || '0'), discountType: this.discountTypeSelect.value, serviceChargeType: this.serviceChargeTypeSelect.value, timestamp: new Date().toISOString() }); this.closeSaveOrderPopup(); this.showAlert(`Order "${name}" saved.`, 'Success'); this.resetOrder(); }
+        openRecallOrderPopup() { const held = StorageManager.listHeldOrders(); this.heldOrdersList.innerHTML = ''; if (!held.length) { this.heldOrdersList.innerHTML = '<p class="text-slate-500 text-center p-4">No orders are on hold.</p>'; } else { held.forEach((order, index) => { const div = document.createElement('div'); div.className = 'flex justify-between items-center bg-slate-100 p-3 rounded-lg'; div.innerHTML = `<span class="font-semibold text-slate-800">${order.name}</span><div class="flex gap-2"><button class="load-held bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" data-index="${index}">Load</button><button class="delete-held bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600" data-index="${index}">Delete</button></div>`; this.heldOrdersList.appendChild(div); }); } this.recallOrderPopup.style.display = 'flex'; }
+        closeRecallOrderPopup() { this.recallOrderPopup.style.display = 'none'; }
+        handleHeldOrdersClick(e) { const loadBtn = e.target.closest('.load-held'); const delBtn = e.target.closest('.delete-held'); if (loadBtn) { const idx = parseInt(loadBtn.dataset.index); const order = StorageManager.popHeldOrder(idx); if (order) { this.order.items = order.items || []; this.order.orderType = order.orderType || null; this.order.selectedTable = order.table || null; this.discountInput.value = order.discount || 0; this.serviceChargeInput.value = order.serviceCharge || 0; if (order.discountType) this.discountTypeSelect.value = order.discountType; if (order.serviceChargeType) this.serviceChargeTypeSelect.value = order.serviceChargeType; if (this.order.orderType === 'Dine In') this.setOrderType('Dine In', this.order.selectedTable); else if (this.order.orderType === 'Take Away') this.setOrderType('Take Away'); this.renderOrder(); this.closeRecallOrderPopup(); } } else if (delBtn) { const idx = parseInt(delBtn.dataset.index); if (confirm('Delete this held order?')) { StorageManager.deleteHeldOrder(idx); this.openRecallOrderPopup(); } } }
     }
-}
 
     class App {
-      constructor() {
-        this.orderManager = new OrderManager(0.05);
-        this.ui = new UIManager(this.orderManager);
-
-        // Enable adding menu items by clicking cards (already bound in UIManager)
-        // Additional app-wide wiring can go here if needed.
-      }
+        constructor() {
+            const systemSettings = StorageManager.getSystemSettings();
+            this.orderManager = new OrderManager(systemSettings.tax);
+            this.ui = new UIManager(this.orderManager, systemSettings);
+        }
     }
 
-    // Bootstrap
     document.addEventListener('DOMContentLoaded', () => {
-      new App();
+        new App();
     });
   </script>
 </body>
