@@ -561,7 +561,7 @@
         }
         // PASTE THESE TWO NEW FUNCTIONS INSIDE THE UIManager CLASS
 
-        openPlacedOrdersPopup() {
+      openPlacedOrdersPopup() {
             const placedOrders = StorageManager.listPlacedOrders();
             this.recallTitle.innerText = 'Recall a Placed Order';
             this.heldOrdersList.innerHTML = '';
@@ -572,8 +572,9 @@
                 placedOrders.forEach((order) => {
                     const div = document.createElement('div');
                     div.className = 'flex justify-between items-center bg-slate-100 p-3 rounded-lg';
+                    // --- THIS LINE IS UPDATED to show the order number ---
                     div.innerHTML = `
-                        <span class="font-semibold text-slate-800">${order.table}</span>
+                        <span class="font-semibold text-slate-800">${order.table} (Order #${order.orderNumber})</span>
                         <div class="flex gap-2">
                             <button class="load-placed-order bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" data-tableid="${order.table}">Load</button>
                         </div>
@@ -679,7 +680,46 @@
             this.totalSpan.parentElement.innerHTML = `${this.settings.currency}<span id="total">${Math.max(0, totals.total).toFixed(2)}</span>`;
         }
         addItemToOrder(item) { if (!this.order.orderType) { return this.showAlert('Please select "Dine In" or "Take Away" before adding items.', 'Order Type Required'); } this.order.addItem(item); this.renderOrder(); }
-        setOrderType(type, details = null) { this.order.setOrderType(type, details); this.dineInBtn.disabled = true; this.takeAwayBtn.disabled = true; if (type === 'Dine In') { this.orderStatus.textContent = `Order for: Table ${this.order.table}`; this.closeTablePopup(); } else { const taLabel = this.order.table.replace('TA-', ''); this.orderStatus.textContent = `Order for: Take Away #${taLabel}`; } }
+        setOrderType(type, details = null) {
+            const tableId = (type === 'Take Away') ? `TA-${StorageManager.getTakeAwayNumber()}` : details;
+
+            // --- NEW LOGIC STARTS HERE ---
+            const existingOrder = StorageManager.getPlacedOrder(tableId);
+
+            if (existingOrder) {
+                // If an order for this table already exists, load it instead of starting a new one.
+                this.order.items = existingOrder.items || [];
+                this.order.orderType = existingOrder.orderType || null;
+                this.order.table = existingOrder.table || null;
+                this.order.orderNumber = existingOrder.orderNumber || null; // Keep existing order number
+                this.order.discount = existingOrder.discount || { value: 0, type: 'manual' };
+                this.order.serviceCharge = existingOrder.serviceCharge || { value: 0, type: 'manual' };
+
+                // Update UI fields from the loaded order
+                this.discountInput.value = this.order.discount.value;
+                this.discountTypeSelect.value = this.order.discount.type;
+                this.serviceChargeInput.value = this.order.serviceCharge.value;
+                this.serviceChargeTypeSelect.value = this.order.serviceCharge.type;
+                this.renderOrder();
+                
+                this.showAlert(`Loaded existing order for ${tableId}`, 'Order Loaded');
+            } else {
+                // This is a brand new order, so proceed as normal.
+                this.order.setOrderType(type, details);
+            }
+            // --- NEW LOGIC ENDS HERE ---
+
+            // This part remains the same
+            this.dineInBtn.disabled = true;
+            this.takeAwayBtn.disabled = true;
+            if (type === 'Dine In') {
+                this.orderStatus.textContent = `Order for: Table ${this.order.table}`;
+                this.closeTablePopup();
+            } else {
+                const taLabel = this.order.table.replace('TA-', '');
+                this.orderStatus.textContent = `Order for: Take Away #${taLabel}`;
+            }
+        }
         resetOrder() { this.initializeOrderScreen(); }
         showAlert(message, title = 'Notification') { this.modalTitle.textContent = title; this.modalMessage.textContent = message; this.modalOverlay.style.display = 'flex'; }
         hideAlert() { this.modalOverlay.style.display = 'none'; }
