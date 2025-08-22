@@ -422,20 +422,36 @@
                 this.openCashPopup(totals.total);
             } else { this.finalizeSaleAndPrint(); }
         }
-
+// 🔹 Replace this function in UIManager
         handleCashConfirm() {
             const billTotal = parseFloat(this.cashPopup.dataset.total);
             const received = parseFloat(this.cashReceived.value);
-            if (isNaN(received) || received < billTotal) { return this.showAlert("Received amount is invalid or less than the total.", "Payment Error"); }
+
+            if (isNaN(received) || received < billTotal) {
+                return this.showAlert("Received amount is invalid or less than the total.", "Payment Error");
+            }
+            
             this.closeCashPopup();
-            this.finalizeSaleAndPrint();
+            // We now pass the amount received to the final step
+            this.finalizeSaleAndPrint({ cashReceived: received });
         }
 
-        finalizeSaleAndPrint() {
+        // 🔹 Replace this function in UIManager
+        finalizeSaleAndPrint(paymentDetails = {}) {
             const totals = this.order.calculateTotals();
+            let orderData = this.order.toPrintOrder(totals);
+
+            // Add cashier and payment details to the order object before saving
+            orderData.cashier = 'Admin'; // Or get from a logged-in user session
+            if (this.order.paymentMethod === 'Cash' && paymentDetails.cashReceived) {
+                orderData.cashReceived = paymentDetails.cashReceived;
+                orderData.change = paymentDetails.cashReceived - orderData.total;
+            }
+
+            // Save the final, complete order data
             StorageManager.saveSale(this.order.toSaleRecord(totals.subtotal, totals.discount, totals.serviceCharge, totals.tax, totals.total));
-            const orderData = this.order.toPrintOrder(totals);
             StorageManager.setCurrentPrintOrder(orderData);
+            
             window.open(this.settings.printerSize === '57mm' ? 'receipt-57mm.html' : 'receipt-80mm.html', '_blank');
             this.showAlert('Order completed successfully!', 'Success');
             this.resetOrder();
