@@ -192,52 +192,52 @@
   </div>
 
   <!-- App Script -->
-  <script type="module">
-   class StorageManager {
+<script type="module">
+    class StorageManager {
+        // --- Base Helpers ---
         static getJSON(key, fallback) {
             try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
             catch { return fallback; }
         }
         static setJSON(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
 
-        // --- Central settings getter ---
+        // --- System Settings ---
         static getSystemSettings() {
             const defaults = {
-                companyName: 'POS Billing',
-                currency: '₹',
-                tax: '5', // Default 5%
-                discount: '0',
-                printerSize: '80mm',
-                togglePaymentPopup: true,
+                companyName: 'POS Billing', currency: 'Rp', tax: '5',
+                discount: '0', printerSize: '80mm', togglePaymentPopup: true,
                 toggleChangeCalc: true,
             };
             const saved = this.getJSON('systemSettings', {});
             return { ...defaults, ...saved };
         }
 
+        // --- Catalog Data ---
         static getCategories() { return this.getJSON('categories', []); }
         static getItems() { return this.getJSON('items', []); }
         static getTables() { return this.getJSON('tables', []); }
         
+        // --- Take Away Counter ---
         static getTakeAwayNumber() { return parseInt(localStorage.getItem('takeAwayOrderNumber')) || 101; }
         static incrementTakeAwayNumber() {
             const next = this.getTakeAwayNumber() + 1;
-            localStorage.setItem('takeAwayOrderNumber', String(next));
+            this.setJSON('takeAwayOrderNumber', next);
             return next;
         }
 
+        // --- Sales Data ---
         static saveSale(sale) {
             const sales = this.getJSON('sales', []);
             sales.push(sale);
             this.setJSON('sales', sales);
         }
 
+        // --- Held Orders (Manual Save) ---
         static saveHeldOrder(order) {
             const held = this.getJSON('heldOrders', []);
             held.push(order);
             this.setJSON('heldOrders', held);
         }
-
         static listHeldOrders() { return this.getJSON('heldOrders', []); }
         static deleteHeldOrder(index) {
             const held = this.getJSON('heldOrders', []);
@@ -250,11 +250,37 @@
             this.setJSON('heldOrders', held);
             return order;
         }
+        
+        // --- Placed Orders (KOT Save) ---
+        static listPlacedOrders() {
+            return this.getJSON('placedOrders', []);
+        }
+        static savePlacedOrder(orderToSave) {
+            let placedOrders = this.listPlacedOrders();
+            const existingOrderIndex = placedOrders.findIndex(o => o.table === orderToSave.table);
+            if (existingOrderIndex > -1) {
+                placedOrders[existingOrderIndex] = orderToSave;
+            } else {
+                placedOrders.push(orderToSave);
+            }
+            this.setJSON('placedOrders', placedOrders);
+        }
+        static closePlacedOrder(tableId) {
+            let placedOrders = this.listPlacedOrders();
+            const updatedOrders = placedOrders.filter(o => o.table !== tableId);
+            this.setJSON('placedOrders', updatedOrders);
+        }
+        static getPlacedOrder(tableId) {
+            let placedOrders = this.listPlacedOrders();
+            return placedOrders.find(o => o.table === tableId);
+        }
+        
+        // --- Printing ---
         static setCurrentPrintOrder(orderData) { this.setJSON('currentPrintOrder', orderData); }
     }
 
     class OrderManager {
-        constructor(taxRate = 5) { // Default to 5 if nothing is passed
+        constructor(taxRate = 5) {
             this.taxRate = parseFloat(taxRate) / 100 || 0;
             this.items = [];
             this.discount = { value: 0, type: 'manual' };
@@ -340,8 +366,9 @@
                 paymentMethod: this.paymentMethod,
                 orderType: this.orderType,
                 table: this.selectedTable,
-                date: new Date().toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta" }), // Indonesian format
+                date: new Date().toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta" }),
                 time: new Date().toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta" }),
+                orderId: Date.now()
             };
         }
     }
@@ -350,11 +377,9 @@
         constructor(orderManager, settings) {
             this.order = orderManager;
             this.settings = settings;
-
             this.categories = StorageManager.getCategories();
             this.allItems = StorageManager.getItems();
             this.currentCategory = this.categories.length ? this.categories[0].name : '';
-
             this.cacheDOM();
             this.bindGlobalEvents();
             this.initScreen();
@@ -382,6 +407,7 @@
             this.dineInBtn = document.getElementById('dineInBtn');
             this.takeAwayBtn = document.getElementById('takeAwayBtn');
             this.savedOrdersBtn = document.getElementById('savedOrdersBtn');
+            this.placedOrdersBtn = document.getElementById('placedOrdersBtn');
             this.modalOverlay = document.getElementById('modalOverlay');
             this.modalTitle = document.getElementById('modalTitle');
             this.modalMessage = document.getElementById('modalMessage');
@@ -404,60 +430,10 @@
             this.saveConfirmBtn = document.getElementById('saveConfirmBtn');
             this.recallOrderPopup = document.getElementById('recallOrderPopup');
             this.heldOrdersList = document.getElementById('heldOrdersList');
+            this.recallTitle = document.getElementById('recallTitle');
             this.recallCloseBtn = document.getElementById('recallCloseBtn');
         }
 
-        handlePrintBill() {
-            if (!this.order.items.length) { return this.showAlert('Cannot process an empty order.', 'Error'); }
-            const paymentPopupEnabled = this.settings.togglePaymentPopup === true;
-            if (paymentPopupEnabled) { this.openPaymentPopup(); } 
-            else { this.order.paymentMethod = 'Cash'; this.finalizeSaleAndPrint(); }
-        }
-        
-        confirmPayment(method) {
-            this.order.paymentMethod = method;
-            this.closePaymentPopup();
-            const changeCalcEnabled = this.settings.toggleChangeCalc === true;
-            if (method === "Cash" && changeCalcEnabled) {
-                const totals = this.order.calculateTotals();
-                this.openCashPopup(totals.total);
-            } else { this.finalizeSaleAndPrint(); }
-        }
-// 🔹 Replace this function in UIManager
-        handleCashConfirm() {
-            const billTotal = parseFloat(this.cashPopup.dataset.total);
-            const received = parseFloat(this.cashReceived.value);
-
-            if (isNaN(received) || received < billTotal) {
-                return this.showAlert("Received amount is invalid or less than the total.", "Payment Error");
-            }
-            
-            this.closeCashPopup();
-            // We now pass the amount received to the final step
-            this.finalizeSaleAndPrint({ cashReceived: received });
-        }
-
-        // 🔹 Replace this function in UIManager
-        finalizeSaleAndPrint(paymentDetails = {}) {
-            const totals = this.order.calculateTotals();
-            let orderData = this.order.toPrintOrder(totals);
-
-            // Add cashier and payment details to the order object before saving
-            orderData.cashier = 'Admin'; // Or get from a logged-in user session
-            if (this.order.paymentMethod === 'Cash' && paymentDetails.cashReceived) {
-                orderData.cashReceived = paymentDetails.cashReceived;
-                orderData.change = paymentDetails.cashReceived - orderData.total;
-            }
-
-            // Save the final, complete order data
-            StorageManager.saveSale(this.order.toSaleRecord(totals.subtotal, totals.discount, totals.serviceCharge, totals.tax, totals.total));
-            StorageManager.setCurrentPrintOrder(orderData);
-            
-            window.open(this.settings.printerSize === '57mm' ? 'receipt-57mm.html' : 'receipt-80mm.html', '_blank');
-            this.showAlert('Order completed successfully!', 'Success');
-            this.resetOrder();
-        }
-        
         bindGlobalEvents() {
             this.itemSearchInput.addEventListener('input', () => this.renderItems());
             this.dineInBtn.addEventListener('click', () => this.openTablePopup());
@@ -467,6 +443,7 @@
             this.saveOrderBtn.addEventListener('click', () => this.openSaveOrderPopup());
             this.printBillBtn.addEventListener('click', () => this.handlePrintBill());
             this.savedOrdersBtn.addEventListener('click', () => this.openRecallOrderPopup());
+            this.placedOrdersBtn.addEventListener('click', () => this.openPlacedOrdersPopup());
             [this.discountInput, this.discountTypeSelect, this.serviceChargeInput, this.serviceChargeTypeSelect].forEach(el => el.addEventListener('input', () => this.updateTotalsFromInputs()));
             this.modalCloseBtn.addEventListener('click', () => this.hideAlert());
             this.cashConfirmBtn.addEventListener("click", () => this.handleCashConfirm());
@@ -498,6 +475,7 @@
                     this.renderOrder();
                 }
             });
+            this.heldOrdersList.addEventListener('click', (e) => this.handleRecallPopupClicks(e));
         }
 
         initScreen() {
@@ -514,35 +492,94 @@
             this.discountInput.value = this.settings.discount || 0;
             this.order.discount.value = this.settings.discount || 0;
             this.serviceChargeInput.value = 0;
-            this.discountTypeSelect.value = 'percentage'; // Set default to percentage
+            this.discountTypeSelect.value = 'percentage';
             this.order.discount.type = 'percentage';
             this.serviceChargeTypeSelect.value = 'manual';
             this.dineInBtn.disabled = false;
             this.takeAwayBtn.disabled = false;
             this.renderOrder();
         }
-
-        renderCategories() {
-            this.categoryButtonsDiv.innerHTML = '';
-            this.categories.forEach(cat => {
-                const btn = document.createElement('button');
-                btn.textContent = cat.name;
-                btn.className = `w-full text-left py-3 px-4 mb-2 font-bold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105 focus:outline-none ${cat.name === this.currentCategory ? 'bg-indigo-600 text-white scale-105 shadow-lg' : 'bg-white text-slate-700 hover:bg-indigo-100'}`;
-                btn.addEventListener('click', () => {
-                    this.currentCategory = cat.name;
-                    this.renderCategories();
-                    this.renderItems();
-                });
-                this.categoryButtonsDiv.appendChild(btn);
-            });
-            const dashboardBtn = document.createElement('button');
-            dashboardBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i> Dashboard';
-            dashboardBtn.className = 'mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105';
-            dashboardBtn.addEventListener('click', () => (window.location.href = 'dashboard.html'));
-            this.categoryButtonsDiv.appendChild(dashboardBtn);
+        
+        placeOrder() {
+            if (!this.order.items.length) return this.showAlert('No items in order!', 'Error');
+            if (!this.order.table) return this.showAlert('No table or Take Away # selected.', 'Error');
+            const currentOrderState = {
+                ...this.order,
+                discount: { value: this.discountInput.value, type: this.discountTypeSelect.value },
+                serviceCharge: { value: this.serviceChargeInput.value, type: this.serviceChargeTypeSelect.value },
+            };
+            StorageManager.savePlacedOrder(currentOrderState);
+            StorageManager.setCurrentPrintOrder(this.order.toPrintOrder(this.order.calculateTotals()));
+            window.open('kot.html', '_blank');
+            this.showAlert(`Order for ${this.order.table} sent to kitchen!`, 'Success');
+            this.resetOrder();
         }
 
-        renderItems() {
+        handlePrintBill() {
+            if (!this.order.items.length) { return this.showAlert('Cannot process an empty order.', 'Error'); }
+            const paymentPopupEnabled = this.settings.togglePaymentPopup === true;
+            if (paymentPopupEnabled) { this.openPaymentPopup(); } 
+            else { this.order.paymentMethod = 'Cash'; this.finalizeSaleAndPrint(); }
+        }
+        
+        confirmPayment(method) {
+            this.order.paymentMethod = method;
+            this.closePaymentPopup();
+            const changeCalcEnabled = this.settings.toggleChangeCalc === true;
+            if (method === "Cash" && changeCalcEnabled) {
+                const totals = this.order.calculateTotals();
+                this.openCashPopup(totals.total);
+            } else { this.finalizeSaleAndPrint(); }
+        }
+
+        handleCashConfirm() {
+            const billTotal = parseFloat(this.cashPopup.dataset.total);
+            const received = parseFloat(this.cashReceived.value);
+            if (isNaN(received) || received < billTotal) {
+                return this.showAlert("Received amount is invalid or less than the total.", "Payment Error");
+            }
+            this.closeCashPopup();
+            this.finalizeSaleAndPrint({ cashReceived: received });
+        }
+        
+        finalizeSaleAndPrint(paymentDetails = {}) {
+            const totals = this.order.calculateTotals();
+            let orderData = this.order.toPrintOrder(totals);
+            orderData.cashier = 'Admin';
+            if (this.order.paymentMethod === 'Cash' && paymentDetails.cashReceived) {
+                orderData.cashReceived = paymentDetails.cashReceived;
+                orderData.change = paymentDetails.cashReceived - orderData.total;
+            }
+            StorageManager.saveSale(this.order.toSaleRecord(totals.subtotal, totals.discount, totals.serviceCharge, totals.tax, totals.total));
+            StorageManager.setCurrentPrintOrder(orderData);
+            if (this.order.table) { // Only close if it was a placed order
+                StorageManager.closePlacedOrder(this.order.table);
+            }
+            window.open(this.settings.printerSize === '57mm' ? 'receipt-57mm.html' : 'receipt-80mm.html', '_blank');
+            this.showAlert('Order completed successfully!', 'Success');
+            this.resetOrder();
+        }
+
+        renderCategories() { /* Your existing function here */
+             this.categoryButtonsDiv.innerHTML = '';
+             this.categories.forEach(cat => {
+                 const btn = document.createElement('button');
+                 btn.textContent = cat.name;
+                 btn.className = `w-full text-left py-3 px-4 mb-2 font-bold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105 focus:outline-none ${cat.name === this.currentCategory ? 'bg-indigo-600 text-white scale-105 shadow-lg' : 'bg-white text-slate-700 hover:bg-indigo-100'}`;
+                 btn.addEventListener('click', () => {
+                     this.currentCategory = cat.name;
+                     this.renderCategories();
+                     this.renderItems();
+                 });
+                 this.categoryButtonsDiv.appendChild(btn);
+             });
+             const dashboardBtn = document.createElement('button');
+             dashboardBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i> Dashboard';
+             dashboardBtn.className = 'mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105';
+             dashboardBtn.addEventListener('click', () => (window.location.href = 'dashboard.html'));
+             this.categoryButtonsDiv.appendChild(dashboardBtn);
+        }
+        renderItems() { /* Your existing function here */
             let itemsToDisplay = [...this.allItems];
             const q = (this.itemSearchInput.value || '').toLowerCase();
             if (q) itemsToDisplay = itemsToDisplay.filter(i => (i.name || '').toLowerCase().includes(q));
@@ -558,16 +595,12 @@
                 card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 transform hover:scale-105 cursor-pointer flex flex-col items-center justify-between text-center aspect-square';
                 const img = item.image || 'https://placehold.co/400x300?text=No+Image';
                 card.title = `${item.name}\nPrice: ${this.settings.currency}${item.sales}`;
-                card.innerHTML = `
-                    <img src="${img}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2">
-                    <div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div>
-                    <div class="font-semibold text-green-600 text-lg mt-auto">${this.settings.currency}${parseFloat(item.sales || 0).toFixed(2)}</div>`;
+                card.innerHTML = `<img src="${img}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2"><div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div><div class="font-semibold text-green-600 text-lg mt-auto">${this.settings.currency}${parseFloat(item.sales || 0).toFixed(2)}</div>`;
                 card.addEventListener('click', () => this.addItemToOrder(item));
                 this.itemsListDiv.appendChild(card);
             });
         }
-
-        renderOrder() {
+        renderOrder() { /* Your existing function here */
             this.orderItemsDiv.innerHTML = '';
             if (!this.order.items.length) {
                 this.orderItemsDiv.innerHTML = '<div class="text-slate-500 text-center py-4">No items added yet.</div>';
@@ -577,37 +610,25 @@
                     const uniqueId = item.id ?? item.name;
                     const div = document.createElement('div');
                     div.className = 'flex items-center justify-between bg-slate-50 rounded-lg p-3 mb-2 shadow-sm';
-                    div.innerHTML = `
-                        <div class="flex-1"><span class="font-semibold text-slate-800">${item.name}</span></div>
-                        <div class="flex items-center gap-2">
-                            <button data-id="${uniqueId}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">-</button>
-                            <span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span>
-                            <button data-id="${uniqueId}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">+</button>
-                            <span class="font-semibold text-green-600 w-20 text-right">${this.settings.currency}${itemTotal.toFixed(2)}</span>
-                            <button data-id="${uniqueId}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110" aria-label="Remove ${item.name}">×</button>
-                        </div>`;
+                    div.innerHTML = `<div class="flex-1"><span class="font-semibold text-slate-800">${item.name}</span></div><div class="flex items-center gap-2"><button data-id="${uniqueId}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">-</button><span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span><button data-id="${uniqueId}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">+</button><span class="font-semibold text-green-600 w-20 text-right">${this.settings.currency}${itemTotal.toFixed(2)}</span><button data-id="${uniqueId}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110" aria-label="Remove ${item.name}">×</button></div>`;
                     this.orderItemsDiv.appendChild(div);
                 });
             }
             this.updateTotalsUI();
         }
-        
-        updateTotalsFromInputs() {
+        updateTotalsFromInputs() { /* Your existing function here */
             this.order.discount = { value: parseFloat(this.discountInput.value) || 0, type: this.discountTypeSelect.value };
             this.order.serviceCharge = { value: parseFloat(this.serviceChargeInput.value) || 0, type: this.serviceChargeTypeSelect.value };
             this.updateTotalsUI();
         }
-
-        updateTotalsUI() {
+        updateTotalsUI() { /* Your existing function here */
             const totals = this.order.calculateTotals();
             this.subtotalSpan.parentElement.innerHTML = `${this.settings.currency}<span id="subtotal">${totals.subtotal.toFixed(2)}</span>`;
             this.taxSpan.parentElement.innerHTML = `${this.settings.currency}<span id="tax">${totals.tax.toFixed(2)}</span>`;
             this.totalSpan.parentElement.innerHTML = `${this.settings.currency}<span id="total">${Math.max(0, totals.total).toFixed(2)}</span>`;
         }
-        
         addItemToOrder(item) { if (!this.order.orderType) { return this.showAlert('Please select "Dine In" or "Take Away" before adding items.', 'Order Type Required'); } this.order.addItem(item); this.renderOrder(); }
         setOrderType(type, details = null) { this.order.setOrderType(type, details); this.dineInBtn.disabled = true; this.takeAwayBtn.disabled = true; if (type === 'Dine In') { this.orderStatus.textContent = `Order for: Table ${this.order.selectedTable}`; this.closeTablePopup(); } else { const taLabel = this.order.selectedTable.replace('TA-', ''); this.orderStatus.textContent = `Order for: Take Away #${taLabel}`; } }
-        placeOrder() { if (!this.order.items.length) return this.showAlert('No items in order!', 'Error'); StorageManager.setCurrentPrintOrder(this.order.toPrintOrder(this.order.calculateTotals())); window.open('kot.html', '_blank'); this.showAlert('Order placed and KOT sent to kitchen!', 'Success'); }
         resetOrder() { this.initializeOrderScreen(); }
         showAlert(message, title = 'Notification') { this.modalTitle.textContent = title; this.modalMessage.textContent = message; this.modalOverlay.style.display = 'flex'; }
         hideAlert() { this.modalOverlay.style.display = 'none'; }
@@ -620,9 +641,56 @@
         openSaveOrderPopup() { if (!this.order.items.length) return this.showAlert('Cannot save an empty order.', 'Error'); this.saveOrderName.value = ''; this.saveOrderPopup.style.display = 'flex'; }
         closeSaveOrderPopup() { this.saveOrderPopup.style.display = 'none'; }
         handleSaveOrder() { const name = (this.saveOrderName.value || '').trim(); if (!name) return this.showAlert('Please enter a name.', 'Name Required'); StorageManager.saveHeldOrder({ name, items: this.order.items, orderType: this.order.orderType, table: this.order.selectedTable, discount: String(this.discountInput.value || '0'), serviceCharge: String(this.serviceChargeInput.value || '0'), discountType: this.discountTypeSelect.value, serviceChargeType: this.serviceChargeTypeSelect.value, timestamp: new Date().toISOString() }); this.closeSaveOrderPopup(); this.showAlert(`Order "${name}" saved.`, 'Success'); this.resetOrder(); }
-        openRecallOrderPopup() { const held = StorageManager.listHeldOrders(); this.heldOrdersList.innerHTML = ''; if (!held.length) { this.heldOrdersList.innerHTML = '<p class="text-slate-500 text-center p-4">No orders are on hold.</p>'; } else { held.forEach((order, index) => { const div = document.createElement('div'); div.className = 'flex justify-between items-center bg-slate-100 p-3 rounded-lg'; div.innerHTML = `<span class="font-semibold text-slate-800">${order.name}</span><div class="flex gap-2"><button class="load-held bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" data-index="${index}">Load</button><button class="delete-held bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600" data-index="${index}">Delete</button></div>`; this.heldOrdersList.appendChild(div); }); } this.recallOrderPopup.style.display = 'flex'; }
+        
+        openRecallOrderPopup() {
+            const held = StorageManager.listHeldOrders();
+            this.recallTitle.innerText = 'Recall a Saved Order';
+            this.heldOrdersList.innerHTML = '';
+            if (!held.length) {
+                this.heldOrdersList.innerHTML = '<p class="text-slate-500 text-center p-4">No orders are on hold.</p>';
+            } else {
+                held.forEach((order, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center bg-slate-100 p-3 rounded-lg';
+                    div.innerHTML = `<span class="font-semibold text-slate-800">${order.name}</span><div class="flex gap-2"><button class="load-held bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" data-index="${index}">Load</button><button class="delete-held bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600" data-index="${index}">Delete</button></div>`;
+                    this.heldOrdersList.appendChild(div);
+                });
+            }
+            this.recallOrderPopup.style.display = 'flex';
+        }
         closeRecallOrderPopup() { this.recallOrderPopup.style.display = 'none'; }
-        handleHeldOrdersClick(e) { const loadBtn = e.target.closest('.load-held'); const delBtn = e.target.closest('.delete-held'); if (loadBtn) { const idx = parseInt(loadBtn.dataset.index); const order = StorageManager.popHeldOrder(idx); if (order) { this.order.items = order.items || []; this.order.orderType = order.orderType || null; this.order.selectedTable = order.table || null; this.discountInput.value = order.discount || 0; this.serviceChargeInput.value = order.serviceCharge || 0; if (order.discountType) this.discountTypeSelect.value = order.discountType; if (order.serviceChargeType) this.serviceChargeTypeSelect.value = order.serviceChargeType; if (this.order.orderType === 'Dine In') this.setOrderType('Dine In', this.order.selectedTable); else if (this.order.orderType === 'Take Away') this.setOrderType('Take Away'); this.renderOrder(); this.closeRecallOrderPopup(); } } else if (delBtn) { const idx = parseInt(delBtn.dataset.index); if (confirm('Delete this held order?')) { StorageManager.deleteHeldOrder(idx); this.openRecallOrderPopup(); } } }
+        
+        handleRecallPopupClicks(e) {
+            if (e.target.closest('.load-placed-order')) {
+                this.handlePlacedOrdersClick(e);
+                return;
+            }
+            const loadBtn = e.target.closest('.load-held');
+            const delBtn = e.target.closest('.delete-held');
+            if (loadBtn) {
+                const idx = parseInt(loadBtn.dataset.index);
+                const order = StorageManager.popHeldOrder(idx);
+                if (order) {
+                    this.order.items = order.items || [];
+                    this.order.orderType = order.orderType || null;
+                    this.order.selectedTable = order.table || null;
+                    this.discountInput.value = order.discount || 0;
+                    this.serviceChargeInput.value = order.serviceCharge || 0;
+                    if (order.discountType) this.discountTypeSelect.value = order.discountType;
+                    if (order.serviceChargeType) this.serviceChargeTypeSelect.value = order.serviceChargeType;
+                    if (this.order.orderType === 'Dine In') this.setOrderType('Dine In', this.order.selectedTable);
+                    else if (this.order.orderType === 'Take Away') this.setOrderType('Take Away');
+                    this.renderOrder();
+                    this.closeRecallOrderPopup();
+                }
+            } else if (delBtn) {
+                const idx = parseInt(delBtn.dataset.index);
+                if (confirm('Delete this saved order?')) {
+                    StorageManager.deleteHeldOrder(idx);
+                    this.openRecallOrderPopup();
+                }
+            }
+        }
     }
 
     class App {
@@ -632,10 +700,9 @@
             this.ui = new UIManager(this.orderManager, systemSettings);
         }
     }
-
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener("DOMContentLoaded", () => {
         new App();
     });
-  </script>
+</script>
 </body>
 </html>
