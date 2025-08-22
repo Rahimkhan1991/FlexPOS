@@ -1,153 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Receipt 57mm</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-<style>
-    body { font-family: monospace; text-align: center; }
-    .receipt { 
-        display: inline-block; 
-        text-align: left; 
-        border: 1px dashed #000; 
-        padding: 4px; 
-        width: 160px;   /* 🔥 narrower for 57mm */
-    }
-    table { width: 100%; border-collapse: collapse; font-size: 11px; }
-    th, td { padding: 1px 0; }
-    th { border-bottom: 1px dashed #000; }
-    .right { text-align: right; }
-    .center { text-align: center; }
-    .qr { margin-top: 4px; text-align: center; }
-    .footer { margin-top: 4px; font-size: 9px; text-align: center; }
-    .logo { max-width: 120px; max-height: 50px; display: block; margin: 0 auto 4px; object-fit: contain; }
-    .charges { display: flex; justify-content: space-between; font-size: 11px; }
-    .charges .label { text-align: left; }
-    .charges .amount { text-align: right; }
-    .separator { border-top: 1px dashed #000; margin: 4px 0; }
-</style>
+    <meta charset="UTF-8">
+    <title>Receipt - 57mm</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            width: 195px;
+            margin: 0 auto;
+            color: #000;
+        }
+        .receipt-container { padding: 8px 6px; }
+        .header { text-align: center; margin-bottom: 5px; }
+        .logo {
+            max-width: 120px;
+            max-height: 60px;
+            display: block;
+            margin: 0 auto 4px;
+        }
+        .shop-name { font-size: 13px; font-weight: bold; }
+        .info {
+            font-size: 9px;
+            border-top: 1px dashed #000;
+            border-bottom: 1px dashed #000;
+            padding: 3px 0;
+            margin-bottom: 5px;
+        }
+        .info-line { display: flex; justify-content: space-between; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px;
+        }
+        thead th { border-bottom: 1px dashed #000; text-align: left; }
+        th, td { padding: 1px 0; vertical-align: top; }
+        .col-item { width: 50%; }
+        .col-qty { width: 15%; text-align: center; }
+        .col-total { width: 35%; text-align: right; }
+        .totals { margin-top: 5px; border-top: 1px dashed #000; padding-top: 3px; font-size: 10px; }
+        .totals .line { display: flex; justify-content: space-between; }
+        .grand-total { font-weight: bold; font-size: 13px; }
+        .footer { margin-top: 5px; text-align: center; font-size: 9px; }
+    </style>
 </head>
 <body>
 
-<div class="receipt" id="receipt">
-    <img id="shopLogo" class="logo" src="" alt="Logo">
-    <div class="center"><strong id="shopName">My Shop Name</strong></div>
-    <div class="center" id="shopAddress">Jalan Merdeka No.21</div>
-    <div class="center" id="shopPhone"></div>
-    <hr>
-    <div>Cashier: <span id="cashier"></span></div>
-    <div>Invoice: <span id="receiptNo"></span></div>
-    <div>Date & Time: <span id="dateTime"></span></div>
-    <hr>
+<div class="receipt-container">
+    <div class="header">
+        <img id="logo" class="logo" alt="logo" style="display: none;">
+        <div id="companyName" class="shop-name"></div>
+        <div id="address"></div>
+        <div id="phone"></div>
+    </div>
+
+    <div class="info">
+        <div class="info-line"><span>Invoice:</span><span id="receiptNo"></span></div>
+        <div class="info-line"><span>Date:</span><span id="date"></span></div>
+        <div class="info-line"><span>Ref:</span><span id="table"></span></div>
+    </div>
+
     <table>
         <thead>
             <tr>
-                <th style="text-align:left;">Item</th>
-                <th class="center">Qty</th>
-                <th class="right">Total</th>
+                <th class="col-item">Item</th>
+                <th class="col-qty">Qty</th>
+                <th class="col-total">Total</th>
             </tr>
         </thead>
-        <tbody id="receiptItems"></tbody>
+        <tbody id="items"></tbody>
     </table>
-    <hr>
-    <div class="charges"><span class="label">Subtotal:</span> <span class="amount" id="subTotal"></span></div>
-    <div class="charges"><span class="label">Tax:</span> <span class="amount" id="tax"></span></div>
-    <div class="charges"><span class="label">Service:</span> <span class="amount" id="serviceCharge"></span></div>
-    <div class="charges"><span class="label">Discount:</span> <span class="amount" id="discount"></span></div>
-    <div class="separator"></div>
-    <div class="charges"><strong class="label">Total:</strong> <strong class="amount" id="totalAmount"></strong></div>
-    <div class="separator"></div>
-    <div class="charges"><span class="label">Cash:</span> <span class="amount" id="cashReceived"></span></div>
-    <div class="charges"><span class="label">Change:</span> <span class="amount" id="change"></span></div>
-    <hr>
-    <div class="center" id="footerText">Thank you for visiting!</div>
-</div>
 
-<div class="qr">
-    <canvas id="qrcode"></canvas>
-    <div id="qrAmount"></div>
-    <div style="font-size:10px;">Linked to QRIS (BRI)</div>
-</div>
+    <div class="totals">
+        <div class="line"><span>Subtotal</span><span id="subtotal"></span></div>
+        <div class="line"><span>Discount</span><span id="discount"></span></div>
+        <div class="line" id="serviceChargeLine" style="display: none;"><span>Service</span><span id="serviceCharge"></span></div>
+        <div class="line"><span>Tax</span><span id="tax"></span></div>
+        <div class="line grand-total"><span>TOTAL</span><span id="total"></span></div>
+        <div id="paymentDetails" style="border-top: 1px dashed #000; margin-top: 3px; padding-top: 3px;">
+             <div class="line"><span>Paid by</span><span id="paymentMethod"></span></div>
+             <div class="line" id="cashReceivedLine"><span>Cash</span><span id="cashReceived"></span></div>
+             <div class="line" id="changeLine"><span>Change</span><span id="change"></span></div>
+        </div>
+    </div>
 
-<div class="footer">
-    Powered by MyShop Billing System
+    <div class="footer">
+        <p id="footerText"></p>
+        <p>Thank you!</p>
+    </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- Get Data from localStorage ---
-        const orderData = JSON.parse(localStorage.getItem('currentPrintOrder')) || {};
-        const shopName = localStorage.getItem('shopName') || 'My Shop Name';
-        const shopAddress = localStorage.getItem('shopAddress') || 'Shop Address Here';
-        const shopPhone = localStorage.getItem('shopPhone') || '';
-        const footerText = localStorage.getItem('footerText') || 'Thank you for visiting!';
-        const logoSrc = localStorage.getItem('shopLogo');
+document.addEventListener('DOMContentLoaded', () => {
+    const settings = JSON.parse(localStorage.getItem('systemSettings')) || {};
+    const order = JSON.parse(localStorage.getItem('currentPrintOrder')) || {};
 
-        // --- Populate Shop Info ---
-        document.getElementById('shopName').innerText = shopName;
-        document.getElementById('shopAddress').innerText = shopAddress;
-        document.getElementById('shopPhone').innerText = shopPhone;
-        document.getElementById('footerText').innerText = footerText;
-        if (logoSrc) document.getElementById('shopLogo').src = logoSrc;
+    const currency = settings.currency || 'Rp';
 
-        // --- Populate Order Info ---
-        document.getElementById('cashier').innerText = orderData.cashier || 'Cashier';
-        document.getElementById('receiptNo').innerText = orderData.orderId || new Date().getTime();
-        document.getElementById('dateTime').innerText = `${orderData.date || ''} ${orderData.time || ''}`;
+    // Populate Company Info
+    if (settings.logo) {
+        document.getElementById('logo').src = settings.logo;
+        document.getElementById('logo').style.display = 'block';
+    }
+    document.getElementById('companyName').innerText = settings.companyName || '';
+    document.getElementById('address').innerText = settings.address || '';
+    document.getElementById('phone').innerText = settings.phoneNumber || '';
+    document.getElementById('footerText').innerText = settings.footerText || '';
 
-        // --- Populate Items Table ---
-        const receiptItems = document.getElementById('receiptItems');
-        receiptItems.innerHTML = '';
-        if (orderData.items && orderData.items.length > 0) {
-            orderData.items.forEach(item => {
-                // ✅ FIX: Use item.sales, not item.price
-                const price = parseFloat(item.sales) || 0;
-                const qty = item.qty || 0;
-                const total = price * qty;
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td style="text-align:left;">${item.name}</td>
-                    <td class="center">${qty}</td>
-                    <td class="right">${total.toFixed(2)}</td>
-                `;
-                receiptItems.appendChild(row);
-            });
-        }
-        
-        // --- Populate Totals ---
-        // ✅ FIX: Use the totals directly from orderData, don't recalculate
-        const subTotal = parseFloat(orderData.subtotal) || 0;
-        const tax = parseFloat(orderData.tax) || 0;
-        const serviceCharge = parseFloat(orderData.serviceCharge) || 0;
-        const discount = parseFloat(orderData.discount) || 0;
-        const totalAmount = parseFloat(orderData.total) || 0;
-
-        document.getElementById('subTotal').innerText = subTotal.toFixed(2);
-        document.getElementById('tax').innerText = tax.toFixed(2);
-        document.getElementById('serviceCharge').innerText = serviceCharge.toFixed(2);
-        document.getElementById('discount').innerText = `-${discount.toFixed(2)}`;
-        document.getElementById('totalAmount').innerText = totalAmount.toFixed(2);
-
-        // --- Handle Cash/Change Display ---
-        if (orderData.paymentMethod === 'Cash') {
-            const cashReceived = totalAmount; 
-            const change = cashReceived - totalAmount;
-            document.getElementById('cashReceived').innerText = cashReceived.toFixed(2);
-            document.getElementById('change').innerText = change.toFixed(2);
-        } else {
-            document.getElementById('cashReceived').closest('.charges').style.display = 'none';
-            document.getElementById('change').closest('.charges').style.display = 'none';
-        }
-        
-        // --- (Your QR Code logic can stay here if needed) ---
-        
-        // ⭐ NEW: Auto-print when the page loads
-        window.print();
+    // Populate Order Info
+    document.getElementById('receiptNo').innerText = order.orderId || '';
+    document.getElementById('date').innerText = `${order.date || ''} ${order.time || ''}`;
+    document.getElementById('table').innerText = order.table || 'N/A';
+    
+    // Populate Items
+    const itemsContainer = document.getElementById('items');
+    itemsContainer.innerHTML = '';
+    order.items?.forEach(item => {
+        const itemTotal = (parseFloat(item.sales) * item.qty).toFixed(2);
+        const row = `
+            <tr>
+                <td class="col-item" colspan="3">${item.name}</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="col-qty">${item.qty} x ${parseFloat(item.sales).toFixed(2)}</td>
+                <td class="col-total">${itemTotal}</td>
+            </tr>`;
+        itemsContainer.innerHTML += row;
     });
+
+    // Populate Totals
+    document.getElementById('subtotal').innerText = `${currency} ${parseFloat(order.subtotal || 0).toFixed(2)}`;
+    document.getElementById('discount').innerText = `- ${currency} ${parseFloat(order.discount || 0).toFixed(2)}`;
+    document.getElementById('tax').innerText = `${currency} ${parseFloat(order.tax || 0).toFixed(2)}`;
+    document.getElementById('total').innerText = `${currency} ${parseFloat(order.total || 0).toFixed(2)}`;
+    
+    const serviceCharge = parseFloat(order.serviceCharge || 0);
+    if (serviceCharge > 0) {
+        document.getElementById('serviceCharge').innerText = `${currency} ${serviceCharge.toFixed(2)}`;
+        document.getElementById('serviceChargeLine').style.display = 'flex';
+    }
+
+    // Populate Payment Details
+    document.getElementById('paymentMethod').innerText = order.paymentMethod || 'N/A';
+    if (order.paymentMethod === 'Cash' && order.cashReceived) {
+        document.getElementById('cashReceived').innerText = `${currency} ${parseFloat(order.cashReceived).toFixed(2)}`;
+        document.getElementById('change').innerText = `${currency} ${parseFloat(order.change).toFixed(2)}`;
+    } else {
+        document.getElementById('cashReceivedLine').style.display = 'none';
+        document.getElementById('changeLine').style.display = 'none';
+    }
+
+    // Auto Print
+    setTimeout(() => { window.print(); }, 100); // Shorter delay for faster printing
+    window.onafterprint = () => window.close();
+});
 </script>
 
 </body>
 </html>
-003
