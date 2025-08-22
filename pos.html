@@ -559,6 +559,57 @@
             this.showAlert('Order completed successfully!', 'Success');
             this.resetOrder();
         }
+        // PASTE THESE TWO NEW FUNCTIONS INSIDE THE UIManager CLASS
+
+        openPlacedOrdersPopup() {
+            const placedOrders = StorageManager.listPlacedOrders();
+            this.recallTitle.innerText = 'Recall a Placed Order';
+            this.heldOrdersList.innerHTML = '';
+
+            if (!placedOrders.length) {
+                this.heldOrdersList.innerHTML = '<p class="text-slate-500 text-center p-4">No orders have been placed.</p>';
+            } else {
+                placedOrders.forEach((order) => {
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center bg-slate-100 p-3 rounded-lg';
+                    div.innerHTML = `
+                        <span class="font-semibold text-slate-800">${order.table}</span>
+                        <div class="flex gap-2">
+                            <button class="load-placed-order bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" data-tableid="${order.table}">Load</button>
+                        </div>
+                    `;
+                    this.heldOrdersList.appendChild(div);
+                });
+            }
+            this.recallOrderPopup.style.display = 'flex';
+        }
+
+        handlePlacedOrdersClick(e) {
+            const loadBtn = e.target.closest('.load-placed-order');
+            if (loadBtn) {
+                const tableId = loadBtn.dataset.tableid;
+                const orderToLoad = StorageManager.getPlacedOrder(tableId);
+
+                if (orderToLoad) {
+                    this.order.items = orderToLoad.items || [];
+                    this.order.orderType = orderToLoad.orderType || null;
+                    this.order.table = orderToLoad.table || null;
+                    this.order.discount = orderToLoad.discount || { value: 0, type: 'manual' };
+                    this.order.serviceCharge = orderToLoad.serviceCharge || { value: 0, type: 'manual' };
+                    
+                    this.discountInput.value = this.order.discount.value;
+                    this.discountTypeSelect.value = this.order.discount.type;
+                    this.serviceChargeInput.value = this.order.serviceCharge.value;
+                    this.serviceChargeTypeSelect.value = this.order.serviceCharge.type;
+                    this.orderStatus.textContent = `Editing Order for: ${this.order.table}`;
+                    this.dineInBtn.disabled = true;
+                    this.takeAwayBtn.disabled = true;
+                    
+                    this.renderOrder();
+                    this.closeRecallOrderPopup();
+                }
+            }
+        }
 
         renderCategories() { /* Your existing function here */
              this.categoryButtonsDiv.innerHTML = '';
@@ -660,11 +711,14 @@
         }
         closeRecallOrderPopup() { this.recallOrderPopup.style.display = 'none'; }
         
-        handleRecallPopupClicks(e) {
+       handleRecallPopupClicks(e) {
+            // Check if a "Placed Order" load button was clicked
             if (e.target.closest('.load-placed-order')) {
                 this.handlePlacedOrdersClick(e);
-                return;
+                return; // Stop the function here
             }
+
+            // --- Otherwise, handle the "Saved Order" buttons ---
             const loadBtn = e.target.closest('.load-held');
             const delBtn = e.target.closest('.delete-held');
             if (loadBtn) {
