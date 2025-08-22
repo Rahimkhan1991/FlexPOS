@@ -6,18 +6,37 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
     <style>
         body {
-            font-family: 'Courier New', monospace;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
             width: 283px;
             margin: 0 auto;
             color: #000;
         }
         .receipt-container { padding: 15px 10px; }
         .header { text-align: center; margin-bottom: 10px; }
-        .logo { max-width: 150px; max-height: 80px; margin-bottom: 5px; }
-        .shop-name { font-size: 16px; font-weight: bold; }
-        .info { font-size: 12px; border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 5px 0; margin-bottom: 10px; }
+        .logo {
+            max-width: 150px;
+            max-height: 80px;
+            display: block;
+            margin: 0 auto 5px; /* This centers the logo */
+        }
+        .shop-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .info {
+            font-size: 12px;
+            border-top: 1px dashed #000;
+            border-bottom: 1px dashed #000;
+            padding: 5px 0;
+            margin-bottom: 10px;
+        }
         .info-line { display: flex; justify-content: space-between; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
         thead th { border-bottom: 1px dashed #000; text-align: left; }
         th, td { padding: 2px 0; vertical-align: top; }
         .col-item { width: 45%; }
@@ -25,7 +44,10 @@
         .col-price, .col-total { width: 20%; text-align: right; }
         .totals { margin-top: 10px; border-top: 1px dashed #000; padding-top: 5px; font-size: 13px; }
         .totals .line { display: flex; justify-content: space-between; margin-bottom: 2px; }
-        .grand-total { font-weight: bold; font-size: 16px; }
+        .grand-total {
+            font-weight: bold;
+            font-size: 18px;
+        }
         .footer, .qr-section { margin-top: 10px; text-align: center; font-size: 12px; }
     </style>
 </head>
