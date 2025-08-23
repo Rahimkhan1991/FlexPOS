@@ -288,16 +288,36 @@
             this.paymentMethod = 'Cash';
             this.orderType = null;
             this.table = null;
+            this.orderNumber = null; // <-- ADD THIS
             this.takeAwayOrderNumber = StorageManager.getTakeAwayNumber();
         }
 
         setOrderType(type, details = null) {
-           this.orderType = type;
-           if (type === 'Dine In') {
-           this.table = details;   
-           } else if (type === 'Take Away') {
-           this.table = `TA-${this.takeAwayOrderNumber}`;
-           this.takeAwayOrderNumber = StorageManager.incrementTakeAwayNumber();
+            const tableId = (type === 'Take Away') ? `TA-${StorageManager.getTakeAwayNumber()}` : details;
+            const existingOrder = StorageManager.getPlacedOrder(tableId);
+
+            // Start with a fresh, empty order object for the UI
+            this.order.clear(); 
+            this.initializeOrderScreen();
+
+            // Set the order type and get a number
+            this.order.setOrderType(type, details);
+            
+            if (existingOrder) {
+                // If an order for this table is already open,
+                // we keep its order number for consistency.
+                this.order.orderNumber = existingOrder.orderNumber;
+                this.showAlert(`Adding new items to Order #${this.order.orderNumber} for ${tableId}`, 'Existing Order');
+            }
+            
+            this.dineInBtn.disabled = true;
+            this.takeAwayBtn.disabled = true;
+            if (this.order.orderType === 'Dine In') {
+                this.orderStatus.textContent = `Order #${this.order.orderNumber} for: Table ${this.order.table}`;
+                this.closeTablePopup();
+            } else {
+                const taLabel = this.order.table.replace('TA-', '');
+                this.orderStatus.textContent = `Order #${this.order.orderNumber} for: Take Away #${taLabel}`;
             }
         }
 
@@ -357,15 +377,9 @@
 
         toPrintOrder(totals) {
             return {
-                items: this.items,
-                subtotal: totals.subtotal,
-                discount: this.discount.value,
-                serviceCharge: this.serviceCharge.value,
-                tax: totals.tax,
-                total: totals.total,
-                paymentMethod: this.paymentMethod,
-                orderType: this.orderType,
+                // ... (other properties like items, subtotal, etc.)
                 table: this.table,
+                orderNumber: this.orderNumber, // <-- ADD THIS
                 date: new Date().toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta" }),
                 time: new Date().toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta" }),
                 orderId: Date.now()
@@ -503,14 +517,31 @@
         placeOrder() {
             if (!this.order.items.length) return this.showAlert('No items in order!', 'Error');
             if (!this.order.table) return this.showAlert('No table or Take Away # selected.', 'Error');
-            const currentOrderState = {
-                ...this.order,
-                discount: { value: this.discountInput.value, type: this.discountTypeSelect.value },
-                serviceCharge: { value: this.serviceChargeInput.value, type: this.serviceChargeTypeSelect.value },
-            };
-            StorageManager.savePlacedOrder(currentOrderState);
-            StorageManager.setCurrentPrintOrder(this.order.toPrintOrder(this.order.calculateTotals()));
+
+            // Find if there's an existing order for this table
+            let existingOrder = StorageManager.getPlacedOrder(this.order.table);
+
+            if (existingOrder) {
+                // MERGE: Add new items to the existing item list
+                existingOrder.items.push(...this.order.items);
+                // Update discounts etc. if needed, or keep original
+            } else {
+                // This is the first KOT for this order
+                existingOrder = {
+                    ...this.order,
+                    discount: { value: this.discountInput.value, type: this.discountTypeSelect.value },
+                    serviceCharge: { value: this.serviceChargeInput.value, type: this.serviceChargeTypeSelect.value },
+                };
+            }
+
+            // Save the complete, merged order
+            StorageManager.savePlacedOrder(existingOrder);
+            
+            // IMPORTANT: Only send the NEW items to the kitchen
+            const kotOrder = { ...this.order }; 
+            StorageManager.setCurrentPrintOrder(kotOrder.toPrintOrder(kotOrder.calculateTotals()));
             window.open('kot.html', '_blank');
+
             this.showAlert(`Order for ${this.order.table} sent to kitchen!`, 'Success');
             this.resetOrder();
         }
@@ -572,7 +603,6 @@
                 placedOrders.forEach((order) => {
                     const div = document.createElement('div');
                     div.className = 'flex justify-between items-center bg-slate-100 p-3 rounded-lg';
-                    // --- THIS LINE IS UPDATED to show the order number ---
                     div.innerHTML = `
                         <span class="font-semibold text-slate-800">${order.table} (Order #${order.orderNumber})</span>
                         <div class="flex gap-2">
