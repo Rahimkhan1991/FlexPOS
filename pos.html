@@ -204,6 +204,67 @@
         confirmPayment(method) { this.order.paymentMethod = method; this.closePaymentPopup(); if (method === "Cash" && this.settings.toggleChangeCalc) { const totals = this.order.calculateTotals(); this.openCashPopup(totals.total); } else { this.finalizeSaleAndPrint(); } }
         handleCashConfirm() { const billTotal = parseFloat(this.cashPopup.dataset.total); const received = parseFloat(this.cashReceived.value); if (isNaN(received) || received < billTotal) { return this.showAlert("Received amount is invalid or less than the total.", "Payment Error"); } this.closeCashPopup(); this.finalizeSaleAndPrint({ cashReceived: received }); }
         finalizeSaleAndPrint(paymentDetails = {}) { const totals = this.order.calculateTotals(); let orderData = this.order.toPrintOrder(totals); orderData.cashier = 'Admin'; if (this.order.paymentMethod === 'Cash' && paymentDetails.cashReceived) { orderData.cashReceived = paymentDetails.cashReceived; orderData.change = paymentDetails.cashReceived - orderData.total; } StorageManager.saveSale(this.order.toSaleRecord(totals.subtotal, totals.discount, totals.serviceCharge, totals.tax, totals.total)); StorageManager.setCurrentPrintOrder(orderData); if (this.order.table) { StorageManager.closePlacedOrder(this.order.table); } window.open(this.settings.printerSize === '57mm' ? 'receipt-57mm.html' : 'receipt-80mm.html', '_blank'); this.showAlert('Order completed successfully!', 'Success'); this.resetOrder(); }
+        // PASTE THESE THREE FUNCTIONS INSIDE THE UIManager CLASS
+
+        renderCategories() {
+            this.categoryButtonsDiv.innerHTML = '';
+            this.categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.textContent = cat.name;
+                btn.className = `w-full text-left py-3 px-4 mb-2 font-bold rounded-lg shadow-sm transition-all duration-200 ${cat.name === this.currentCategory ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 hover:bg-indigo-100'}`;
+                btn.addEventListener('click', () => {
+                    this.currentCategory = cat.name;
+                    this.renderCategories();
+                    this.renderItems();
+                });
+                this.categoryButtonsDiv.appendChild(btn);
+            });
+            const dashboardBtn = document.createElement('button');
+            dashboardBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i> Dashboard';
+            dashboardBtn.className = 'mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg';
+            dashboardBtn.addEventListener('click', () => (window.location.href = 'dashboard.html'));
+            this.categoryButtonsDiv.appendChild(dashboardBtn);
+        }
+
+        renderItems() {
+            let itemsToDisplay = this.allItems;
+            const q = this.itemSearchInput.value.toLowerCase();
+            if (q) {
+                itemsToDisplay = this.allItems.filter(i => (i.name || '').toLowerCase().includes(q));
+            } else if (this.currentCategory) {
+                itemsToDisplay = this.allItems.filter(i => i.category === this.currentCategory);
+            }
+            this.itemsListDiv.innerHTML = '';
+            if (!itemsToDisplay.length) {
+                this.itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">No items found.</p>`;
+                return;
+            }
+            itemsToDisplay.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 cursor-pointer flex flex-col text-center aspect-square';
+                const img = item.image || 'https://placehold.co/400x300?text=No+Image';
+                card.innerHTML = `<img src="${img}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2"><div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div><div class="font-semibold text-green-600 text-lg mt-auto">${this.settings.currency}${parseFloat(item.sales || 0).toFixed(2)}</div>`;
+                card.addEventListener('click', () => this.addItemToOrder(item));
+                this.itemsListDiv.appendChild(card);
+            });
+        }
+
+        renderOrder() {
+            this.orderItemsDiv.innerHTML = '';
+            if (!this.order.items.length) {
+                this.orderItemsDiv.innerHTML = '<div class="text-slate-500 text-center py-4">No items added yet.</div>';
+            } else {
+                this.order.items.forEach(item => {
+                    const itemTotal = parseFloat(item.sales || 0) * item.qty;
+                    const uniqueId = item.id ?? item.name;
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between bg-slate-50 rounded-lg p-3 mb-2 shadow-sm';
+                    div.innerHTML = `<div class="flex-1"><span class="font-semibold text-slate-800">${item.name}</span></div><div class="flex items-center gap-2"><button data-id="${uniqueId}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center">-</button><span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span><button data-id="${uniqueId}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center">+</button><span class="font-semibold text-green-600 w-20 text-right">${this.settings.currency}${itemTotal.toFixed(2)}</span><button data-id="${uniqueId}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center" aria-label="Remove ${item.name}">×</button></div>`;
+                    this.orderItemsDiv.appendChild(div);
+                });
+            }
+            this.updateTotalsUI();
+        }
         renderCategories() { this.categoryButtonsDiv.innerHTML = ''; this.categories.forEach(cat => { const btn = document.createElement('button'); btn.textContent = cat.name; btn.className = `w-full text-left py-3 px-4 mb-2 font-bold rounded-lg shadow-sm transition-all duration-200 ${cat.name === this.currentCategory ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 hover:bg-indigo-100'}`; btn.addEventListener('click', () => { this.currentCategory = cat.name; this.renderCategories(); this.renderItems(); }); this.categoryButtonsDiv.appendChild(btn); }); const dashboardBtn = document.createElement('button'); dashboardBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i> Dashboard'; dashboardBtn.className = 'mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg'; dashboardBtn.addEventListener('click', () => (window.location.href = 'dashboard.html')); this.categoryButtonsDiv.appendChild(dashboardBtn); }
         renderItems() { let itemsToDisplay = this.allItems; const q = this.itemSearchInput.value.toLowerCase(); if (q) { itemsToDisplay = this.allItems.filter(i => (i.name || '').toLowerCase().includes(q)); } else if (this.currentCategory) { itemsToDisplay = this.allItems.filter(i => i.category === this.currentCategory); } this.itemsListDiv.innerHTML = ''; if (!itemsToDisplay.length) { this.itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">No items found.</p>`; return; } itemsToDisplay.forEach(item => { const card = document.createElement('div'); card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 cursor-pointer flex flex-col text-center aspect-square'; const img = item.image || 'https://placehold.co/400x300?text=No+Image'; card.innerHTML = `<img src="${img}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2"><div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div><div class="font-semibold text-green-600 text-lg mt-auto">${this.settings.currency}${parseFloat(item.sales || 0).toFixed(2)}</div>`; card.addEventListener('click', () => this.addItemToOrder(item)); this.itemsListDiv.appendChild(card); }); }
         renderOrder() { this.orderItemsDiv.innerHTML = ''; if (!this.order.items.length) { this.orderItemsDiv.innerHTML = '<div class="text-slate-500 text-center py-4">No items added yet.</div>'; } else { this.order.items.forEach(item => { const itemTotal = parseFloat(item.sales || 0) * item.qty; const uniqueId = item.id ?? item.name; const div = document.createElement('div'); div.className = 'flex items-center justify-between bg-slate-50 rounded-lg p-3 mb-2 shadow-sm'; div.innerHTML = `<div class="flex-1"><span class="font-semibold text-slate-800">${item.name}</span></div><div class="flex items-center gap-2"><button data-id="${uniqueId}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center">-</button><span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span><button data-id="${uniqueId}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center">+</button><span class="font-semibold text-green-600 w-20 text-right">${this.settings.currency}${itemTotal.toFixed(2)}</span><button data-id="${uniqueId}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center" aria-label="Remove ${item.name}">×</button></div>`; this.orderItemsDiv.appendChild(div); }); } this.updateTotalsUI(); }
