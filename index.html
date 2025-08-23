@@ -10,31 +10,38 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
   <style>
-    body {
+    /* Reset & consistency */
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
       font-family: 'Inter', sans-serif;
       min-height: 100vh;
       display: flex;
+      flex-direction: row;
     }
 
-    /* Left side (logo/branding) */
-   .left-panel {
-  flex: 1;
-  background: linear-gradient(135deg, #dc5be7c0, #668aecd8); /* teal → dark blue */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  padding: 40px;
-}
-
+    /* Left side (branding) */
+    .left-panel {
+      flex: 1;
+      background: linear-gradient(135deg, #f97316, #0f766e, #6d28d9);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
 
     .left-panel img {
-  width: 1000px;
-  margin-bottom: 5px;
-}
-
+      width: 180px;
+      max-width: 60%;
+      margin-bottom: 20px;
+    }
 
     .left-panel h1 {
       font-family: 'Playfair Display', serif;
@@ -44,10 +51,10 @@
 
     .left-panel p {
       font-size: 1em;
-      opacity: 0.8;
+      opacity: 0.9;
     }
 
-    /* Right side (login form) */
+    /* Right side (login) */
     .right-panel {
       flex: 1;
       background: #f8fafc;
@@ -83,6 +90,7 @@
       border: 1px solid #d1d5db;
       border-radius: 8px;
       font-size: 1em;
+      display: block;
     }
 
     .input-group .icon {
@@ -91,6 +99,7 @@
       top: 50%;
       transform: translateY(-50%);
       color: #9ca3af;
+      font-size: 1.1em;
     }
 
     .btn-login {
@@ -104,6 +113,7 @@
       font-weight: 600;
       cursor: pointer;
       transition: 0.3s;
+      display: block;
     }
 
     .btn-login:hover {
@@ -116,13 +126,32 @@
       text-align: center;
       font-size: 0.9em;
     }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      body {
+        flex-direction: column;
+      }
+
+      .left-panel {
+        padding: 30px 20px;
+      }
+
+      .right-panel {
+        padding: 20px;
+      }
+
+      .login-box {
+        max-width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
 
   <!-- Left Side -->
   <div class="left-panel">
-    <img src="image/logopos.png" alt="POS Logo">
+    
     <h1>BQ POS</h1>
     <p>Bill Quick Point of Sale System</p>
   </div>
@@ -132,14 +161,14 @@
     <div class="login-box">
       <h2>Login</h2>
       <div class="input-group">
-        <input type="text" id="username" placeholder="Username" style="width: 250px;">
+        <input type="text" id="username" placeholder="Username">
         <i class="fas fa-user icon"></i>
       </div>
       <div class="input-group">
-        <input type="password" id="password" placeholder="Password" style="width: 250px;">
+        <input type="password" id="password" placeholder="Password">
         <i class="fas fa-lock icon"></i>
       </div>
-      <button class="btn-login" onclick="login()"style="width: 318px;">Login</button>
+      <button class="btn-login" onclick="login()">Login</button>
       <div id="login-error" class="error-message"></div>
     </div>
   </div>
