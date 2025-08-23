@@ -1,750 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>POS Billing</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2s+lHh1p7n5K24Jq4i+c6A5aJ6K6O4f3T2X6Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; overflow: hidden; }
-    .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 10px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #94a3b8; border-radius: 10px; border: 2px solid #f8fafc; }
-    .grid-container { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(500px, 4fr) minmax(300px, 1.7fr); height: calc(100vh - 8rem); gap: 1.5rem; padding: 1rem; }
-    .section-panel { background-color: #fff; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.5rem; display: flex; flex-direction: column; min-height: 0; }
-    .sidebar { background-color: #eef2ff; }
-    @media (max-width: 1024px) { .grid-container { grid-template-columns: 1fr; grid-template-rows: auto auto auto; height: auto; } }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>POS Billing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2s+lHh1p7n5K24Jq4i+c6A5aJ6K6O4f3T2X6Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; overflow: hidden; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #94a3b8; border-radius: 10px; border: 2px solid #f8fafc; }
+        .grid-container { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(500px, 4fr) minmax(300px, 1.7fr); height: calc(100vh - 8rem); gap: 1.5rem; padding: 1rem; }
+        .section-panel { background-color: #fff; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.5rem; display: flex; flex-direction: column; min-height: 0; }
+        .sidebar { background-color: #eef2ff; }
+        @media (max-width: 1024px) { .grid-container { grid-template-columns: 1fr; grid-template-rows: auto auto auto; height: auto; } }
+    </style>
 </head>
 
 <body class="bg-slate-100">
-  <header class="p-4 bg-white shadow-sm">
-    <div class="flex items-center justify-between">
-      <h1 id="shopNameHeader" class="text-2xl font-bold text-slate-800">POS Billing</h1>
-
-      <div class="relative flex-grow max-w-xl mx-8">
-        <i class="fas fa-search absolute top-1/2 left-4 transform -translate-y-1/2 text-slate-400"></i>
-        <input type="text" id="itemSearch" placeholder="Search items..." class="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-      </div>
-
-      <div class="flex items-center gap-3">
-        <button id="dineInBtn" class="bg-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-blue-600 transition disabled:bg-slate-300 disabled:cursor-not-allowed">Dine In</button>
-        <button id="takeAwayBtn" class="bg-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-green-600 transition disabled:bg-slate-300 disabled:cursor-not-allowed">Take Away</button>
-        <button id="placedOrdersBtn" class="bg-orange-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-orange-600 transition">Placed Orders</button>
-        <button id="savedOrdersBtn" class="bg-yellow-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-yellow-600 transition">Saved Orders</button>
-      </div>
-    </div>
-    <div id="orderStatus" class="text-center font-semibold text-indigo-600 mt-2 h-6"></div>
-  </header>
-
-  <div class="grid-container">
-    <section id="categoryButtons" class="sidebar section-panel"></section>
-
-    <main class="section-panel relative">
-      <h3 class="text-2xl font-bold text-slate-800 mb-4">Menu</h3>
-      <div id="itemsList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-1 overflow-y-auto custom-scrollbar flex-grow"></div>
-    </main>
-
-    <aside class="order-summary section-panel">
-      <h3 class="text-2xl font-bold text-slate-800 mb-4">Order Summary</h3>
-
-      <div class="flex justify-between items-center text-xs font-bold text-slate-500 uppercase px-3 pb-2 border-b border-slate-200">
-        <span class="w-3/6">Item</span>
-        <span class="w-2/6 text-center" style="margin-right: 65px;">Qty</span>
-        <span class="w-1/6 text-right">Total</span>
-      </div>
-
-      <div id="orderItems" class="flex-grow overflow-y-auto custom-scrollbar pt-2">
-        <div class="text-slate-500 text-center py-4">No items added yet.</div>
-      </div>
-
-      <div class="space-y-3 text-slate-700 mt-4">
-        <div class="flex justify-between items-center font-semibold text-lg">
-          <span>Subtotal:</span>
-          <span>₹<span id="subtotal">0.00</span></span>
+    <header class="p-4 bg-white shadow-sm">
+        <div class="flex items-center justify-between">
+            <h1 id="shopNameHeader" class="text-2xl font-bold text-slate-800">POS Billing</h1>
+            <div class="relative flex-grow max-w-xl mx-8">
+                <i class="fas fa-search absolute top-1/2 left-4 transform -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="itemSearch" placeholder="Search items..." class="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="dineInBtn" class="bg-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-blue-600 transition disabled:bg-slate-300 disabled:cursor-not-allowed">Dine In</button>
+                <button id="takeAwayBtn" class="bg-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-green-600 transition disabled:bg-slate-300 disabled:cursor-not-allowed">Take Away</button>
+                <button id="placedOrdersBtn" class="bg-orange-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-orange-600 transition">Placed Orders</button>
+                <button id="savedOrdersBtn" class="bg-yellow-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-yellow-600 transition">Saved Orders</button>
+            </div>
         </div>
-        <div class="flex justify-between items-center text-md">
-          <span>Discount:</span>
-          <div class="flex items-center gap-2">
-            <select id="discountTypeSelect" class="p-1 border border-slate-300 rounded-lg text-sm">
-              <option value="manual">(₹)</option>
-              <option value="percentage">(%)</option>
-            </select>
-            <input type="number" id="discountInput" value="0" min="0" class="w-24 p-1 border border-slate-300 rounded-lg text-right text-sm">
-          </div>
+        <div id="orderStatus" class="text-center font-semibold text-indigo-600 mt-2 h-6"></div>
+    </header>
+
+    <div class="grid-container">
+        <section id="categoryButtons" class="sidebar section-panel"></section>
+
+        <main class="section-panel relative">
+            <h3 class="text-2xl font-bold text-slate-800 mb-4">Menu</h3>
+            <div id="itemsList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-1 overflow-y-auto custom-scrollbar flex-grow"></div>
+        </main>
+
+        <aside class="order-summary section-panel">
+            <h3 class="text-2xl font-bold text-slate-800 mb-4">Order Summary</h3>
+            <div class="flex justify-between items-center text-xs font-bold text-slate-500 uppercase px-3 pb-2 border-b border-slate-200">
+                <span class="w-3/6">Item</span>
+                <span class="w-2/6 text-center" style="margin-right: 65px;">Qty</span>
+                <span class="w-1/6 text-right">Total</span>
+            </div>
+            <div id="orderItems" class="flex-grow overflow-y-auto custom-scrollbar pt-2">
+                <div class="text-slate-500 text-center py-4">No items added yet.</div>
+            </div>
+            <div class="space-y-3 text-slate-700 mt-4">
+                <div class="flex justify-between items-center font-semibold text-lg">
+                    <span>Subtotal:</span>
+                    <span id="subtotalDisplay"></span>
+                </div>
+                <div class="flex justify-between items-center text-md">
+                    <span>Discount:</span>
+                    <div class="flex items-center gap-2">
+                        <select id="discountTypeSelect" class="p-1 border border-slate-300 rounded-lg text-sm">
+                            <option value="percentage">(%)</option>
+                            <option value="manual">(Rp)</option>
+                        </select>
+                        <input type="number" id="discountInput" value="0" min="0" class="w-24 p-1 border border-slate-300 rounded-lg text-right text-sm">
+                    </div>
+                </div>
+                <div class="flex justify-between items-center text-md">
+                    <span>Service Charge:</span>
+                    <div class="flex items-center gap-2">
+                        <select id="serviceChargeTypeSelect" class="p-1 border border-slate-300 rounded-lg text-sm">
+                            <option value="manual">(Rp)</option>
+                            <option value="percentage">(%)</option>
+                        </select>
+                        <input type="number" id="serviceChargeInput" value="0" min="0" class="w-24 p-1 border border-slate-300 rounded-lg text-right text-sm">
+                    </div>
+                </div>
+                <div class="flex justify-between items-center text-md">
+                    <span id="taxLabel">Tax (5%):</span>
+                    <span id="taxDisplay"></span>
+                </div>
+            </div>
+            <div class="border-t border-slate-200 mt-4 pt-4">
+                <div class="flex justify-between items-center font-bold text-2xl text-slate-900">
+                    <span>Total:</span>
+                    <span class="text-green-600" id="totalDisplay"></span>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mt-4">
+                <button id="placeOrderBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md">Place Order & KOT</button>
+                <button id="saveOrderBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg shadow-md">Save</button>
+                <button id="printBillBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg shadow-md">Print Bill</button>
+                <button id="resetOrderBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-md">Clear Order</button>
+            </div>
+        </aside>
+    </div>
+
+    <div id="modalOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-[1000] hidden items-center justify-center">
+        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center">
+            <h4 id="modalTitle" class="text-xl font-bold text-slate-800 mb-2"></h4>
+            <p id="modalMessage" class="text-slate-600 mb-4"></p>
+            <button id="modalCloseBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg">OK</button>
         </div>
-        <div class="flex justify-between items-center text-md">
-          <span>Service Charge:</span>
-          <div class="flex items-center gap-2">
-            <select id="serviceChargeTypeSelect" class="p-1 border border-slate-300 rounded-lg text-sm">
-              <option value="manual">(₹)</option>
-              <option value="percentage">(%)</option>
-            </select>
-            <input type="number" id="serviceChargeInput" value="0" min="0" class="w-24 p-1 border border-slate-300 rounded-lg text-right text-sm">
-          </div>
+    </div>
+    <div id="paymentPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center">
+            <h2 id="paymentTitle" class="text-2xl font-bold text-slate-800 mb-4">Confirm Payment</h2>
+            <div class="flex justify-around gap-4 mb-6">
+                <button id="payCashBtn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md">Cash</button>
+                <button id="payCardBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-md">Card</button>
+            </div>
+            <button id="paymentCancelBtn" class="text-slate-500 hover:text-slate-700 font-semibold">Cancel</button>
         </div>
-        <div class="flex justify-between items-center text-md">
-          <span>Tax (5%):</span>
-          <span>₹<span id="tax">0.00</span></span>
+    </div>
+    <div id="cashPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-30">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center">
+            <h2 id="cashTitle" class="text-2xl font-bold text-slate-800 mb-4">Cash Payment</h2>
+            <input type="number" id="cashReceived" class="w-full p-3 border border-gray-300 rounded-lg mb-4 text-center text-lg font-bold" placeholder="Enter amount">
+            <p id="changeText" class="text-slate-700 font-semibold mb-4"></p>
+            <div class="flex justify-between gap-4">
+                <button id="cashConfirmBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg w-full">Confirm</button>
+                <button id="cashCancelBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full">Cancel</button>
+            </div>
         </div>
-      </div>
-
-      <div class="border-t border-slate-200 mt-4 pt-4">
-        <div class="flex justify-between items-center font-bold text-2xl text-slate-900">
-          <span>Total:</span>
-          <span class="text-green-600">₹<span id="total">0.00</span></span>
+    </div>
+    <div id="tablePopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg text-center">
+            <h2 id="tableTitle" class="text-2xl font-bold text-slate-800 mb-4">Select a Table</h2>
+            <div id="tableGrid" class="grid grid-cols-4 sm:grid-cols-5 gap-4 mb-6"></div>
+            <button id="tableCancelBtn" class="text-slate-500 hover:text-slate-700 font-semibold">Cancel</button>
         </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3 mt-4">
-        <button id="placeOrderBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-          <i class="fas fa-check mr-2"></i> Place Order & KOT
-        </button>
-        <button id="saveOrderBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-          <i class="fas fa-save mr-2"></i> Save
-        </button>
-        <button id="printBillBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-          <i class="fas fa-print mr-2"></i> Print Bill
-        </button>
-        <button id="resetOrderBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-          <i class="fas fa-trash-alt mr-2"></i> Clear Order
-        </button>
-      </div>
-    </aside>
-  </div>
-
-  <!-- Generic Alert Modal -->
-  <div id="modalOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-[1000] hidden items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center">
-      <h4 id="modalTitle" class="text-xl font-bold text-slate-800 mb-2"></h4>
-      <p id="modalMessage" class="text-slate-600 mb-4"></p>
-      <button id="modalCloseBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">OK</button>
     </div>
-  </div>
-
-  <!-- Payment Popup -->
-  <div id="paymentPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center">
-      <h2 id="paymentTitle" class="text-2xl font-bold text-slate-800 mb-4">Confirm Payment</h2>
-      <p class="text-slate-600 mb-6">Select the payment method to finalize the bill.</p>
-      <div class="flex justify-around gap-4 mb-6">
-        <button id="payCashBtn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-          <i class="fas fa-money-bill-wave mr-2"></i>Cash
-        </button>
-        <button id="payCardBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-          <i class="fas fa-credit-card mr-2"></i>Card
-        </button>
-      </div>
-      <button id="paymentCancelBtn" class="text-slate-500 hover:text-slate-700 font-semibold">Cancel</button>
+    <div id="saveOrderPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center">
+            <h2 id="saveTitle" class="text-2xl font-bold text-slate-800 mb-4">Save Order As</h2>
+            <input type="text" id="saveOrderName" class="w-full p-3 rounded-xl border border-gray-300 mb-4" placeholder="Reference Name">
+            <div class="flex justify-between gap-4">
+                <button id="saveCancelBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full">Cancel</button>
+                <button id="saveConfirmBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg w-full">Save Order</button>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <!-- Cash Popup -->
-<div id="cashPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-30" role="dialog" aria-modal="true" aria-labelledby="cashTitle">
-  <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center">
-    <h2 id="cashTitle" class="text-2xl font-bold text-slate-800 mb-4">Cash Payment</h2>
-    <p class="text-slate-600 mb-4">Enter the amount received from the customer.</p>
-    <input type="number" id="cashReceived" class="w-full p-3 border border-gray-300 rounded-lg mb-4 text-center text-lg font-bold" placeholder="Enter amount">
-    <p id="changeText" class="text-slate-700 font-semibold mb-4"></p>
-    <div class="flex justify-between gap-4">
-      <button id="cashConfirmBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg w-full">Confirm</button>
-      <button id="cashCancelBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full">Cancel</button>
+    <div id="recallOrderPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+            <h2 id="recallTitle" class="text-2xl font-bold text-slate-800 mb-4 text-center">Recall an Order</h2>
+            <div id="heldOrdersList" class="max-h-96 overflow-y-auto custom-scrollbar space-y-2"></div>
+            <div class="flex justify-center mt-6">
+                <button id="recallCloseBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full max-w-xs">Close</button>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-
-  <!-- Table Popup -->
-  <div id="tablePopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20" role="dialog" aria-modal="true" aria-labelledby="tableTitle">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg text-center">
-      <h2 id="tableTitle" class="text-2xl font-bold text-slate-800 mb-4">Select a Table</h2>
-      <div id="tableGrid" class="grid grid-cols-4 sm:grid-cols-5 gap-4 mb-6"></div>
-      <button id="tableCancelBtn" class="text-slate-500 hover:text-slate-700 font-semibold">Cancel</button>
-    </div>
-  </div>
-
-  <!-- Save Order Popup -->
-  <div id="saveOrderPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20" role="dialog" aria-modal="true" aria-labelledby="saveTitle">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center">
-      <h2 id="saveTitle" class="text-2xl font-bold text-slate-800 mb-4">Save Order As</h2>
-      <p class="text-slate-600 mb-6">Enter a reference name for this order (e.g., "Table 5" or "John Doe").</p>
-      <input type="text" id="saveOrderName" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:outline-none mb-4" placeholder="Reference Name">
-      <div class="flex justify-between gap-4">
-        <button id="saveCancelBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full">Cancel</button>
-        <button id="saveConfirmBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg w-full">Save Order</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Recall Order Popup -->
-  <div id="recallOrderPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20" role="dialog" aria-modal="true" aria-labelledby="recallTitle">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
-      <h2 id="recallTitle" class="text-2xl font-bold text-slate-800 mb-4 text-center">Recall a Saved Order</h2>
-      <div id="heldOrdersList" class="max-h-96 overflow-y-auto custom-scrollbar space-y-2"></div>
-      <div class="flex justify-center mt-6">
-        <button id="recallCloseBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg w-full max-w-xs">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- App Script -->
 <script type="module">
     class StorageManager {
-        // --- Base Helpers ---
-        static getJSON(key, fallback) {
-            try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
-            catch { return fallback; }
-        }
+        static getJSON(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
         static setJSON(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
-
-        // --- System Settings ---
-        static getSystemSettings() {
-            const defaults = {
-                companyName: 'POS Billing', currency: 'Rp', tax: '5',
-                discount: '0', printerSize: '80mm', togglePaymentPopup: true,
-                toggleChangeCalc: true,
-            };
-            const saved = this.getJSON('systemSettings', {});
-            return { ...defaults, ...saved };
-        }
-
-        // --- Catalog Data ---
+        static getSystemSettings() { const defaults = { companyName: 'POS Billing', currency: 'Rp', tax: '5', discount: '0', printerSize: '80mm', togglePaymentPopup: true, toggleChangeCalc: true, }; const saved = this.getJSON('systemSettings', {}); return { ...defaults, ...saved }; }
         static getCategories() { return this.getJSON('categories', []); }
         static getItems() { return this.getJSON('items', []); }
         static getTables() { return this.getJSON('tables', []); }
-        
-        // --- Take Away Counter ---
         static getTakeAwayNumber() { return parseInt(localStorage.getItem('takeAwayOrderNumber')) || 101; }
-        static incrementTakeAwayNumber() {
-            const next = this.getTakeAwayNumber() + 1;
-            this.setJSON('takeAwayOrderNumber', next);
-            return next;
-        }
-
-        // --- Sales Data ---
-        static saveSale(sale) {
-            const sales = this.getJSON('sales', []);
-            sales.push(sale);
-            this.setJSON('sales', sales);
-        }
-
-        // --- Held Orders (Manual Save) ---
-        static saveHeldOrder(order) {
-            const held = this.getJSON('heldOrders', []);
-            held.push(order);
-            this.setJSON('heldOrders', held);
-        }
+        static incrementTakeAwayNumber() { const next = this.getTakeAwayNumber() + 1; this.setJSON('takeAwayOrderNumber', next); return next; }
+        static getNextOrderNumber() { const today = new Date().toISOString().slice(0, 10); let orderCounter = this.getJSON('orderCounter', { number: 0, date: today }); if (orderCounter.date === today) { orderCounter.number++; } else { orderCounter.number = 1; orderCounter.date = today; } this.setJSON('orderCounter', orderCounter); return orderCounter.number; }
+        static saveSale(sale) { const sales = this.getJSON('sales', []); sales.push(sale); this.setJSON('sales', sales); }
+        static saveHeldOrder(order) { const held = this.getJSON('heldOrders', []); held.push(order); this.setJSON('heldOrders', held); }
         static listHeldOrders() { return this.getJSON('heldOrders', []); }
-        static deleteHeldOrder(index) {
-            const held = this.getJSON('heldOrders', []);
-            held.splice(index, 1);
-            this.setJSON('heldOrders', held);
-        }
-        static popHeldOrder(index) {
-            const held = this.getJSON('heldOrders', []);
-            const order = held.splice(index, 1)[0];
-            this.setJSON('heldOrders', held);
-            return order;
-        }
-        
-        // --- Placed Orders (KOT Save) ---
-        static listPlacedOrders() {
-            return this.getJSON('placedOrders', []);
-        }
-        static savePlacedOrder(orderToSave) {
-            let placedOrders = this.listPlacedOrders();
-            const existingOrderIndex = placedOrders.findIndex(o => o.table === orderToSave.table);
-            if (existingOrderIndex > -1) {
-                placedOrders[existingOrderIndex] = orderToSave;
-            } else {
-                placedOrders.push(orderToSave);
-            }
-            this.setJSON('placedOrders', placedOrders);
-        }
-        static closePlacedOrder(tableId) {
-            let placedOrders = this.listPlacedOrders();
-            const updatedOrders = placedOrders.filter(o => o.table !== tableId);
-            this.setJSON('placedOrders', updatedOrders);
-        }
-        static getPlacedOrder(tableId) {
-            let placedOrders = this.listPlacedOrders();
-            return placedOrders.find(o => o.table === tableId);
-        }
-        
-        // --- Printing ---
+        static deleteHeldOrder(index) { const held = this.getJSON('heldOrders', []); held.splice(index, 1); this.setJSON('heldOrders', held); }
+        static popHeldOrder(index) { const held = this.getJSON('heldOrders', []); const order = held.splice(index, 1)[0]; this.setJSON('heldOrders', held); return order; }
+        static listPlacedOrders() { return this.getJSON('placedOrders', []); }
+        static savePlacedOrder(orderToSave) { let placedOrders = this.listPlacedOrders(); const existingOrderIndex = placedOrders.findIndex(o => o.table === orderToSave.table); if (existingOrderIndex > -1) { placedOrders[existingOrderIndex] = orderToSave; } else { placedOrders.push(orderToSave); } this.setJSON('placedOrders', placedOrders); }
+        static closePlacedOrder(tableId) { let placedOrders = this.listPlacedOrders(); const updatedOrders = placedOrders.filter(o => o.table !== tableId); this.setJSON('placedOrders', updatedOrders); }
+        static getPlacedOrder(tableId) { let placedOrders = this.listPlacedOrders(); return placedOrders.find(o => o.table === tableId); }
         static setCurrentPrintOrder(orderData) { this.setJSON('currentPrintOrder', orderData); }
     }
 
-  class OrderManager {
-        constructor(taxRate = 5) {
-            this.taxRate = parseFloat(taxRate) / 100 || 0;
-            this.items = [];
-            this.discount = { value: 0, type: 'manual' };
-            this.serviceCharge = { value: 0, type: 'manual' };
-            this.paymentMethod = 'Cash';
-            this.orderType = null;
-            this.table = null;
-            this.orderNumber = null;
-            this.takeAwayOrderNumber = StorageManager.getTakeAwayNumber();
-        }
-
-        setOrderType(type, details = null) {
-            // Assign a number only if it's a brand new order
-            if (!this.orderNumber) {
-                this.orderNumber = StorageManager.getNextOrderNumber();
-            }
-            
-            this.orderType = type;
-            if (type === 'Dine In') {
-                this.table = details;
-            } else if (type === 'Take Away') {
-                this.table = `TA-${this.takeAwayOrderNumber}`;
-                this.takeAwayOrderNumber = StorageManager.incrementTakeAwayNumber();
-            }
-        }
-
-        addItem(item) {
-            const idKey = item.id ?? item.name;
-            const existing = this.items.find(i => (i.id ?? i.name) === idKey);
-            if (existing) existing.qty++;
-            else this.items.push({ ...item, qty: 1 });
-        }
-
-        updateQty(idKey, delta) {
-            const item = this.items.find(i => (i.id ?? i.name) == idKey);
-            if (!item) return;
-            item.qty += delta;
-            if (item.qty <= 0) this.removeItem(idKey);
-        }
-
-        removeItem(idKey) {
-            this.items = this.items.filter(i => (i.id ?? i.name) != idKey);
-        }
-
-        clear() {
-            this.items = [];
-            this.discount = { value: 0, type: 'manual' };
-            this.serviceCharge = { value: 0, type: 'manual' };
-            this.paymentMethod = 'Cash';
-            this.orderType = null;
-            this.table = null;
-            this.orderNumber = null; // Also clear the order number
-        }
-
-        _calcFromType(base, { value, type }) {
-            const v = Math.max(0, parseFloat(value) || 0);
-            return type === 'percentage' ? base * (v / 100) : v;
-        }
-
-        calculateTotals() {
-            const subtotal = this.items.reduce((sum, i) => sum + (parseFloat(i.sales || 0) * i.qty), 0);
-            const discount = this._calcFromType(subtotal, this.discount);
-            const serviceCharge = this._calcFromType(subtotal, this.serviceCharge);
-            const taxable = Math.max(0, subtotal - discount + serviceCharge);
-            const tax = taxable * this.taxRate;
-            const total = taxable + tax;
-            return { subtotal, discount, serviceCharge, tax, total };
-        }
-
-        toSaleRecord(subtotal, discount, serviceCharge, tax, total) {
-            return {
-                orderId: Date.now(),
-                orderNumber: this.orderNumber,
-                date: new Date().toISOString(),
-                items: this.items,
-                subtotal, discount, serviceCharge, tax, total,
-                paymentMethod: this.paymentMethod,
-                orderType: this.orderType,
-                table: this.table
-            };
-        }
-
-        toPrintOrder(totals) {
-            return {
-                items: this.items,
-                subtotal: totals.subtotal,
-                discount: this.discount.value,
-                serviceCharge: this.serviceCharge.value,
-                tax: totals.tax,
-                total: totals.total,
-                paymentMethod: this.paymentMethod,
-                orderType: this.orderType,
-                table: this.table,
-                orderNumber: this.orderNumber,
-                date: new Date().toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta" }),
-                time: new Date().toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta" }),
-                orderId: Date.now()
-            };
-        }
+    class OrderManager {
+        constructor(taxRate = 5) { this.taxRate = parseFloat(taxRate) / 100 || 0; this.clear(); }
+        setOrderType(type, details = null) { if (!this.orderNumber) { this.orderNumber = StorageManager.getNextOrderNumber(); } this.orderType = type; if (type === 'Dine In') { this.table = details; } else if (type === 'Take Away') { const takeAwayNum = StorageManager.getTakeAwayNumber(); this.table = `TA-${takeAwayNum}`; StorageManager.incrementTakeAwayNumber(); } }
+        addItem(item) { const idKey = item.id ?? item.name; const existing = this.items.find(i => (i.id ?? i.name) === idKey); if (existing) existing.qty++; else this.items.push({ ...item, qty: 1 }); }
+        updateQty(idKey, delta) { const item = this.items.find(i => (i.id ?? i.name) == idKey); if (!item) return; item.qty += delta; if (item.qty <= 0) this.removeItem(idKey); }
+        removeItem(idKey) { this.items = this.items.filter(i => (i.id ?? i.name) != idKey); }
+        clear() { this.items = []; this.discount = { value: 0, type: 'manual' }; this.serviceCharge = { value: 0, type: 'manual' }; this.paymentMethod = 'Cash'; this.orderType = null; this.table = null; this.orderNumber = null; }
+        _calcFromType(base, { value, type }) { const v = Math.max(0, parseFloat(value) || 0); return type === 'percentage' ? base * (v / 100) : v; }
+        calculateTotals() { const subtotal = this.items.reduce((sum, i) => sum + (parseFloat(i.sales || 0) * i.qty), 0); const discount = this._calcFromType(subtotal, this.discount); const serviceCharge = this._calcFromType(subtotal, this.serviceCharge); const taxable = Math.max(0, subtotal - discount + serviceCharge); const tax = taxable * this.taxRate; const total = taxable + tax; return { subtotal, discount, serviceCharge, tax, total }; }
+        toSaleRecord(subtotal, discount, serviceCharge, tax, total) { return { orderId: Date.now(), orderNumber: this.orderNumber, date: new Date().toISOString(), items: this.items, subtotal, discount, serviceCharge, tax, total, paymentMethod: this.paymentMethod, orderType: this.orderType, table: this.table }; }
+        toPrintOrder(totals) { const dateOptions = { timeZone: "Asia/Jakarta" }; return { items: this.items, subtotal: totals.subtotal, discount: this.discount.value, serviceCharge: this.serviceCharge.value, tax: totals.tax, total: totals.total, paymentMethod: this.paymentMethod, orderType: this.orderType, table: this.table, orderNumber: this.orderNumber, date: new Date().toLocaleDateString("id-ID", dateOptions), time: new Date().toLocaleTimeString("id-ID", dateOptions), orderId: Date.now() }; }
     }
 
     class UIManager {
-        constructor(orderManager, settings) {
-            this.order = orderManager;
-            this.settings = settings;
-            this.categories = StorageManager.getCategories();
-            this.allItems = StorageManager.getItems();
-            this.currentCategory = this.categories.length ? this.categories[0].name : '';
-            this.cacheDOM();
-            this.bindGlobalEvents();
-            this.initScreen();
-        }
-
-        cacheDOM() {
-            this.shopNameHeader = document.getElementById('shopNameHeader');
-            this.itemSearchInput = document.getElementById('itemSearch');
-            this.orderStatus = document.getElementById('orderStatus');
-            this.categoryButtonsDiv = document.getElementById('categoryButtons');
-            this.itemsListDiv = document.getElementById('itemsList');
-            this.orderItemsDiv = document.getElementById('orderItems');
-            this.subtotalSpan = document.getElementById('subtotal');
-            this.taxSpan = document.getElementById('tax');
-            this.taxLabelSpan = document.querySelector('#tax').parentElement.previousElementSibling;
-            this.totalSpan = document.getElementById('total');
-            this.discountTypeSelect = document.getElementById('discountTypeSelect');
-            this.discountInput = document.getElementById('discountInput');
-            this.serviceChargeTypeSelect = document.getElementById('serviceChargeTypeSelect');
-            this.serviceChargeInput = document.getElementById('serviceChargeInput');
-            this.placeOrderBtn = document.getElementById('placeOrderBtn');
-            this.saveOrderBtn = document.getElementById('saveOrderBtn');
-            this.printBillBtn = document.getElementById('printBillBtn');
-            this.resetOrderBtn = document.getElementById('resetOrderBtn');
-            this.dineInBtn = document.getElementById('dineInBtn');
-            this.takeAwayBtn = document.getElementById('takeAwayBtn');
-            this.savedOrdersBtn = document.getElementById('savedOrdersBtn');
-            this.placedOrdersBtn = document.getElementById('placedOrdersBtn');
-            this.modalOverlay = document.getElementById('modalOverlay');
-            this.modalTitle = document.getElementById('modalTitle');
-            this.modalMessage = document.getElementById('modalMessage');
-            this.modalCloseBtn = document.getElementById('modalCloseBtn');
-            this.paymentPopup = document.getElementById('paymentPopup');
-            this.payCashBtn = document.getElementById('payCashBtn');
-            this.payCardBtn = document.getElementById('payCardBtn');
-            this.paymentCancelBtn = document.getElementById('paymentCancelBtn');
-            this.cashPopup = document.getElementById("cashPopup");
-            this.cashReceived = document.getElementById("cashReceived");
-            this.changeText = document.getElementById("changeText");
-            this.cashConfirmBtn = document.getElementById("cashConfirmBtn");
-            this.cashCancelBtn = document.getElementById("cashCancelBtn");
-            this.tablePopup = document.getElementById('tablePopup');
-            this.tableGrid = document.getElementById('tableGrid');
-            this.tableCancelBtn = document.getElementById('tableCancelBtn');
-            this.saveOrderPopup = document.getElementById('saveOrderPopup');
-            this.saveOrderName = document.getElementById('saveOrderName');
-            this.saveCancelBtn = document.getElementById('saveCancelBtn');
-            this.saveConfirmBtn = document.getElementById('saveConfirmBtn');
-            this.recallOrderPopup = document.getElementById('recallOrderPopup');
-            this.heldOrdersList = document.getElementById('heldOrdersList');
-            this.recallTitle = document.getElementById('recallTitle');
-            this.recallCloseBtn = document.getElementById('recallCloseBtn');
-        }
-
-        bindGlobalEvents() {
-            this.itemSearchInput.addEventListener('input', () => this.renderItems());
-            this.dineInBtn.addEventListener('click', () => this.openTablePopup());
-            this.takeAwayBtn.addEventListener('click', () => this.setOrderType('Take Away'));
-            this.placeOrderBtn.addEventListener('click', () => this.placeOrder());
-            this.resetOrderBtn.addEventListener('click', () => this.resetOrder());
-            this.saveOrderBtn.addEventListener('click', () => this.openSaveOrderPopup());
-            this.printBillBtn.addEventListener('click', () => this.handlePrintBill());
-            this.savedOrdersBtn.addEventListener('click', () => this.openRecallOrderPopup());
-            this.placedOrdersBtn.addEventListener('click', () => this.openPlacedOrdersPopup());
-            [this.discountInput, this.discountTypeSelect, this.serviceChargeInput, this.serviceChargeTypeSelect].forEach(el => el.addEventListener('input', () => this.updateTotalsFromInputs()));
-            this.modalCloseBtn.addEventListener('click', () => this.hideAlert());
-            this.cashConfirmBtn.addEventListener("click", () => this.handleCashConfirm());
-            this.cashCancelBtn.addEventListener("click", () => this.closeCashPopup());
-            this.cashReceived.addEventListener("input", () => {
-                const billTotal = parseFloat(this.cashPopup.dataset.total || 0);
-                const received = parseFloat(this.cashReceived.value) || 0;
-                const change = received - billTotal;
-                this.changeText.textContent = change >= 0 ? `Change Due: ${this.settings.currency}${change.toFixed(2)}` : `Total: ${this.settings.currency}${billTotal.toFixed(2)}`;
-            });
-            this.payCashBtn.addEventListener('click', () => this.confirmPayment('Cash'));
-            this.payCardBtn.addEventListener('click', () => this.confirmPayment('Card'));
-            this.paymentCancelBtn.addEventListener('click', () => this.closePaymentPopup());
-            this.tableCancelBtn.addEventListener('click', () => this.closeTablePopup());
-            this.saveCancelBtn.addEventListener('click', () => this.closeSaveOrderPopup());
-            this.saveConfirmBtn.addEventListener('click', () => this.handleSaveOrder());
-            this.recallCloseBtn.addEventListener('click', () => this.closeRecallOrderPopup());
-            this.orderItemsDiv.addEventListener('click', (event) => {
-                const qtyBtn = event.target.closest('.qty-btn');
-                const removeBtn = event.target.closest('.remove-btn');
-                if (qtyBtn) {
-                    const id = qtyBtn.dataset.id;
-                    const action = qtyBtn.dataset.action;
-                    this.order.updateQty(id, action === 'increment' ? 1 : -1);
-                    this.renderOrder();
-                } else if (removeBtn) {
-                    const id = removeBtn.dataset.id;
-                    this.order.removeItem(id);
-                    this.renderOrder();
-                }
-            });
-            this.heldOrdersList.addEventListener('click', (e) => this.handleRecallPopupClicks(e));
-        }
-
-        initScreen() {
-            this.shopNameHeader.textContent = this.settings.companyName;
-            this.taxLabelSpan.textContent = `Tax (${this.settings.tax}%):`;
-            this.renderCategories();
-            this.renderItems();
-            this.initializeOrderScreen();
-        }
-
-        initializeOrderScreen() {
-            this.order.clear();
-            this.orderStatus.textContent = '';
-            this.discountInput.value = this.settings.discount || 0;
-            this.order.discount.value = this.settings.discount || 0;
-            this.serviceChargeInput.value = 0;
-            this.discountTypeSelect.value = 'percentage';
-            this.order.discount.type = 'percentage';
-            this.serviceChargeTypeSelect.value = 'manual';
-            this.dineInBtn.disabled = false;
-            this.takeAwayBtn.disabled = false;
-            this.renderOrder();
-        }
-        
-        placeOrder() {
-            if (!this.order.items.length) return this.showAlert('No items in order!', 'Error');
-            if (!this.order.table) return this.showAlert('No table or Take Away # selected.', 'Error');
-
-            // Find if there's an existing order for this table
-            let existingOrder = StorageManager.getPlacedOrder(this.order.table);
-
-            if (existingOrder) {
-                // MERGE: Add new items to the existing item list
-                existingOrder.items.push(...this.order.items);
-                // Update discounts etc. if needed, or keep original
-            } else {
-                // This is the first KOT for this order
-                existingOrder = {
-                    ...this.order,
-                    discount: { value: this.discountInput.value, type: this.discountTypeSelect.value },
-                    serviceCharge: { value: this.serviceChargeInput.value, type: this.serviceChargeTypeSelect.value },
-                };
-            }
-
-            // Save the complete, merged order
-            StorageManager.savePlacedOrder(existingOrder);
-            
-            // IMPORTANT: Only send the NEW items to the kitchen
-            const kotOrder = { ...this.order }; 
-            StorageManager.setCurrentPrintOrder(kotOrder.toPrintOrder(kotOrder.calculateTotals()));
-            window.open('kot.html', '_blank');
-
-            this.showAlert(`Order for ${this.order.table} sent to kitchen!`, 'Success');
-            this.resetOrder();
-        }
-
-        handlePrintBill() {
-            if (!this.order.items.length) { return this.showAlert('Cannot process an empty order.', 'Error'); }
-            const paymentPopupEnabled = this.settings.togglePaymentPopup === true;
-            if (paymentPopupEnabled) { this.openPaymentPopup(); } 
-            else { this.order.paymentMethod = 'Cash'; this.finalizeSaleAndPrint(); }
-        }
-        
-        confirmPayment(method) {
-            this.order.paymentMethod = method;
-            this.closePaymentPopup();
-            const changeCalcEnabled = this.settings.toggleChangeCalc === true;
-            if (method === "Cash" && changeCalcEnabled) {
-                const totals = this.order.calculateTotals();
-                this.openCashPopup(totals.total);
-            } else { this.finalizeSaleAndPrint(); }
-        }
-
-        handleCashConfirm() {
-            const billTotal = parseFloat(this.cashPopup.dataset.total);
-            const received = parseFloat(this.cashReceived.value);
-            if (isNaN(received) || received < billTotal) {
-                return this.showAlert("Received amount is invalid or less than the total.", "Payment Error");
-            }
-            this.closeCashPopup();
-            this.finalizeSaleAndPrint({ cashReceived: received });
-        }
-        
-        finalizeSaleAndPrint(paymentDetails = {}) {
-            const totals = this.order.calculateTotals();
-            let orderData = this.order.toPrintOrder(totals);
-            orderData.cashier = 'Admin';
-            if (this.order.paymentMethod === 'Cash' && paymentDetails.cashReceived) {
-                orderData.cashReceived = paymentDetails.cashReceived;
-                orderData.change = paymentDetails.cashReceived - orderData.total;
-            }
-            StorageManager.saveSale(this.order.toSaleRecord(totals.subtotal, totals.discount, totals.serviceCharge, totals.tax, totals.total));
-            StorageManager.setCurrentPrintOrder(orderData);
-            if (this.order.table) { // Only close if it was a placed order
-                StorageManager.closePlacedOrder(this.order.table);
-            }
-            window.open(this.settings.printerSize === '57mm' ? 'receipt-57mm.html' : 'receipt-80mm.html', '_blank');
-            this.showAlert('Order completed successfully!', 'Success');
-            this.resetOrder();
-        }
-        // PASTE THESE TWO NEW FUNCTIONS INSIDE THE UIManager CLASS
-
-      openPlacedOrdersPopup() {
-            const placedOrders = StorageManager.listPlacedOrders();
-            this.recallTitle.innerText = 'Recall a Placed Order';
-            this.heldOrdersList.innerHTML = '';
-
-            if (!placedOrders.length) {
-                this.heldOrdersList.innerHTML = '<p class="text-slate-500 text-center p-4">No orders have been placed.</p>';
-            } else {
-                placedOrders.forEach((order) => {
-                    const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center bg-slate-100 p-3 rounded-lg';
-                    div.innerHTML = `
-                        <span class="font-semibold text-slate-800">${order.table} (Order #${order.orderNumber})</span>
-                        <div class="flex gap-2">
-                            <button class="load-placed-order bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" data-tableid="${order.table}">Load</button>
-                        </div>
-                    `;
-                    this.heldOrdersList.appendChild(div);
-                });
-            }
-            this.recallOrderPopup.style.display = 'flex';
-        }
-
-        handlePlacedOrdersClick(e) {
-            const loadBtn = e.target.closest('.load-placed-order');
-            if (loadBtn) {
-                const tableId = loadBtn.dataset.tableid;
-                const orderToLoad = StorageManager.getPlacedOrder(tableId);
-
-                if (orderToLoad) {
-                    this.order.items = orderToLoad.items || [];
-                    this.order.orderType = orderToLoad.orderType || null;
-                    this.order.table = orderToLoad.table || null;
-                    this.order.discount = orderToLoad.discount || { value: 0, type: 'manual' };
-                    this.order.serviceCharge = orderToLoad.serviceCharge || { value: 0, type: 'manual' };
-                    
-                    this.discountInput.value = this.order.discount.value;
-                    this.discountTypeSelect.value = this.order.discount.type;
-                    this.serviceChargeInput.value = this.order.serviceCharge.value;
-                    this.serviceChargeTypeSelect.value = this.order.serviceCharge.type;
-                    this.orderStatus.textContent = `Editing Order for: ${this.order.table}`;
-                    this.dineInBtn.disabled = true;
-                    this.takeAwayBtn.disabled = true;
-                    
-                    this.renderOrder();
-                    this.closeRecallOrderPopup();
-                }
-            }
-        }
-
-        renderCategories() { /* Your existing function here */
-             this.categoryButtonsDiv.innerHTML = '';
-             this.categories.forEach(cat => {
-                 const btn = document.createElement('button');
-                 btn.textContent = cat.name;
-                 btn.className = `w-full text-left py-3 px-4 mb-2 font-bold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105 focus:outline-none ${cat.name === this.currentCategory ? 'bg-indigo-600 text-white scale-105 shadow-lg' : 'bg-white text-slate-700 hover:bg-indigo-100'}`;
-                 btn.addEventListener('click', () => {
-                     this.currentCategory = cat.name;
-                     this.renderCategories();
-                     this.renderItems();
-                 });
-                 this.categoryButtonsDiv.appendChild(btn);
-             });
-             const dashboardBtn = document.createElement('button');
-             dashboardBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i> Dashboard';
-             dashboardBtn.className = 'mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105';
-             dashboardBtn.addEventListener('click', () => (window.location.href = 'dashboard.html'));
-             this.categoryButtonsDiv.appendChild(dashboardBtn);
-        }
-        renderItems() { /* Your existing function here */
-            let itemsToDisplay = [...this.allItems];
-            const q = (this.itemSearchInput.value || '').toLowerCase();
-            if (q) itemsToDisplay = itemsToDisplay.filter(i => (i.name || '').toLowerCase().includes(q));
-            else if (this.currentCategory) itemsToDisplay = itemsToDisplay.filter(i => i.category === this.currentCategory);
-            this.itemsListDiv.innerHTML = '';
-            if (!itemsToDisplay.length) {
-                const message = q ? `No items match for "${q}".` : `No items in "${this.currentCategory}".`;
-                this.itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">${message}</p>`;
-                return;
-            }
-            itemsToDisplay.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 transform hover:scale-105 cursor-pointer flex flex-col items-center justify-between text-center aspect-square';
-                const img = item.image || 'https://placehold.co/400x300?text=No+Image';
-                card.title = `${item.name}\nPrice: ${this.settings.currency}${item.sales}`;
-                card.innerHTML = `<img src="${img}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2"><div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div><div class="font-semibold text-green-600 text-lg mt-auto">${this.settings.currency}${parseFloat(item.sales || 0).toFixed(2)}</div>`;
-                card.addEventListener('click', () => this.addItemToOrder(item));
-                this.itemsListDiv.appendChild(card);
-            });
-        }
-        renderOrder() { /* Your existing function here */
-            this.orderItemsDiv.innerHTML = '';
-            if (!this.order.items.length) {
-                this.orderItemsDiv.innerHTML = '<div class="text-slate-500 text-center py-4">No items added yet.</div>';
-            } else {
-                this.order.items.forEach(item => {
-                    const itemTotal = parseFloat(item.sales || 0) * item.qty;
-                    const uniqueId = item.id ?? item.name;
-                    const div = document.createElement('div');
-                    div.className = 'flex items-center justify-between bg-slate-50 rounded-lg p-3 mb-2 shadow-sm';
-                    div.innerHTML = `<div class="flex-1"><span class="font-semibold text-slate-800">${item.name}</span></div><div class="flex items-center gap-2"><button data-id="${uniqueId}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">-</button><span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span><button data-id="${uniqueId}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110">+</button><span class="font-semibold text-green-600 w-20 text-right">${this.settings.currency}${itemTotal.toFixed(2)}</span><button data-id="${uniqueId}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center transition-transform hover:scale-110" aria-label="Remove ${item.name}">×</button></div>`;
-                    this.orderItemsDiv.appendChild(div);
-                });
-            }
-            this.updateTotalsUI();
-        }
-        updateTotalsFromInputs() { /* Your existing function here */
-            this.order.discount = { value: parseFloat(this.discountInput.value) || 0, type: this.discountTypeSelect.value };
-            this.order.serviceCharge = { value: parseFloat(this.serviceChargeInput.value) || 0, type: this.serviceChargeTypeSelect.value };
-            this.updateTotalsUI();
-        }
-        updateTotalsUI() { /* Your existing function here */
-            const totals = this.order.calculateTotals();
-            this.subtotalSpan.parentElement.innerHTML = `${this.settings.currency}<span id="subtotal">${totals.subtotal.toFixed(2)}</span>`;
-            this.taxSpan.parentElement.innerHTML = `${this.settings.currency}<span id="tax">${totals.tax.toFixed(2)}</span>`;
-            this.totalSpan.parentElement.innerHTML = `${this.settings.currency}<span id="total">${Math.max(0, totals.total).toFixed(2)}</span>`;
-        }
-        addItemToOrder(item) { if (!this.order.orderType) { return this.showAlert('Please select "Dine In" or "Take Away" before adding items.', 'Order Type Required'); } this.order.addItem(item); this.renderOrder(); }
-        setOrderType(type, details = null) {
-            const tableId = (type === 'Take Away') ? `TA-${StorageManager.getTakeAwayNumber()}` : details;
-
-            // --- NEW LOGIC STARTS HERE ---
-            const existingOrder = StorageManager.getPlacedOrder(tableId);
-
-            if (existingOrder) {
-                // If an order for this table already exists, load it instead of starting a new one.
-                this.order.items = existingOrder.items || [];
-                this.order.orderType = existingOrder.orderType || null;
-                this.order.table = existingOrder.table || null;
-                this.order.orderNumber = existingOrder.orderNumber || null; // Keep existing order number
-                this.order.discount = existingOrder.discount || { value: 0, type: 'manual' };
-                this.order.serviceCharge = existingOrder.serviceCharge || { value: 0, type: 'manual' };
-
-                // Update UI fields from the loaded order
-                this.discountInput.value = this.order.discount.value;
-                this.discountTypeSelect.value = this.order.discount.type;
-                this.serviceChargeInput.value = this.order.serviceCharge.value;
-                this.serviceChargeTypeSelect.value = this.order.serviceCharge.type;
-                this.renderOrder();
-                
-                this.showAlert(`Loaded existing order for ${tableId}`, 'Order Loaded');
-            } else {
-                // This is a brand new order, so proceed as normal.
-                this.order.setOrderType(type, details);
-            }
-            // --- NEW LOGIC ENDS HERE ---
-
-            // This part remains the same
-            this.dineInBtn.disabled = true;
-            this.takeAwayBtn.disabled = true;
-            if (type === 'Dine In') {
-                this.orderStatus.textContent = `Order for: Table ${this.order.table}`;
-                this.closeTablePopup();
-            } else {
-                const taLabel = this.order.table.replace('TA-', '');
-                this.orderStatus.textContent = `Order for: Take Away #${taLabel}`;
-            }
-        }
+        constructor(orderManager, settings) { this.order = orderManager; this.settings = settings; this.categories = StorageManager.getCategories(); this.allItems = StorageManager.getItems(); this.currentCategory = this.categories.length ? this.categories[0].name : ''; this.cacheDOM(); this.bindGlobalEvents(); this.initScreen(); }
+        cacheDOM() { const ids = ['shopNameHeader', 'itemSearch', 'orderStatus', 'categoryButtons', 'itemsList', 'orderItems', 'subtotalDisplay', 'discountTypeSelect', 'discountInput', 'serviceChargeTypeSelect', 'serviceChargeInput', 'taxLabel', 'taxDisplay', 'totalDisplay', 'placeOrderBtn', 'saveOrderBtn', 'printBillBtn', 'resetOrderBtn', 'dineInBtn', 'takeAwayBtn', 'savedOrdersBtn', 'placedOrdersBtn', 'modalOverlay', 'modalTitle', 'modalMessage', 'modalCloseBtn', 'paymentPopup', 'payCashBtn', 'payCardBtn', 'paymentCancelBtn', 'cashPopup', 'cashReceived', 'changeText', 'cashConfirmBtn', 'cashCancelBtn', 'tablePopup', 'tableGrid', 'tableCancelBtn', 'saveOrderPopup', 'saveOrderName', 'saveCancelBtn', 'saveConfirmBtn', 'recallOrderPopup', 'heldOrdersList', 'recallTitle', 'recallCloseBtn']; ids.forEach(id => this[id] = document.getElementById(id)); }
+        bindGlobalEvents() { this.itemSearchInput.addEventListener('input', () => this.renderItems()); this.dineInBtn.addEventListener('click', () => this.openTablePopup()); this.takeAwayBtn.addEventListener('click', () => this.setOrderType('Take Away')); this.placeOrderBtn.addEventListener('click', () => this.placeOrder()); this.resetOrderBtn.addEventListener('click', () => this.resetOrder()); this.saveOrderBtn.addEventListener('click', () => this.openSaveOrderPopup()); this.printBillBtn.addEventListener('click', () => this.handlePrintBill()); this.savedOrdersBtn.addEventListener('click', () => this.openRecallOrderPopup('saved')); this.placedOrdersBtn.addEventListener('click', () => this.openRecallOrderPopup('placed')); [this.discountInput, this.discountTypeSelect, this.serviceChargeInput, this.serviceChargeTypeSelect].forEach(el => el.addEventListener('input', () => this.updateTotalsUI())); this.modalCloseBtn.addEventListener('click', () => this.hideAlert()); this.cashConfirmBtn.addEventListener("click", () => this.handleCashConfirm()); this.cashCancelBtn.addEventListener("click", () => this.closeCashPopup()); this.cashReceived.addEventListener("input", () => { const billTotal = parseFloat(this.cashPopup.dataset.total || 0); const received = parseFloat(this.cashReceived.value) || 0; const change = received - billTotal; this.changeText.textContent = change >= 0 ? `Change Due: ${this.settings.currency}${change.toFixed(2)}` : `Total: ${this.settings.currency}${billTotal.toFixed(2)}`; }); this.payCashBtn.addEventListener('click', () => this.confirmPayment('Cash')); this.payCardBtn.addEventListener('click', () => this.confirmPayment('Card')); this.paymentCancelBtn.addEventListener('click', () => this.closePaymentPopup()); this.tableCancelBtn.addEventListener('click', () => this.closeTablePopup()); this.saveCancelBtn.addEventListener('click', () => this.closeSaveOrderPopup()); this.saveConfirmBtn.addEventListener('click', () => this.handleSaveOrder()); this.recallCloseBtn.addEventListener('click', () => this.closeRecallOrderPopup()); this.orderItemsDiv.addEventListener('click', (e) => this.handleOrderItemsClick(e)); this.heldOrdersList.addEventListener('click', (e) => this.handleRecallPopupClicks(e)); }
+        initScreen() { this.shopNameHeader.textContent = this.settings.companyName; this.taxLabel.textContent = `Tax (${this.settings.tax}%):`; this.renderCategories(); this.renderItems(); this.initializeOrderScreen(); }
+        initializeOrderScreen() { this.order.clear(); this.orderStatus.textContent = ''; this.discountInput.value = this.settings.discount || 0; this.order.discount.value = this.settings.discount || 0; this.serviceChargeInput.value = 0; this.discountTypeSelect.value = 'percentage'; this.order.discount.type = 'percentage'; this.serviceChargeTypeSelect.value = 'manual'; this.dineInBtn.disabled = false; this.takeAwayBtn.disabled = false; this.renderOrder(); }
+        placeOrder() { if (!this.order.items.length) return this.showAlert('No items in order!', 'Error'); if (!this.order.table) return this.showAlert('No table or Take Away # selected.', 'Error'); let existingOrder = StorageManager.getPlacedOrder(this.order.table); if (existingOrder) { existingOrder.items.push(...this.order.items); } else { existingOrder = { ...this.order, discount: { value: this.discountInput.value, type: this.discountTypeSelect.value }, serviceCharge: { value: this.serviceChargeInput.value, type: this.serviceChargeTypeSelect.value } }; } StorageManager.savePlacedOrder(existingOrder); const kotOrder = { ...this.order }; StorageManager.setCurrentPrintOrder(kotOrder.toPrintOrder(kotOrder.calculateTotals())); window.open('kot.html', '_blank'); this.showAlert(`Order for ${this.order.table} sent to kitchen!`, 'Success'); this.resetOrder(); }
+        handlePrintBill() { if (!this.order.items.length) return this.showAlert('Cannot process payment for an empty order.', 'Error'); if (this.settings.togglePaymentPopup) { this.openPaymentPopup(); } else { this.order.paymentMethod = 'Cash'; this.finalizeSaleAndPrint(); } }
+        confirmPayment(method) { this.order.paymentMethod = method; this.closePaymentPopup(); if (method === "Cash" && this.settings.toggleChangeCalc) { const totals = this.order.calculateTotals(); this.openCashPopup(totals.total); } else { this.finalizeSaleAndPrint(); } }
+        handleCashConfirm() { const billTotal = parseFloat(this.cashPopup.dataset.total); const received = parseFloat(this.cashReceived.value); if (isNaN(received) || received < billTotal) { return this.showAlert("Received amount is invalid or less than the total.", "Payment Error"); } this.closeCashPopup(); this.finalizeSaleAndPrint({ cashReceived: received }); }
+        finalizeSaleAndPrint(paymentDetails = {}) { const totals = this.order.calculateTotals(); let orderData = this.order.toPrintOrder(totals); orderData.cashier = 'Admin'; if (this.order.paymentMethod === 'Cash' && paymentDetails.cashReceived) { orderData.cashReceived = paymentDetails.cashReceived; orderData.change = paymentDetails.cashReceived - orderData.total; } StorageManager.saveSale(this.order.toSaleRecord(totals.subtotal, totals.discount, totals.serviceCharge, totals.tax, totals.total)); StorageManager.setCurrentPrintOrder(orderData); if (this.order.table) { StorageManager.closePlacedOrder(this.order.table); } window.open(this.settings.printerSize === '57mm' ? 'receipt-57mm.html' : 'receipt-80mm.html', '_blank'); this.showAlert('Order completed successfully!', 'Success'); this.resetOrder(); }
+        renderCategories() { this.categoryButtonsDiv.innerHTML = ''; this.categories.forEach(cat => { const btn = document.createElement('button'); btn.textContent = cat.name; btn.className = `w-full text-left py-3 px-4 mb-2 font-bold rounded-lg shadow-sm transition-all duration-200 ${cat.name === this.currentCategory ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 hover:bg-indigo-100'}`; btn.addEventListener('click', () => { this.currentCategory = cat.name; this.renderCategories(); this.renderItems(); }); this.categoryButtonsDiv.appendChild(btn); }); const dashboardBtn = document.createElement('button'); dashboardBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i> Dashboard'; dashboardBtn.className = 'mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg'; dashboardBtn.addEventListener('click', () => (window.location.href = 'dashboard.html')); this.categoryButtonsDiv.appendChild(dashboardBtn); }
+        renderItems() { let itemsToDisplay = this.allItems; const q = this.itemSearchInput.value.toLowerCase(); if (q) { itemsToDisplay = this.allItems.filter(i => (i.name || '').toLowerCase().includes(q)); } else if (this.currentCategory) { itemsToDisplay = this.allItems.filter(i => i.category === this.currentCategory); } this.itemsListDiv.innerHTML = ''; if (!itemsToDisplay.length) { this.itemsListDiv.innerHTML = `<p class="text-center text-slate-500 col-span-full mt-10">No items found.</p>`; return; } itemsToDisplay.forEach(item => { const card = document.createElement('div'); card.className = 'item-card bg-amber-50 hover:bg-amber-100 rounded-xl p-3 shadow-md transition-all duration-200 cursor-pointer flex flex-col text-center aspect-square'; const img = item.image || 'https://placehold.co/400x300?text=No+Image'; card.innerHTML = `<img src="${img}" alt="${item.name}" class="w-full h-2/3 object-cover rounded-lg mb-2"><div class="font-bold text-slate-800 text-base overflow-hidden text-ellipsis whitespace-nowrap w-full">${item.name}</div><div class="font-semibold text-green-600 text-lg mt-auto">${this.settings.currency}${parseFloat(item.sales || 0).toFixed(2)}</div>`; card.addEventListener('click', () => this.addItemToOrder(item)); this.itemsListDiv.appendChild(card); }); }
+        renderOrder() { this.orderItemsDiv.innerHTML = ''; if (!this.order.items.length) { this.orderItemsDiv.innerHTML = '<div class="text-slate-500 text-center py-4">No items added yet.</div>'; } else { this.order.items.forEach(item => { const itemTotal = parseFloat(item.sales || 0) * item.qty; const uniqueId = item.id ?? item.name; const div = document.createElement('div'); div.className = 'flex items-center justify-between bg-slate-50 rounded-lg p-3 mb-2 shadow-sm'; div.innerHTML = `<div class="flex-1"><span class="font-semibold text-slate-800">${item.name}</span></div><div class="flex items-center gap-2"><button data-id="${uniqueId}" data-action="decrement" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center">-</button><span class="qty-display font-bold text-slate-700 min-w-[20px] text-center">${item.qty}</span><button data-id="${uniqueId}" data-action="increment" class="qty-btn bg-indigo-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center">+</button><span class="font-semibold text-green-600 w-20 text-right">${this.settings.currency}${itemTotal.toFixed(2)}</span><button data-id="${uniqueId}" class="remove-btn bg-red-500 text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center" aria-label="Remove ${item.name}">×</button></div>`; this.orderItemsDiv.appendChild(div); }); } this.updateTotalsUI(); }
+        updateTotalsUI() { const totals = this.order.calculateTotals(); this.subtotalDisplay.textContent = `${this.settings.currency}${totals.subtotal.toFixed(2)}`; this.taxDisplay.textContent = `${this.settings.currency}${totals.tax.toFixed(2)}`; this.totalDisplay.textContent = `${this.settings.currency}${Math.max(0, totals.total).toFixed(2)}`; }
+        addItemToOrder(item) { if (!this.order.orderType) return this.showAlert('Please select "Dine In" or "Take Away" first.'); this.order.addItem(item); this.renderOrder(); }
+        setOrderType(type, details = null) { const tableId = (type === 'Take Away') ? `TA-${StorageManager.getTakeAwayNumber()}` : details; const existingOrder = StorageManager.getPlacedOrder(tableId); this.resetOrder(); this.order.setOrderType(type, tableId); if (existingOrder) { this.order.orderNumber = existingOrder.orderNumber; this.showAlert(`Adding new items to Order #${this.order.orderNumber} for ${tableId}`, 'Existing Order'); } this.dineInBtn.disabled = true; this.takeAwayBtn.disabled = true; this.orderStatus.textContent = `Order #${this.order.orderNumber} for: ${this.order.table}`; if (type === 'Dine In') this.closeTablePopup(); }
         resetOrder() { this.initializeOrderScreen(); }
         showAlert(message, title = 'Notification') { this.modalTitle.textContent = title; this.modalMessage.textContent = message; this.modalOverlay.style.display = 'flex'; }
         hideAlert() { this.modalOverlay.style.display = 'none'; }
@@ -756,72 +221,15 @@
         closeTablePopup() { this.tablePopup.style.display = 'none'; }
         openSaveOrderPopup() { if (!this.order.items.length) return this.showAlert('Cannot save an empty order.', 'Error'); this.saveOrderName.value = ''; this.saveOrderPopup.style.display = 'flex'; }
         closeSaveOrderPopup() { this.saveOrderPopup.style.display = 'none'; }
-        handleSaveOrder() { const name = (this.saveOrderName.value || '').trim(); if (!name) return this.showAlert('Please enter a name.', 'Name Required'); StorageManager.saveHeldOrder({ name, items: this.order.items, orderType: this.order.orderType, table: this.order.table, discount: String(this.discountInput.value || '0'), serviceCharge: String(this.serviceChargeInput.value || '0'), discountType: this.discountTypeSelect.value, serviceChargeType: this.serviceChargeTypeSelect.value, timestamp: new Date().toISOString() }); this.closeSaveOrderPopup(); this.showAlert(`Order "${name}" saved.`, 'Success'); this.resetOrder(); }
-        
-        openRecallOrderPopup() {
-            const held = StorageManager.listHeldOrders();
-            this.recallTitle.innerText = 'Recall a Saved Order';
-            this.heldOrdersList.innerHTML = '';
-            if (!held.length) {
-                this.heldOrdersList.innerHTML = '<p class="text-slate-500 text-center p-4">No orders are on hold.</p>';
-            } else {
-                held.forEach((order, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center bg-slate-100 p-3 rounded-lg';
-                    div.innerHTML = `<span class="font-semibold text-slate-800">${order.name}</span><div class="flex gap-2"><button class="load-held bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" data-index="${index}">Load</button><button class="delete-held bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600" data-index="${index}">Delete</button></div>`;
-                    this.heldOrdersList.appendChild(div);
-                });
-            }
-            this.recallOrderPopup.style.display = 'flex';
-        }
+        handleSaveOrder() { const name = this.saveOrderName.value.trim(); if (!name) return this.showAlert('Please enter a name.', 'Name Required'); StorageManager.saveHeldOrder({ name, ...this.order, discount: this.discountInput.value, serviceCharge: this.serviceChargeInput.value, discountType: this.discountTypeSelect.value, serviceChargeType: this.serviceChargeTypeSelect.value, timestamp: new Date().toISOString() }); this.closeSaveOrderPopup(); this.showAlert(`Order "${name}" saved.`, 'Success'); this.resetOrder(); }
+        openRecallOrderPopup(type) { this.recallOrderPopup.style.display = 'flex'; if (type === 'saved') { this.recallTitle.innerText = 'Recall a Saved Order'; const held = StorageManager.listHeldOrders(); this.heldOrdersList.innerHTML = !held.length ? '<p class="text-slate-500 text-center p-4">No orders are on hold.</p>' : held.map((order, index) => `<div class="flex justify-between items-center bg-slate-100 p-3 rounded-lg"><span class="font-semibold text-slate-800">${order.name}</span><div class="flex gap-2"><button class="load-held bg-green-500 text-white px-3 py-1 rounded-md text-sm" data-index="${index}">Load</button><button class="delete-held bg-red-500 text-white px-3 py-1 rounded-md text-sm" data-index="${index}">Delete</button></div></div>`).join(''); } else if (type === 'placed') { this.recallTitle.innerText = 'Recall a Placed Order'; const placed = StorageManager.listPlacedOrders(); this.heldOrdersList.innerHTML = !placed.length ? '<p class="text-slate-500 text-center p-4">No orders have been placed.</p>' : placed.map(order => `<div class="flex justify-between items-center bg-slate-100 p-3 rounded-lg"><span class="font-semibold text-slate-800">${order.table} (Order #${order.orderNumber})</span><div class="flex gap-2"><button class="load-placed-order bg-green-500 text-white px-3 py-1 rounded-md text-sm" data-tableid="${order.table}">Load</button></div></div>`).join(''); } }
         closeRecallOrderPopup() { this.recallOrderPopup.style.display = 'none'; }
-        
-       handleRecallPopupClicks(e) {
-            // Check if a "Placed Order" load button was clicked
-            if (e.target.closest('.load-placed-order')) {
-                this.handlePlacedOrdersClick(e);
-                return; // Stop the function here
-            }
-
-            // --- Otherwise, handle the "Saved Order" buttons ---
-            const loadBtn = e.target.closest('.load-held');
-            const delBtn = e.target.closest('.delete-held');
-            if (loadBtn) {
-                const idx = parseInt(loadBtn.dataset.index);
-                const order = StorageManager.popHeldOrder(idx);
-                if (order) {
-                    this.order.items = order.items || [];
-                    this.order.orderType = order.orderType || null;
-                    this.order.table = order.table || null;
-                    this.discountInput.value = order.discount || 0;
-                    this.serviceChargeInput.value = order.serviceCharge || 0;
-                    if (order.discountType) this.discountTypeSelect.value = order.discountType;
-                    if (order.serviceChargeType) this.serviceChargeTypeSelect.value = order.serviceChargeType;
-                    if (this.order.orderType === 'Dine In') this.setOrderType('Dine In', this.order.table);
-                    else if (this.order.orderType === 'Take Away') this.setOrderType('Take Away');
-                    this.renderOrder();
-                    this.closeRecallOrderPopup();
-                }
-            } else if (delBtn) {
-                const idx = parseInt(delBtn.dataset.index);
-                if (confirm('Delete this saved order?')) {
-                    StorageManager.deleteHeldOrder(idx);
-                    this.openRecallOrderPopup();
-                }
-            }
-        }
+        handleRecallPopupClicks(e) { const loadPlacedBtn = e.target.closest('.load-placed-order'); if (loadPlacedBtn) { const tableId = loadPlacedBtn.dataset.tableid; const orderToLoad = StorageManager.getPlacedOrder(tableId); if (orderToLoad) { this.order.items = orderToLoad.items || []; this.order.orderType = orderToLoad.orderType || null; this.order.table = orderToLoad.table || null; this.order.orderNumber = orderToLoad.orderNumber || null; this.order.discount = orderToLoad.discount || { value: 0, type: 'manual' }; this.order.serviceCharge = orderToLoad.serviceCharge || { value: 0, type: 'manual' }; this.discountInput.value = this.order.discount.value; this.discountTypeSelect.value = this.order.discount.type; this.serviceChargeInput.value = this.order.serviceCharge.value; this.serviceChargeTypeSelect.value = this.order.serviceCharge.type; this.orderStatus.textContent = `Editing Order #${this.order.orderNumber} for: ${this.order.table}`; this.dineInBtn.disabled = true; this.takeAwayBtn.disabled = true; this.renderOrder(); this.closeRecallOrderPopup(); } return; } const loadHeldBtn = e.target.closest('.load-held'); const delHeldBtn = e.target.closest('.delete-held'); if (loadHeldBtn) { const idx = parseInt(loadHeldBtn.dataset.index); const order = StorageManager.popHeldOrder(idx); if (order) { this.order.items = order.items || []; this.order.orderType = order.orderType || null; this.order.table = order.table || null; this.order.orderNumber = order.orderNumber || null; this.discountInput.value = order.discount || 0; this.serviceChargeInput.value = order.serviceCharge || 0; if (order.discountType) this.discountTypeSelect.value = order.discountType; if (order.serviceChargeType) this.serviceChargeTypeSelect.value = order.serviceChargeType; this.setOrderType(this.order.orderType, this.order.table); this.renderOrder(); this.closeRecallOrderPopup(); } } else if (delHeldBtn) { const idx = parseInt(delHeldBtn.dataset.index); if (confirm('Delete this saved order?')) { StorageManager.deleteHeldOrder(idx); this.openRecallOrderPopup('saved'); } } }
+        handleOrderItemsClick(e) { const qtyBtn = e.target.closest('.qty-btn'); const removeBtn = e.target.closest('.remove-btn'); if (qtyBtn) { const id = qtyBtn.dataset.id; const action = qtyBtn.dataset.action; this.order.updateQty(id, action === 'increment' ? 1 : -1); this.renderOrder(); } else if (removeBtn) { const id = removeBtn.dataset.id; this.order.removeItem(id); this.renderOrder(); } }
     }
 
-    class App {
-        constructor() {
-            const systemSettings = StorageManager.getSystemSettings();
-            this.orderManager = new OrderManager(systemSettings.tax);
-            this.ui = new UIManager(this.orderManager, systemSettings);
-        }
-    }
-    document.addEventListener("DOMContentLoaded", () => {
-        new App();
-    });
+    class App { constructor() { const systemSettings = StorageManager.getSystemSettings(); this.orderManager = new OrderManager(systemSettings.tax); this.ui = new UIManager(this.orderManager, systemSettings); } }
+    document.addEventListener("DOMContentLoaded", () => { new App(); });
 </script>
 </body>
 </html>
