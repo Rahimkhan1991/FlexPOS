@@ -2,66 +2,103 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sales Reports</title>
+
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Icons & Fonts -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- jsPDF + AutoTable -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
+
   <style>
+    :root { color-scheme: light; }
     body { font-family: 'Inter', sans-serif; }
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+    .animate-fade-in { animation: fade-in 180ms ease-out both; }
+    @keyframes fade-in { from {opacity: 0; transform: translateY(4px);} to {opacity: 1; transform: translateY(0);} }
   </style>
 </head>
-<body class="bg-slate-100">
+<body class="bg-slate-50 text-slate-800">
 
 <!-- Header -->
-<header class="bg-white shadow-sm border-b border-slate-200">
+<header class="bg-white border-b border-slate-200 sticky top-0 z-10">
   <div class="max-w-6xl mx-auto py-4 px-4 flex justify-between items-center">
-    <h1 class="text-xl font-bold text-slate-800">Sales Reports</h1>
-    <button onclick="window.location.href='dashboard.html'" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 px-4 rounded">
-      <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-indigo-600 grid place-items-center text-white">
+        <i class="fa-solid fa-chart-line"></i>
+      </div>
+      <div>
+        <h1 class="text-xl md:text-2xl font-bold">Sales Reports</h1>
+        <p id="activeRange" class="text-xs md:text-sm text-slate-500">All Dates</p>
+      </div>
+    </div>
+    <button id="backBtn" class="bg-indigo-600 hover:bg-indigo-700 transition text-white text-sm font-medium py-2 px-4 rounded flex items-center gap-2">
+      <i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back to Dashboard</span>
     </button>
   </div>
 </header>
 
-<main class="max-w-6xl mx-auto py-6 px-4">
+<main class="max-w-6xl mx-auto py-6 px-4 space-y-6">
 
   <!-- Filters + Export -->
-  <div class="bg-white p-4 rounded-lg shadow-sm flex flex-wrap gap-4 mb-6 items-end border border-slate-200">
-    <div>
-      <label class="text-sm text-slate-600">Start Date</label>
-      <input type="date" id="startDate" class="border rounded px-2 py-1 text-sm">
-    </div>
-    <div>
-      <label class="text-sm text-slate-600">End Date</label>
-      <input type="date" id="endDate" class="border rounded px-2 py-1 text-sm">
-    </div>
-    <button id="filterBtn" class="bg-indigo-600 text-white px-4 rounded h-9 text-sm">Filter</button>
-    <button id="resetFilterBtn" class="bg-gray-400 text-white px-4 rounded h-9 text-sm">Reset</button>
+  <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+    <div class="flex flex-wrap gap-4 items-end">
+      <div>
+        <label class="block text-xs text-slate-500 mb-1">Start Date</label>
+        <input type="date" id="startDate" class="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-200 focus:outline-none">
+      </div>
+      <div>
+        <label class="block text-xs text-slate-500 mb-1">End Date</label>
+        <input type="date" id="endDate" class="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-200 focus:outline-none">
+      </div>
+      <button id="filterBtn" class="bg-indigo-600 hover:bg-indigo-700 transition text-white px-4 rounded-lg h-10 text-sm flex items-center gap-2">
+        <i class="fas fa-filter"></i> Filter
+      </button>
+      <button id="resetFilterBtn" class="bg-slate-200 hover:bg-slate-300 transition text-slate-800 px-4 rounded-lg h-10 text-sm flex items-center gap-2">
+        <i class="fas fa-rotate-left"></i> Reset
+      </button>
 
-    <div class="ml-auto flex gap-2">
-      <button id="exportCsvBtn" class="bg-green-600 text-white px-3 rounded h-9 text-sm"><i class="fas fa-file-csv mr-1"></i> CSV</button>
-      <button id="exportPdfBtn" class="bg-red-600 text-white px-3 rounded h-9 text-sm"><i class="fas fa-file-pdf mr-1"></i> PDF</button>
+      <div class="ml-auto flex gap-2">
+        <button id="exportCsvBtn" class="bg-emerald-600 hover:bg-emerald-700 transition text-white px-3 rounded-lg h-10 text-sm flex items-center gap-2">
+          <i class="fas fa-file-csv"></i> CSV
+        </button>
+        <button id="previewPdfBtn" class="bg-sky-600 hover:bg-sky-700 transition text-white px-3 rounded-lg h-10 text-sm flex items-center gap-2">
+          <i class="fas fa-magnifying-glass"></i> Preview PDF
+        </button>
+        <button id="exportPdfBtn" class="bg-rose-600 hover:bg-rose-700 transition text-white px-3 rounded-lg h-10 text-sm flex items-center gap-2">
+          <i class="fas fa-file-pdf"></i> Export PDF
+        </button>
+      </div>
     </div>
-  </div>
+  </section>
 
   <!-- Summary Cards -->
-  <div id="summaryCards" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"></div>
+  <section id="summaryCards" class="grid grid-cols-1 md:grid-cols-3 gap-4"></section>
 
   <!-- Top Items -->
-  <div id="topItems" class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 mb-8">
-    <h3 class="font-semibold text-slate-800 mb-2">Top Selling Items</h3>
+  <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+    <h3 class="font-semibold mb-3 flex items-center gap-2">
+      <i class="fas fa-star text-yellow-500"></i> Top Selling Items
+    </h3>
     <ul id="topItemsList" class="text-slate-700 text-sm list-disc pl-5"></ul>
-  </div>
+  </section>
 
   <!-- Bill History -->
-  <div id="billHistory" class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-    <div class="p-4 border-b border-slate-200">
-      <h2 class="text-lg font-semibold text-slate-800">Bill History</h2>
+  <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="p-4 border-b border-slate-200 flex flex-wrap items-center gap-3 justify-between">
+      <h2 class="text-lg font-semibold flex items-center gap-2">
+        <i class="fas fa-receipt text-indigo-500"></i> Bill History
+      </h2>
+      <div id="historyInfo" class="text-xs text-slate-500"></div>
     </div>
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto custom-scrollbar">
       <table class="min-w-full divide-y divide-slate-200 text-sm">
         <thead class="bg-slate-50 text-slate-600">
           <tr>
@@ -75,24 +112,48 @@
         <tbody id="historyTableBody" class="bg-white divide-y divide-slate-100"></tbody>
       </table>
     </div>
-  </div>
-
+  </section>
 </main>
 
-<!-- Bill Details Popup -->
-<div id="billDetailPopup" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden items-center justify-center z-20">
-  <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-    <div class="mb-4 border-b pb-3">
-      <h2 class="text-lg font-semibold text-slate-800">Invoice Details</h2>
-      <p id="billDetailOrderId" class="text-sm text-slate-500"></p>
-    </div>
-    <div id="billDetailContent" class="text-sm text-slate-700 max-h-96 overflow-y-auto custom-scrollbar"></div>
-    <div class="flex justify-between gap-4 mt-6 pt-4 border-t">
-      <button id="closePopupBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 text-sm font-medium py-2 px-4 rounded w-full">Close</button>
-      <button id="reprintBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded w-full">
-        <i class="fas fa-print mr-2"></i>Reprint
+<!-- Bill Details Modal -->
+<div id="billDetailPopup" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center z-20" aria-hidden="true">
+  <div role="dialog" aria-modal="true" aria-labelledby="billDetailTitle" class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md animate-fade-in outline-none">
+    <div class="mb-4 border-b pb-3 flex justify-between items-center">
+      <div>
+        <h2 id="billDetailTitle" class="text-lg font-semibold">Invoice Details</h2>
+        <p id="billDetailOrderId" class="text-sm text-slate-500"></p>
+      </div>
+      <button id="closePopupBtn" class="text-slate-500 hover:text-slate-700 rounded p-2" aria-label="Close">
+        <i class="fas fa-times text-lg"></i>
       </button>
     </div>
+    <div id="billDetailContent" class="text-sm text-slate-700 max-h-96 overflow-y-auto custom-scrollbar"></div>
+    <div class="flex gap-4 mt-6 pt-4 border-t">
+      <button id="reprintBtn" class="bg-blue-600 hover:bg-blue-700 transition text-white text-sm font-medium py-2 px-4 rounded w-full">
+        <i class="fas fa-print mr-2"></i> Reprint
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PDF Preview Modal -->
+<div id="pdfPreviewModal" class="fixed inset-0 bg-slate-900/70 hidden items-center justify-center z-30">
+  <div class="bg-white rounded-xl shadow-2xl w-[95vw] h-[90vh] max-w-5xl flex flex-col overflow-hidden">
+    <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-file-pdf text-rose-600"></i>
+        <span class="font-semibold">PDF Preview</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="downloadFromPreviewBtn" class="bg-rose-600 hover:bg-rose-700 text-white text-sm px-3 py-1.5 rounded">
+          <i class="fa-solid fa-download mr-1"></i> Download
+        </button>
+        <button id="closePreviewBtn" class="text-slate-600 hover:text-slate-800 text-sm px-3 py-1.5 rounded border border-slate-300">
+          Close
+        </button>
+      </div>
+    </div>
+    <iframe id="pdfFrame" class="flex-1 w-full" title="PDF Preview"></iframe>
   </div>
 </div>
 
@@ -108,32 +169,53 @@ document.addEventListener('DOMContentLoaded', () => {
   const billDetailContent = document.getElementById('billDetailContent');
   const billDetailOrderId = document.getElementById('billDetailOrderId');
   const reprintBtn = document.getElementById('reprintBtn');
-  const closePopupBtn = document.getElementById('closePopupBtn');
+  const historyInfo = document.getElementById('historyInfo');
+  const activeRange = document.getElementById('activeRange');
 
-  const formatCurrency = amt => new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR'}).format(amt);
-  const formatDateTime = iso => new Date(iso).toLocaleString();
+  const pdfPreviewModal = document.getElementById('pdfPreviewModal');
+  const pdfFrame = document.getElementById('pdfFrame');
+  const downloadFromPreviewBtn = document.getElementById('downloadFromPreviewBtn');
+
+  const fmtCurrency = amt => new Intl.NumberFormat('en-IN', { style:'currency', currency:'INR' }).format(amt || 0);
+  const fmtDateTime = iso => new Date(iso).toLocaleString();
+  const fmtDate = iso => new Date(iso).toLocaleDateString();
+
+  // Business info for PDF branding (optional)
+  const businessInfo = JSON.parse(localStorage.getItem('businessInfo') || '{}');
+  const businessName = businessInfo.name || 'Your Store';
+  const businessAddress = businessInfo.address || 'Address line';
+  const businessPhone = businessInfo.phone || '';
+
+  // Navigation
+  document.getElementById("backBtn").addEventListener("click", () => {
+    window.location.href = "dashboard.html";
+  });
 
   // --- Filter ---
   document.getElementById('filterBtn').addEventListener('click', () => {
     const startInput = document.getElementById('startDate').value;
     const endInput = document.getElementById('endDate').value;
 
-    if (!startInput) {
-      alert("Please select a date");
+    if (!startInput && !endInput) {
+      alert("Please select at least one date");
       return;
     }
 
-    const startDate = new Date(startInput);
-    const endDate = endInput ? new Date(endInput) : new Date(startInput);
+    const startDate = startInput ? new Date(startInput) : new Date("2000-01-01");
+    const endDate = endInput ? new Date(endInput) : new Date();
 
     startDate.setHours(0,0,0,0);
     endDate.setHours(23,59,59,999);
 
     filteredSales = sales.filter(sale => {
-      const saleDate = new Date(sale.date);
-      return saleDate >= startDate && saleDate <= endDate;
+      const d = new Date(sale.date);
+      return d >= startDate && d <= endDate;
     });
 
+    const rangeLabel = startInput && endInput ? `${startInput} → ${endInput}` :
+                        startInput ? `${startInput} → Today` :
+                        `Up to ${endInput}`;
+    activeRange.textContent = filteredSales.length ? rangeLabel : 'No results in selected range';
     renderDashboard();
   });
 
@@ -142,6 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('startDate').value = '';
     document.getElementById('endDate').value = '';
     filteredSales = [...sales];
+    activeRange.textContent = 'All Dates';
     renderDashboard();
   });
 
@@ -149,69 +232,156 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('exportCsvBtn').addEventListener('click', () => {
     let csv = "Order ID,Date,Type,Payment,Total\n";
     filteredSales.forEach(s => {
-      csv += `${s.orderId},${formatDateTime(s.date)},${s.orderType},${s.paymentMethod},${s.total}\n`;
+      csv += `${s.orderId},${fmtDateTime(s.date)},${s.orderType || ''},${s.paymentMethod || ''},${s.total}\n`;
     });
     const blob = new Blob([csv], {type:'text/csv'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'sales-report.csv'; a.click();
+    URL.revokeObjectURL(url);
   });
 
-  // --- Export PDF ---
-  document.getElementById('exportPdfBtn').addEventListener('click', () => {
+  // --- Build PDF (returns jsPDF instance) ---
+  function buildPdf() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF("p", "mm", "a4");
+    const pageW = doc.internal.pageSize.getWidth();
+    // Theme
+    const primary = [63, 81, 181];      // Indigo
+    const primaryDark = [48, 63, 159];
+    const gray = [90, 104, 123];
 
-    doc.setFontSize(16);
-    doc.text("Sales Report", 105, 20, { align: "center" });
+    // Header bar
+    doc.setFillColor(...primary);
+    doc.rect(0, 0, pageW, 22, "F");
 
+    // Brand area (logo placeholder + name)
+    // Circular logo placeholder
+    doc.setFillColor(255,255,255);
+    doc.circle(15, 11, 6, "F");
+    doc.setTextColor(...primary);
+    doc.setFontSize(10);
+    doc.text("SR", 15, 11, {align:"center", baseline:"middle"});
+
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(14);
+    doc.text(businessName, 28, 9);
+    doc.setFontSize(9);
+    doc.text([businessAddress, businessPhone].filter(Boolean).join(" • "), 28, 15);
+
+    // Report title + date range
     const startInput = document.getElementById('startDate').value;
     const endInput = document.getElementById('endDate').value;
-    let rangeText = "All Dates";
-    if (startInput) {
-      rangeText = endInput ? `${startInput} to ${endInput}` : startInput;
-    }
-    doc.setFontSize(11);
-    doc.text(`Date Range: ${rangeText}`, 105, 28, { align: "center" });
+    const rangeText = startInput || endInput
+      ? `${startInput || '—'} to ${endInput || 'Today'}`
+      : "All Dates";
 
-    let y = 40;
-    doc.setFontSize(12);
-    doc.text("Invoice", 14, y);
-    doc.text("Date", 50, y);
-    doc.text("Type", 100, y);
-    doc.text("Payment", 140, y);
-    doc.text("Total", 195, y, { align: "right" });
+    doc.setTextColor(...gray);
+    doc.setFontSize(18);
+    doc.text("Sales Report", pageW - 14, 10, { align: "right" });
+    doc.setFontSize(10);
+    doc.text(`Date Range: ${rangeText}`, pageW - 14, 16, { align: "right" });
 
-    doc.line(14, y+2, 200, y+2);
-    y += 10;
+    // Table
+    const tableData = filteredSales.map(s => [
+      String(s.orderId ?? ''),
+      fmtDateTime(s.date),
+      s.orderType || "N/A",
+      s.paymentMethod || "N/A",
+      fmtCurrency(s.total)
+    ]);
 
-    filteredSales.forEach(s => {
-      doc.setFontSize(10);
-      doc.text(s.orderId.toString(), 14, y);
-      doc.text(formatDateTime(s.date), 50, y);
-      doc.text(s.orderType || "N/A", 100, y);
-      doc.text(s.paymentMethod || "N/A", 140, y);
-      doc.text(formatCurrency(s.total), 195, y, { align: "right" });
-      y += 7;
-      if (y > 270) { doc.addPage(); y = 20; }
+    doc.autoTable({
+      head: [["Order ID", "Date/Time", "Type", "Payment", "Total"]],
+      body: tableData,
+      startY: 28,
+      styles: { fontSize: 9, cellPadding: 2 },
+      headStyles: { fillColor: primaryDark, halign: 'left' },
+      bodyStyles: { fillColor: [255,255,255] },
+      alternateRowStyles: { fillColor: [245,247,250] },
+      columnStyles: {
+        0: { cellWidth: 28 },
+        1: { cellWidth: 56 },
+        2: { cellWidth: 25 },
+        3: { cellWidth: 28 },
+        4: { cellWidth: 28, halign: 'right' }
+      },
+      didDrawPage: (data) => {
+        // Footer with page numbers
+        const page = doc.internal.getNumberOfPages();
+        const pageText = `Page ${page}`;
+        doc.setFontSize(9);
+        doc.setTextColor(...gray);
+        doc.text(pageText, pageW - 14, 290, { align: "right" });
+        doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 290);
+      }
     });
 
-    const totalRevenue = filteredSales.reduce((sum, s) => sum + s.total, 0);
-    const totalOrders = filteredSales.length;
-    const avgOrder = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    // Summary panel
+    const lastY = doc.lastAutoTable.finalY || 28;
+    const rev = filteredSales.reduce((s, x) => s + (x.total || 0), 0);
+    const orders = filteredSales.length;
+    const profit = filteredSales.reduce((p, s) => {
+      const items = Array.isArray(s.items) ? s.items : [];
+      const cost = items.reduce((c,i)=> c + ((i.purchase || 0) * (i.qty || 0)), 0);
+      return p + ((s.total || 0) - cost);
+    }, 0);
+    const avg = orders ? rev / orders : 0;
 
-    y += 15;
-    if (y > 250) { doc.addPage(); y = 20; }
+    const boxTop = Math.min(lastY + 8, 250);
+    const boxLeft = 14, boxW = pageW - 28, boxH = 40;
 
-    doc.setFontSize(13);
-    doc.text("Summary", 14, y);
-    y += 8;
-    doc.setFontSize(11);
-    doc.text(`Total Orders: ${totalOrders}`, 14, y);
-    y += 6;
-    doc.text(`Total Revenue: ${formatCurrency(totalRevenue)}`, 14, y);
-    y += 6;
-    doc.text(`Average Order Value: ${formatCurrency(avgOrder)}`, 14, y);
+    // Card background
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(boxLeft, boxTop, boxW, boxH, 3, 3, "F");
+    doc.setDrawColor(...primary);
+    doc.roundedRect(boxLeft, boxTop, boxW, boxH, 3, 3);
 
+    // Title
+    doc.setFontSize(12);
+    doc.setTextColor(...primaryDark);
+    doc.text("Summary", boxLeft + 4, boxTop + 7);
+
+    // Content rows
+    doc.setFontSize(10);
+    doc.setTextColor(0,0,0);
+    const rowY1 = boxTop + 16;
+    const rowY2 = boxTop + 26;
+    const rowY3 = boxTop + 36;
+
+    doc.text(`Total Orders: ${orders}`, boxLeft + 6, rowY1);
+    doc.text(`Total Revenue: ${fmtCurrency(rev)}`, boxLeft + 6 + 60, rowY1);
+    doc.text(`Average Order: ${fmtCurrency(avg)}`, boxLeft + 6 + 140, rowY1);
+
+    doc.text(`Estimated Profit: ${fmtCurrency(profit)}`, boxLeft + 6, rowY2);
+
+    // Notes
+    doc.setTextColor(...gray);
+    doc.text("Notes: Figures are based on current filtered records.", boxLeft + 6, rowY3);
+
+    return doc;
+  }
+
+  // --- PDF Preview ---
+  let lastBlobUrl = null;
+  document.getElementById('previewPdfBtn').addEventListener('click', () => {
+    const doc = buildPdf();
+    const blob = doc.output('blob');
+    if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
+    const url = URL.createObjectURL(blob);
+    lastBlobUrl = url;
+    pdfFrame.src = url;
+    pdfPreviewModal.classList.remove('hidden');
+    pdfPreviewModal.classList.add('flex');
+  });
+
+  // --- Export PDF (download) ---
+  document.getElementById('exportPdfBtn').addEventListener('click', () => {
+    const doc = buildPdf();
+    doc.save("sales-report.pdf");
+  });
+
+  downloadFromPreviewBtn.addEventListener('click', () => {
+    const doc = buildPdf();
     doc.save("sales-report.pdf");
   });
 
@@ -223,43 +393,65 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderSummary() {
-    const revenue = filteredSales.reduce((s, x) => s + x.total, 0);
+    const revenue = filteredSales.reduce((s, x) => s + (x.total || 0), 0);
     const orders = filteredSales.length;
     const profit = filteredSales.reduce((p, s) => {
-      const cost = s.items.reduce((c,i)=>c+(i.purchase||0)*i.qty,0);
-      return p + (s.total - cost);
-    },0);
+      const items = Array.isArray(s.items) ? s.items : [];
+      const cost = items.reduce((c,i)=> c + ((i.purchase || 0) * (i.qty || 0)), 0);
+      return p + ((s.total || 0) - cost);
+    }, 0);
 
     summaryCardsContainer.innerHTML = `
-      <div class="bg-white p-4 rounded-lg border border-slate-200">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow transition">
         <p class="text-xs text-slate-500">Revenue</p>
-        <p class="text-xl font-semibold">${formatCurrency(revenue)}</p>
+        <div class="mt-1 flex items-baseline gap-2">
+          <p class="text-2xl font-semibold text-indigo-600">${fmtCurrency(revenue)}</p>
+          <span class="text-xs text-slate-400">sum of totals</span>
+        </div>
       </div>
-      <div class="bg-white p-4 rounded-lg border border-slate-200">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow transition">
         <p class="text-xs text-slate-500">Profit</p>
-        <p class="text-xl font-semibold">${formatCurrency(profit)}</p>
+        <div class="mt-1 flex items-baseline gap-2">
+          <p class="text-2xl font-semibold text-emerald-600">${fmtCurrency(profit)}</p>
+          <span class="text-xs text-slate-400">est.</span>
+        </div>
       </div>
-      <div class="bg-white p-4 rounded-lg border border-slate-200">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow transition">
         <p class="text-xs text-slate-500">Orders</p>
-        <p class="text-xl font-semibold">${orders}</p>
+        <div class="mt-1">
+          <p class="text-2xl font-semibold text-blue-600">${orders}</p>
+        </div>
       </div>`;
   }
 
   function renderHistory() {
     tableBody.innerHTML = '';
+    historyInfo.textContent = filteredSales.length
+      ? `Showing ${filteredSales.length} record(s)`
+      : '';
+
     if (filteredSales.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-slate-500">No records found.</td></tr>`;
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center py-12 text-slate-500">
+            <div class="flex flex-col items-center gap-2">
+              <i class="fas fa-box-open text-3xl"></i>
+              <p>No records found for the selected range.</p>
+            </div>
+          </td>
+        </tr>`;
       return;
     }
+
     filteredSales.slice().reverse().forEach(s => {
       const row = document.createElement('tr');
-      row.className = 'hover:bg-slate-50 cursor-pointer';
+      row.className = 'hover:bg-slate-50 cursor-pointer transition';
       row.innerHTML = `
-        <td class="px-6 py-3">${s.orderId}</td>
-        <td class="px-6 py-3">${formatDateTime(s.date)}</td>
+        <td class="px-6 py-3">${s.orderId ?? ''}</td>
+        <td class="px-6 py-3">${fmtDateTime(s.date)}</td>
         <td class="px-6 py-3">${s.orderType || ''}</td>
-        <td class="px-6 py-3">${s.paymentMethod}</td>
-        <td class="px-6 py-3 text-right font-semibold">${formatCurrency(s.total)}</td>`;
+        <td class="px-6 py-3">${s.paymentMethod || ''}</td>
+        <td class="px-6 py-3 text-right font-semibold">${fmtCurrency(s.total)}</td>`;
       row.addEventListener('click', () => showBillDetails(s));
       tableBody.appendChild(row);
     });
@@ -267,46 +459,86 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderTopItems() {
     const counts = {};
-    filteredSales.forEach(s => s.items.forEach(i => counts[i.name] = (counts[i.name]||0)+i.qty));
+    filteredSales.forEach(s => (Array.isArray(s.items) ? s.items : []).forEach(i => {
+      const key = i.name || 'Unnamed';
+      counts[key] = (counts[key] || 0) + (i.qty || 0);
+    }));
     const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    topItemsList.innerHTML = sorted.map(([name,qty])=>`<li>${name} (${qty} sold)</li>`).join('');
+    topItemsList.innerHTML = sorted.length
+      ? sorted.map(([name,qty])=>`<li>${name} <span class="text-slate-500">(${qty} sold)</span></li>`).join('')
+      : `<p class="text-slate-500">No data available.</p>`;
   }
 
   // --- Bill Details ---
   function showBillDetails(sale) {
     billDetailOrderId.textContent = `Order ID: ${sale.orderId}`;
-    let itemsHtml = sale.items.map(i => `
+    const items = Array.isArray(sale.items) ? sale.items : [];
+    let itemsHtml = items.map(i => `
       <div class="flex justify-between py-1">
-        <span>${i.name} (x${i.qty})</span>
-        <span>${formatCurrency(i.sales * i.qty)}</span>
+        <span>${i.name || 'Item'} <span class="text-slate-400">(x${i.qty || 0})</span></span>
+        <span>${fmtCurrency((i.sales || 0) * (i.qty || 0))}</span>
       </div>`).join('');
     billDetailContent.innerHTML = `
-      <div class="font-medium mb-2">Items</div>${itemsHtml}
+      <div class="grid grid-cols-2 gap-2 mb-3 text-slate-600">
+        <div><span class="text-xs">Date</span><div class="font-medium">${fmtDate(sale.date)}</div></div>
+        <div><span class="text-xs">Time</span><div class="font-medium">${new Date(sale.date).toLocaleTimeString()}</div></div>
+      </div>
+      <div class="font-medium mb-2">Items</div>
+      ${itemsHtml || '<p class="text-slate-500">No items</p>'}
       <div class="border-t pt-2 mt-2">
-        <div class="flex justify-between"><span>Subtotal:</span><span>${formatCurrency(sale.subtotal)}</span></div>
-        <div class="flex justify-between"><span>Discount:</span><span>- ${formatCurrency(sale.discount)}</span></div>
-        <div class="flex justify-between"><span>Tax:</span><span>${formatCurrency(sale.tax)}</span></div>
-        <div class="flex justify-between font-semibold text-base mt-1"><span>Total:</span><span>${formatCurrency(sale.total)}</span></div>
+        <div class="flex justify-between"><span>Subtotal:</span><span>${fmtCurrency(sale.subtotal || 0)}</span></div>
+        <div class="flex justify-between"><span>Discount:</span><span>- ${fmtCurrency(sale.discount || 0)}</span></div>
+        <div class="flex justify-between"><span>Tax:</span><span>${fmtCurrency(sale.tax || 0)}</span></div>
+        <div class="flex justify-between font-semibold text-base mt-1"><span>Total:</span><span>${fmtCurrency(sale.total || 0)}</span></div>
       </div>`;
-    reprintBtn.dataset.saleData = JSON.stringify(sale);
-    billDetailPopup.style.display = 'flex';
+    reprintBtn.dataset.saleId = sale.orderId;
+    // cache sale for reprint by id
+    sessionStorage.setItem(`sale:${sale.orderId}`, JSON.stringify(sale));
+    billDetailPopup.classList.remove('hidden');
+    billDetailPopup.classList.add('flex');
   }
 
-  function handleReprint() {
-    const sale = JSON.parse(reprintBtn.dataset.saleData || "{}");
+  function closeBillModal() {
+    billDetailPopup.classList.add('hidden');
+    billDetailPopup.classList.remove('flex');
+  }
+  document.getElementById('closePopupBtn').addEventListener('click', closeBillModal);
+  billDetailPopup.addEventListener('click', (e) => {
+    if (e.target === billDetailPopup) closeBillModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (!billDetailPopup.classList.contains('hidden') && e.key === 'Escape') closeBillModal();
+    if (!pdfPreviewModal.classList.contains('hidden') && e.key === 'Escape') closePreview();
+  });
+
+  // Reprint
+  reprintBtn.addEventListener('click', () => {
+    const saleId = reprintBtn.dataset.saleId;
+    const sale = JSON.parse(sessionStorage.getItem(`sale:${saleId}`) || "{}");
     if (!sale.orderId) return;
-    const printData = {...sale, date: new Date(sale.date).toLocaleDateString(), time: new Date(sale.date).toLocaleTimeString()};
+    const printData = {
+      ...sale,
+      date: new Date(sale.date).toLocaleDateString(),
+      time: new Date(sale.date).toLocaleTimeString()
+    };
     localStorage.setItem('currentPrintOrder', JSON.stringify(printData));
     const printerSize = localStorage.getItem('printerSize') || '80';
     window.open(printerSize === '80' ? 'receipt-80mm.html' : 'receipt-57mm.html', '_blank');
+  });
+
+  // PDF preview modal controls
+  function closePreview() {
+    pdfPreviewModal.classList.add('hidden');
+    pdfPreviewModal.classList.remove('flex');
   }
+  document.getElementById('closePreviewBtn').addEventListener('click', closePreview);
+  pdfPreviewModal.addEventListener('click', (e) => {
+    if (e.target === pdfPreviewModal) closePreview();
+  });
 
-  closePopupBtn.addEventListener('click', () => billDetailPopup.style.display = 'none');
-  reprintBtn.addEventListener('click', handleReprint);
-
+  // Initial render
   renderDashboard();
 });
 </script>
-
 </body>
 </html>
