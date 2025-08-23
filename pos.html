@@ -279,7 +279,7 @@
         static setCurrentPrintOrder(orderData) { this.setJSON('currentPrintOrder', orderData); }
     }
 
-    class OrderManager {
+  class OrderManager {
         constructor(taxRate = 5) {
             this.taxRate = parseFloat(taxRate) / 100 || 0;
             this.items = [];
@@ -288,36 +288,22 @@
             this.paymentMethod = 'Cash';
             this.orderType = null;
             this.table = null;
-            this.orderNumber = null; // <-- ADD THIS
+            this.orderNumber = null;
             this.takeAwayOrderNumber = StorageManager.getTakeAwayNumber();
         }
 
         setOrderType(type, details = null) {
-            const tableId = (type === 'Take Away') ? `TA-${StorageManager.getTakeAwayNumber()}` : details;
-            const existingOrder = StorageManager.getPlacedOrder(tableId);
-
-            // Start with a fresh, empty order object for the UI
-            this.order.clear(); 
-            this.initializeOrderScreen();
-
-            // Set the order type and get a number
-            this.order.setOrderType(type, details);
-            
-            if (existingOrder) {
-                // If an order for this table is already open,
-                // we keep its order number for consistency.
-                this.order.orderNumber = existingOrder.orderNumber;
-                this.showAlert(`Adding new items to Order #${this.order.orderNumber} for ${tableId}`, 'Existing Order');
+            // Assign a number only if it's a brand new order
+            if (!this.orderNumber) {
+                this.orderNumber = StorageManager.getNextOrderNumber();
             }
             
-            this.dineInBtn.disabled = true;
-            this.takeAwayBtn.disabled = true;
-            if (this.order.orderType === 'Dine In') {
-                this.orderStatus.textContent = `Order #${this.order.orderNumber} for: Table ${this.order.table}`;
-                this.closeTablePopup();
-            } else {
-                const taLabel = this.order.table.replace('TA-', '');
-                this.orderStatus.textContent = `Order #${this.order.orderNumber} for: Take Away #${taLabel}`;
+            this.orderType = type;
+            if (type === 'Dine In') {
+                this.table = details;
+            } else if (type === 'Take Away') {
+                this.table = `TA-${this.takeAwayOrderNumber}`;
+                this.takeAwayOrderNumber = StorageManager.incrementTakeAwayNumber();
             }
         }
 
@@ -346,6 +332,7 @@
             this.paymentMethod = 'Cash';
             this.orderType = null;
             this.table = null;
+            this.orderNumber = null; // Also clear the order number
         }
 
         _calcFromType(base, { value, type }) {
@@ -366,6 +353,7 @@
         toSaleRecord(subtotal, discount, serviceCharge, tax, total) {
             return {
                 orderId: Date.now(),
+                orderNumber: this.orderNumber,
                 date: new Date().toISOString(),
                 items: this.items,
                 subtotal, discount, serviceCharge, tax, total,
@@ -377,9 +365,16 @@
 
         toPrintOrder(totals) {
             return {
-                // ... (other properties like items, subtotal, etc.)
+                items: this.items,
+                subtotal: totals.subtotal,
+                discount: this.discount.value,
+                serviceCharge: this.serviceCharge.value,
+                tax: totals.tax,
+                total: totals.total,
+                paymentMethod: this.paymentMethod,
+                orderType: this.orderType,
                 table: this.table,
-                orderNumber: this.orderNumber, // <-- ADD THIS
+                orderNumber: this.orderNumber,
                 date: new Date().toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta" }),
                 time: new Date().toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta" }),
                 orderId: Date.now()
